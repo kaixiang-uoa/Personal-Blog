@@ -33,7 +33,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-gray-800 to-gray-700 text-white py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl font-extrabold sm:text-5xl md:text-6xl">Welcome to My Personal Blog</h1>
+          <h1 className="text-4xl font-extrabold sm:text-5xl md:text-6xl">Welcome to My Blog</h1>
           <p className="mt-3 text-xl sm:mt-4">
             Dive into my thoughts, experiences, and insights on technology and life.
           </p>

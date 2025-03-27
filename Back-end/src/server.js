@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const postRouter = require('./routers/postRouters');
 
 
 // loading .env configuration.
@@ -15,6 +16,9 @@ app.use(express.json());
 app.get('/',(req,res) =>{
     res.send('Back-end is running');
 })
+
+app.use('/api/posts',postRouter);
+
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT,()=>{

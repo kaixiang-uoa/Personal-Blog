@@ -71,10 +71,6 @@ exports.getPostById = asyncHandler(async (req,res) => {
  * @route   PUT /api/posts/:id
  */
 exports.updatePost = asyncHandler(async (req,res) =>{
-    console.log('🛠️ Update Post Called');
-    console.log('🆔 ID from req.params:', req.params.id);
-    console.log('📝 Body:', req.body);
-
 
     if (!req.body || Object.keys(req.body).length === 0) {
         return res.status(400).json({ message: 'Request body is empty' });

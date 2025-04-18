@@ -1,21 +1,9 @@
 import * as React from "react"
-import {
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  LifeBuoy,
-  Map,
-  PieChart,
-  Send,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react"
-
 import { NavMain } from "./nav-main"
 import { NavProjects } from "./nav-projects"
 import { NavSecondary } from "./nav-secondary"
 import { NavUser } from "./nav-user"
+import { NavLink } from "react-router"
 import {
   Sidebar,
   SidebarContent,
@@ -26,126 +14,125 @@ import {
   SidebarMenuItem,
 } from "./ui/sidebar"
 
+import {
+  LayoutDashboard,
+  FileText,
+  ImageIcon,
+  Settings2 as SettingsIcon,
+  MessageSquare,
+  Users,
+  Code,
+  HelpCircle,
+  BookOpen,
+  Command
+} from "lucide-react";
+
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Admin User",
+    email: "admin@example.com",
+    avatar: "/avatars/admin.jpg",
   },
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
+      title: "Dashboard",
+      url: "/",
+      icon: LayoutDashboard,
+      items: [],
+    },
+    {
+      title: "Content Management",
+      url: "/content",
+      icon: FileText,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "All Posts",
+          url: "/content",
         },
         {
-          title: "Starred",
-          url: "#",
+          title: "Categories & Tags",
+          url: "/content/categories",
         },
         {
-          title: "Settings",
-          url: "#",
+          title: "Pages",
+          url: "/content/pages",
         },
       ],
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
+      title: "Media Management",
+      url: "/media",
+      icon: ImageIcon,
       items: [
         {
-          title: "Genesis",
-          url: "#",
+          title: "All Media",
+          url: "/media",
         },
         {
-          title: "Explorer",
-          url: "#",
+          title: "Images",
+          url: "/media/images",
         },
         {
-          title: "Quantum",
-          url: "#",
+          title: "Videos",
+          url: "/media/videos",
+        },
+        {
+          title: "Documents",
+          url: "/media/documents",
         },
       ],
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
+      title: "System Settings",
+      url: "/settings",
+      icon: SettingsIcon,
       items: [
         {
           title: "General",
-          url: "#",
+          url: "/settings",
         },
         {
-          title: "Team",
-          url: "#",
+          title: "Appearance",
+          url: "/settings/appearance",
         },
         {
-          title: "Billing",
-          url: "#",
+          title: "Email",
+          url: "/settings/email",
         },
         {
-          title: "Limits",
-          url: "#",
+          title: "Security",
+          url: "/settings/security",
         },
       ],
     },
   ],
   navSecondary: [
     {
-      title: "Support",
-      url: "#",
-      icon: LifeBuoy,
+      title: "Help Center",
+      url: "/help",
+      icon: HelpCircle,
     },
     {
-      title: "Feedback",
-      url: "#",
-      icon: Send,
+      title: "Documentation",
+      url: "/docs",
+      icon: BookOpen,
     },
   ],
   projects: [
     {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
+      name: "Comments",
+      url: "/comments",
+      icon: MessageSquare,
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
+      name: "User Management",
+      url: "/users",
+      icon: Users,
     },
     {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      name: "Theme Editor",
+      url: "/theme",
+      icon: Code,
     },
   ],
 }
@@ -161,7 +148,7 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <NavLink to="/">
                 <div
                   className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <Command className="size-4" />
@@ -170,7 +157,7 @@ export function AppSidebar({
                   <span className="truncate font-medium">Acme Inc</span>
                   <span className="truncate text-xs">Enterprise</span>
                 </div>
-              </a>
+              </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

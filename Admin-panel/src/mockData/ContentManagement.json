@@ -1,0 +1,67 @@
+{
+    "posts": [
+      {
+        "id": 1,
+        "title": "React 18 新特性解析",
+        "status": "published",
+        "author": "Admin",
+        "category": "前端开发",
+        "tags": ["React", "JavaScript", "前端"],
+        "date": "2023-05-15",
+        "views": 1245,
+        "comments": 23
+      },
+      {
+        "id": 2,
+        "title": "使用 Tailwind CSS 构建现代界面",
+        "status": "published",
+        "author": "Admin",
+        "category": "前端开发",
+        "tags": ["CSS", "Tailwind", "设计"],
+        "date": "2023-05-10",
+        "views": 986,
+        "comments": 17
+      },
+      {
+        "id": 3,
+        "title": "Next.js 13 应用路由详解",
+        "status": "published",
+        "author": "Admin",
+        "category": "前端开发",
+        "tags": ["Next.js", "React", "路由"],
+        "date": "2023-05-05",
+        "views": 1532,
+        "comments": 31
+      },
+      {
+        "id": 4,
+        "title": "TypeScript 高级类型技巧",
+        "status": "draft",
+        "author": "Admin",
+        "category": "编程语言",
+        "tags": ["TypeScript", "JavaScript", "类型系统"],
+        "date": "2023-04-28",
+        "views": 0,
+        "comments": 0
+      }
+    ],
+    "categories": [
+      { "id": 1, "name": "前端开发", "count": 3 },
+      { "id": 2, "name": "后端开发", "count": 0 },
+      { "id": 3, "name": "编程语言", "count": 1 },
+      { "id": 4, "name": "开发工具", "count": 0 },
+      { "id": 5, "name": "未分类", "count": 0 }
+    ],
+    "tags": [
+      { "id": 1, "name": "React", "count": 2 },
+      { "id": 2, "name": "JavaScript", "count": 2 },
+      { "id": 3, "name": "前端", "count": 1 },
+      { "id": 4, "name": "CSS", "count": 1 },
+      { "id": 5, "name": "Tailwind", "count": 1 },
+      { "id": 6, "name": "设计", "count": 1 },
+      { "id": 7, "name": "Next.js", "count": 1 },
+      { "id": 8, "name": "路由", "count": 1 },
+      { "id": 9, "name": "TypeScript", "count": 1 },
+      { "id": 10, "name": "类型系统", "count": 1 }
+    ]
+  }

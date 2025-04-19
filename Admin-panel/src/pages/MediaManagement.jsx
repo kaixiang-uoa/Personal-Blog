@@ -13,7 +13,9 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Separator } from '../components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { useAdminContext } from '../contexts/AdminContext';
+// Replace context import with mock API
+// import { useAdminContext } from '../contexts/AdminContext';
+import { fetchMockData } from '../services/mockApi';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -24,9 +26,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '../components/ui/label';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 
 const MediaManagement = () => {
-  const { mediaFiles } = useAdminContext();
+  // Replace context with state and API call
+  // const { mediaFiles } = useAdminContext();
+  const [mediaFiles, setMediaFiles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredMedia, setFilteredMedia] = useState([]);
   const [selectedType, setSelectedType] = useState('all');
@@ -34,6 +40,24 @@ const MediaManagement = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState([]);
   const [viewMode, setViewMode] = useState('grid');
+  
+  // Add useEffect to fetch media data from mock API
+  useEffect(() => {
+    // TODO: Replace with real API call in the future
+    const fetchMedia = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchMockData('media');
+        setMediaFiles(data.media || []);
+      } catch (error) {
+        console.error('Failed to fetch media data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchMedia();
+  }, []);
 
   useEffect(() => {
     filterMedia();
@@ -49,7 +73,7 @@ const MediaManagement = () => {
     }
     
     if (selectedType !== 'all') {
-      results = results.filter(media => media.type === selectedType);
+      results = results.filter(media => media.type.startsWith(selectedType));
     }
     
     if (selectedDate !== 'all') {
@@ -78,6 +102,18 @@ const MediaManagement = () => {
     setFilteredMedia(results);
   };
 
+  // Add loading state handling
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">Media Management</h1>
+        <div className="bg-muted/50 p-8 rounded-lg flex items-center justify-center">
+          <p>Loading media files...</p>
+        </div>
+      </div>
+    );
+  }
+
   const toggleMediaSelection = (id) => {
     if (selectedMedia.includes(id)) {
       setSelectedMedia(selectedMedia.filter(mediaId => mediaId !== id));
@@ -89,6 +125,7 @@ const MediaManagement = () => {
   const handleBulkDelete = () => {
     if (selectedMedia.length && confirm(`Are you sure you want to delete ${selectedMedia.length} selected items?`)) {
       // Delete implementation would go here
+      // TODO: Replace with real API call in the future
       setSelectedMedia([]);
     }
   };

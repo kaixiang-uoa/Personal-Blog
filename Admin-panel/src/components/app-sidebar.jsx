@@ -1,175 +1,80 @@
-import * as React from "react"
-import { NavMain } from "./nav-main"
-import { NavProjects } from "./nav-projects"
-import { NavSecondary } from "./nav-secondary"
-import { NavUser } from "./nav-user"
-import { NavLink } from "react-router"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "./ui/sidebar"
+import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  Image, 
+  Settings, 
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from './ui/scroll-area';
+import { Sidebar } from './ui/sidebar';
 
-import {
-  LayoutDashboard,
-  FileText,
-  ImageIcon,
-  Settings2 as SettingsIcon,
-  MessageSquare,
-  Users,
-  Code,
-  HelpCircle,
-  BookOpen,
-  Command
-} from "lucide-react";
-
-const data = {
-  user: {
-    name: "Admin User",
-    email: "admin@example.com",
-    avatar: "/avatars/admin.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/",
-      icon: LayoutDashboard,
-      items: [],
-    },
-    {
-      title: "Content Management",
-      url: "/content",
-      icon: FileText,
-      items: [
-        {
-          title: "All Posts",
-          url: "/content",
-        },
-        {
-          title: "Categories & Tags",
-          url: "/content/categories",
-        },
-        {
-          title: "Pages",
-          url: "/content/pages",
-        },
-      ],
-    },
-    {
-      title: "Media Management",
-      url: "/media",
-      icon: ImageIcon,
-      items: [
-        {
-          title: "All Media",
-          url: "/media",
-        },
-        {
-          title: "Images",
-          url: "/media/images",
-        },
-        {
-          title: "Videos",
-          url: "/media/videos",
-        },
-        {
-          title: "Documents",
-          url: "/media/documents",
-        },
-      ],
-    },
-    {
-      title: "System Settings",
-      url: "/settings",
-      icon: SettingsIcon,
-      items: [
-        {
-          title: "General",
-          url: "/settings",
-        },
-        {
-          title: "Appearance",
-          url: "/settings/appearance",
-        },
-        {
-          title: "Email",
-          url: "/settings/email",
-        },
-        {
-          title: "Security",
-          url: "/settings/security",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Help Center",
-      url: "/help",
-      icon: HelpCircle,
-    },
-    {
-      title: "Documentation",
-      url: "/docs",
-      icon: BookOpen,
-    },
-  ],
-  projects: [
-    {
-      name: "Comments",
-      url: "/comments",
-      icon: MessageSquare,
-    },
-    {
-      name: "User Management",
-      url: "/users",
-      icon: Users,
-    },
-    {
-      name: "Theme Editor",
-      url: "/theme",
-      icon: Code,
-    },
-  ],
-}
-
-export function AppSidebar({
-  ...props
-}) {
+export function AppSidebar() {
+  const location = useLocation();
+  
   return (
-    <Sidebar
-      className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
-      {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <NavLink to="/">
-                <div
-                  className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Command className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+    <Sidebar className="border-r bg-background">
+      <ScrollArea className="h-full">
+        <div className="flex flex-col gap-2 p-4">
+          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
+            管理菜单
+          </h2>
+          <nav className="grid gap-1 px-2">
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-all",
+                  isActive ? "bg-accent text-accent-foreground" : "transparent"
+                )
+              }
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              <span>仪表盘</span>
+            </NavLink>
+            
+            <NavLink
+              to="/content"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-all",
+                  isActive ? "bg-accent text-accent-foreground" : "transparent"
+                )
+              }
+            >
+              <FileText className="h-4 w-4" />
+              <span>内容管理</span>
+            </NavLink>
+            
+            <NavLink
+              to="/media"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-all",
+                  isActive ? "bg-accent text-accent-foreground" : "transparent"
+                )
+              }
+            >
+              <Image className="h-4 w-4" />
+              <span>媒体管理</span>
+            </NavLink>
+            
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-all",
+                  isActive ? "bg-accent text-accent-foreground" : "transparent"
+                )
+              }
+            >
+              <Settings className="h-4 w-4" />
+              <span>系统设置</span>
+            </NavLink>
+          </nav>
+        </div>
+      </ScrollArea>
     </Sidebar>
   );
 }

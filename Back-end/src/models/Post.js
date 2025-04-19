@@ -5,30 +5,74 @@ const Schema = mongoose.Schema;
 const PostSchema = new Schema({
     title: {
         type: String,
-        require: true,
-        trim: true // remove blank
+        required: true,
+        trim: true
+    },
+    slug: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true
+    },
+    excerpt: {
+        type: String,
+        trim: true
     },
     content: {
         type: String,
-        require: true
+        required: true
     },
     author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    status: {
         type: String,
-        require: true
+        enum: ['draft', 'published'],
+        default: 'draft'
     },
-    coverImage: {
-        type: String // image URL
-    },
-    category: {
+    categories: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category'
+    }],
+    tags: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tag'
+    }],
+    featuredImage: {
         type: String
     },
-    tags: [String],
-    isPublished: {
+    seo: {
+        metaTitle: String,
+        metaDescription: String,
+        keywords: [String]
+    },
+    viewCount: {
+        type: Number,
+        default: 0
+    },
+    commentCount: {
+        type: Number,
+        default: 0
+    },
+    allowComments: {
         type: Boolean,
         default: true
-    },
+    }
 },
-    { timestamps: true } // date
+{ timestamps: true }
 );
 
-module.exports = mongoose.model('Post',PostSchema);
+// 添加自动生成 slug 的中间件
+PostSchema.pre('save', function(next) {
+    if (!this.slug && this.title) {
+        this.slug = this.title
+            .toLowerCase()
+            .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+    next();
+});
+
+module.exports = mongoose.model('Post', PostSchema);

@@ -1,0 +1,49 @@
+{
+    "general": {
+      "siteName": "我的个人博客",
+      "siteDescription": "分享技术与生活的个人空间",
+      "siteUrl": "https://example.com",
+      "adminEmail": "admin@example.com",
+      "timezone": "Asia/Shanghai",
+      "dateFormat": "YYYY-MM-DD",
+      "timeFormat": "HH:mm:ss",
+      "language": "zh-CN"
+    },
+    "content": {
+      "postsPerPage": 10,
+      "defaultCategory": "未分类",
+      "allowComments": true,
+      "moderateComments": true,
+      "allowPingbacks": false,
+      "allowTrackbacks": false
+    },
+    "users": {
+      "allowRegistration": false,
+      "defaultUserRole": "subscriber",
+      "requireEmailVerification": true,
+      "allowUserAvatars": true
+    },
+    "media": {
+      "maxUploadSize": 5,
+      "allowedFileTypes": ["jpg", "jpeg", "png", "gif", "pdf", "doc", "docx"],
+      "imageQuality": 85,
+      "resizeImages": true,
+      "maxImageWidth": 1920,
+      "maxImageHeight": 1080
+    },
+    "seo": {
+      "enableSitemap": true,
+      "enableRSS": true,
+      "metaDescription": "我的个人博客，分享技术与生活",
+      "useOpenGraph": true,
+      "useTwitterCards": true,
+      "googleAnalyticsId": "",
+      "baiduAnalyticsId": ""
+    },
+    "security": {
+      "enableCaptcha": false,
+      "maxLoginAttempts": 5,
+      "lockoutTime": 30,
+      "enableTwoFactor": false
+    }
+  }

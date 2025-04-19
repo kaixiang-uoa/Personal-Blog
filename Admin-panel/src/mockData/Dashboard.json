@@ -1,0 +1,36 @@
+{
+    "stats": {
+      "totalPosts": 24,
+      "newPosts": 3,
+      "totalViews": 12453,
+      "viewsGrowth": 8.5,
+      "totalComments": 89,
+      "newComments": 12,
+      "conversionRate": 3.2,
+      "conversionChange": 0.8
+    },
+    "recentPosts": [
+      { "id": 1, "title": "React 18 新特性解析", "date": "2023-05-15", "views": 1245, "comments": 23 },
+      { "id": 2, "title": "使用 Tailwind CSS 构建现代界面", "date": "2023-05-10", "views": 986, "comments": 17 },
+      { "id": 3, "title": "Next.js 13 应用路由详解", "date": "2023-05-05", "views": 1532, "comments": 31 },
+      { "id": 4, "title": "TypeScript 高级类型技巧", "date": "2023-04-28", "views": 876, "comments": 14 }
+    ],
+    "popularPosts": [
+      { "id": 3, "title": "Next.js 13 应用路由详解", "views": 1532 },
+      { "id": 1, "title": "React 18 新特性解析", "views": 1245 },
+      { "id": 2, "title": "使用 Tailwind CSS 构建现代界面", "views": 986 }
+    ],
+    "trafficData": {
+      "labels": ["1月", "2月", "3月", "4月", "5月", "6月"],
+      "datasets": [
+        {
+          "label": "页面浏览量",
+          "data": [1200, 1900, 3000, 5000, 4000, 6000]
+        },
+        {
+          "label": "访客数",
+          "data": [800, 1200, 1800, 3200, 2800, 4000]
+        }
+      ]
+    }
+  }

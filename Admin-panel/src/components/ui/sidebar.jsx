@@ -3,7 +3,6 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react"
-
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -680,3 +679,21 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
+
+
+
+// const Sidebar = React.forwardRef(({ className, children, ...props }, ref) => {
+//   return (
+//     <div
+//       ref={ref}
+//       className={cn("flex h-screen w-64 flex-col", className)}
+//       {...props}
+//     >
+//       {children}
+//     </div>
+//   )
+// })
+// Sidebar.displayName = "Sidebar"
+
+// export { Sidebar }

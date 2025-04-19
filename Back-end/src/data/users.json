@@ -1,0 +1,19 @@
+[
+    {
+      "_id": "d59a2e7a-f2aa-47b0-890e-ee774e4db1e4",
+      "username": "testuser",
+      "email": "test@gmail.com",
+      "password": "$2b$12$u1B6uCD50y4W0HpmNUHlz.8pbrE/c9WjM/UtIfLJxb2/3YYZiyNgG",
+      "role": "admin",
+      "displayName": "测试用户",
+      "avatar": "https://example.com/avatar.jpg",
+      "socialLinks": {
+        "github": "https://github.com/test",
+        "x": "https://x.com/test"
+      },
+      "createdAt": "2025-04-19T09:10:31.040935Z",
+      "updatedAt": "2025-04-19T09:10:31.040935Z",
+      "lastLogin": "2025-04-19T09:10:31.040935Z"
+    }
+  ]
+  

@@ -1,20 +1,31 @@
-const express = require('express')
+const express = require('express');
 const router = express.Router();
-const { getAllPosts,createPost,getPostById,updatePost,deletePost } = require('../controllers/postController')
+const {
+  getAllPosts,
+  getPostById,
+  getPostBySlug,
+  createPost,
+  updatePost,
+  deletePost
+} = require('../controllers/postController');
+const { protect, restrictTo } = require('../middleware/authMiddleware');
 
-// get all posts
+// 获取所有文章
 router.get('/', getAllPosts);
 
-// create a post
-router.post('/',createPost);
+// 通过slug获取文章
+router.get('/slug/:slug', getPostBySlug);
 
-// find post by id
-router.post('/:id',getPostById);
+// 通过ID获取文章
+router.get('/:id', getPostById);
 
-// update post by id
-router.put('/:id',updatePost);
+// 创建文章 (需要管理员权限)
+router.post('/', protect, restrictTo('admin'), createPost);
 
-// delete post by id
-router.delete('/:id',deletePost);
+// 更新文章 (需要管理员权限)
+router.put('/:id', protect, restrictTo('admin'), updatePost);
+
+// 删除文章 (需要管理员权限)
+router.delete('/:id', protect, restrictTo('admin'), deletePost);
 
 module.exports = router;

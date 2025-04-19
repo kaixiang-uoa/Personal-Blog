@@ -1,0 +1,42 @@
+[
+  {
+    "_id": "1ee32827-0b97-429f-aa65-8ad552165054",
+    "name": "React",
+    "slug": "react",
+    "description": "React 技术标签",
+    "createdAt": "2025-04-19T09:10:31.040935Z",
+    "updatedAt": "2025-04-19T09:10:31.040935Z"
+  },
+  {
+    "_id": "86915887-637a-44d4-98fb-fb4cc493e033",
+    "name": "Node.js",
+    "slug": "node.js",
+    "description": "Node.js 技术标签",
+    "createdAt": "2025-04-19T09:10:31.040935Z",
+    "updatedAt": "2025-04-19T09:10:31.040935Z"
+  },
+  {
+    "_id": "6331f254-7d01-41b8-863b-193c6ed96f87",
+    "name": "MongoDB",
+    "slug": "mongodb",
+    "description": "MongoDB 技术标签",
+    "createdAt": "2025-04-19T09:10:31.040935Z",
+    "updatedAt": "2025-04-19T09:10:31.040935Z"
+  },
+  {
+    "_id": "2684e930-44a6-4884-b14e-96bbd00fc104",
+    "name": "TypeScript",
+    "slug": "typescript",
+    "description": "TypeScript 技术标签",
+    "createdAt": "2025-04-19T09:10:31.040935Z",
+    "updatedAt": "2025-04-19T09:10:31.040935Z"
+  },
+  {
+    "_id": "4a1df3ac-975b-4074-9eeb-07eeca079b7b",
+    "name": "DevOps",
+    "slug": "devops",
+    "description": "DevOps 技术标签",
+    "createdAt": "2025-04-19T09:10:31.040935Z",
+    "updatedAt": "2025-04-19T09:10:31.040935Z"
+  }
+]

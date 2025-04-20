@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
 const postRouter = require('./routers/postRouters');
 const userRouter = require('./routers/userRouters');
@@ -23,6 +24,9 @@ connectDB();
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// 配置静态文件目录，用于访问上传的媒体文件
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/',(req,res) =>{
     res.send('Back-end is running');

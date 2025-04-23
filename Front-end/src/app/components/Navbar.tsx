@@ -1,10 +1,13 @@
 "use client"
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation"; // 使用国际化 Link
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-
+  const t = useTranslations('nav');
+  
   return (
     <nav className="bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -16,14 +19,16 @@ export default function Navbar() {
           </div>
           <div className="hidden md:flex md:space-x-8">
             <Link href="/" className="text-gray-900 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium">
-              Home
+              {t('home')}
             </Link>
             <Link href="/about" className="text-gray-900 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium">
-              About
+              {t('about')}
             </Link>
             <Link href="/contact" className="text-gray-900 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium">
-              Contact
+              {t('contact')}
             </Link>
+            {/* 添加语言切换器 */}
+            <LanguageSwitcher />
           </div>
           <div className="-mr-2 flex md:hidden">
             <button
@@ -51,14 +56,18 @@ export default function Navbar() {
       <div className={`${isOpen ? "block" : "hidden"} md:hidden`} id="mobile-menu">
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <Link href="/" className="text-gray-900 hover:text-cyan-600 block px-3 py-2 rounded-md text-base font-medium">
-            Home
+            {t('home')}
           </Link>
           <Link href="/about" className="text-gray-900 hover:text-cyan-600 block px-3 py-2 rounded-md text-base font-medium">
-            About
+            {t('about')}
           </Link>
           <Link href="/contact" className="text-gray-900 hover:text-cyan-600 block px-3 py-2 rounded-md text-base font-medium">
-            Contact
+            {t('contact')}
           </Link>
+          {/* 在移动菜单中也添加语言切换器 */}
+          <div className="px-3 py-2">
+            <LanguageSwitcher />
+          </div>
         </div>
       </div>
     </nav>

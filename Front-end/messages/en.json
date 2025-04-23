@@ -1,0 +1,50 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "common": {
+    "heroSubtitle": "Explore the latest tech articles, tutorials, and insights to enhance your knowledge and skills.",
+    "latestArticles": "Latest Articles",
+    "backToHome": "Back to Home",
+    "allCategories": "All Categories",
+    "searchPlaceholder": "Search articles...",
+    "search": "Search",
+    "filterConditions": "Filter Conditions",
+    "tag": "Tag",
+    "from": "From",
+    "to": "To",
+    "clearFilters": "Clear Filters",
+    "category": "Category",
+    "filterResults": "Filter Results",
+    "retry": "Retry",
+    "previousPage": "Previous",
+    "nextPage": "Next",
+    "pageInfo": "Page {current} of {total}",
+    "noArticlesFound": "No articles found",
+    "clearAllFilters": "Clear All Filters",
+    "filters": "Filters",
+    "clear": "Clear",
+    "activeFilters": "Active Filters",
+    "tags": "Tags",
+    "categories": "Categories",
+    "publicationDate": "Publication Date",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "loading": "Loading...",
+    "error": "An error occurred, please try again later",
+    "notFound": "Article not found or has been deleted",
+    "publishedAt": "Published at",
+    "author": "Author",
+    "footer": {
+      "copyright": "© {year} Personal Blog. All rights reserved."
+    },
+    "sortBy": "Sort By",
+    "newestFirst": "Newest First",
+    "oldestFirst": "Oldest First",
+    "lastUpdated": "Recently Updated",
+    "oldestUpdated": "Oldest Updated",
+    "selectSortOrder": "Select Sort Order"
+  }
+}

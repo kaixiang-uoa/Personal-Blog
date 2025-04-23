@@ -1,7 +1,6 @@
-"use client";
-
-import { useState, useEffect } from "react"; // 导入 useEffect
-import { useRouter } from "next/navigation";
+"use client"
+import { useState, useEffect } from "react"; // Import useEffect
+// import { useRouter } from "next/navigation";
 import { Calendar, Tag, X } from "lucide-react";
 import {
   Accordion,
@@ -13,7 +12,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { DatePicker } from "@/components/ui/date-picker";
+import { useTranslations } from "next-intl";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import type { SortOrder } from "@/services/interface";
 
 interface FilterSidebarProps {
   tags: {
@@ -31,60 +38,41 @@ interface FilterSidebarProps {
   }[];
   activeTags: string[];
   activeCategory: string | null;
-  startDate?: Date | null;
-  endDate?: Date | null;
-  onFilterChange: (type: "tags" | "dateRange" | "category", value: any) => void;
-  onClearFilters: () => void;
+  sortOrder?: SortOrder;
+  onFilterChangeAction: (type: "tags" | "category" | "sort", value: any) => void;
+  onClearFiltersAction: () => void;
 }
 
 export default function FilterSidebar({
   tags,
   activeTags,
-  startDate,
-  endDate,
   categories,
   activeCategory,
-  onFilterChange,
-  onClearFilters,
+  sortOrder = "publishedAt-desc",
+  onFilterChangeAction,
+  onClearFiltersAction
 }: FilterSidebarProps) {
+  const t = useTranslations("common");
   const [selectedTags, setSelectedTags] = useState<string[]>(activeTags || []);
-  const [dateRange, setDateRange] = useState<{
-    startDate: Date | null;
-    endDate: Date | null;
-  }>({
-    startDate: startDate || null,
-    endDate: endDate || null,
-  });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
     activeCategory || null
   );
+  const [selectedSortOrder, setSelectedSortOrder] =
+    useState<SortOrder>(sortOrder);
 
-  const router = useRouter();
+  // const router = useRouter();
 
-  // --- 新增 Effect ---
-
-  // 当 activeCategories prop 变化时，同步更新内部 selectedCategory state
+  // When the activeCategories prop changes, sync the internal selectedCategory state
   useEffect(() => {
     setSelectedCategory(activeCategory || null);
   }, [activeCategory]);
 
-  // 当 activeTags prop 变化时，同步更新内部 selectedTags state
+  // When the activeTags prop changes, sync the internal selectedTags state
   useEffect(() => {
     setSelectedTags(activeTags || []);
   }, [activeTags]);
 
-  // 当 startDate 或 endDate prop 变化时，同步更新内部 dateRange state
-  useEffect(() => {
-    setDateRange({
-      startDate: startDate || null,
-      endDate: endDate || null,
-    });
-  }, [startDate, endDate]);
-  // --- Effect 结束 ---
-
-  // --- 修改事件处理函数 ---
-
-  // 当标签被选中或取消时，更新内部状态并通知父组
+  // When a tag is selected or deselected, update internal state and notify parent
   const handleTagChange = (tagSlug: string, checked: boolean) => {
     let newSelectedTags: string[];
 
@@ -95,59 +83,41 @@ export default function FilterSidebar({
     }
 
     setSelectedTags(newSelectedTags);
-    onFilterChange("tags", newSelectedTags);
+    onFilterChangeAction("tags", newSelectedTags);
   };
 
-  // 当日期范围被选中或取消时，更新内部状态并通知父组
-  const handleDateChange = (
-    type: "startDate" | "endDate",
-    date: Date | null
-  ) => {
-    const newDateRange = {
-      ...dateRange,
-      [type]: date,
-    };
-
-    setDateRange(newDateRange);
-    onFilterChange("dateRange", newDateRange);
-  };
-
-  // 当分类被选中或取消时，更新内部状态并通知父组
+  // When a category is selected or deselected, update internal state and notify parent
   const handleCategoryChange = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
-    onFilterChange("category", categorySlug);
+    onFilterChangeAction("category", categorySlug);
   };
-  // --- 事件处理函数结束 ---
 
-  // --- 修改计算属性 ---
-  // 直接使用 props 来判断是否有活跃筛选，确保与父组件状态一致
-  const hasActiveFilters = activeTags.length > 0 || startDate || endDate;
+  // Directly use props to determine if there are active filters, ensuring consistency with parent state
+  const hasActiveFilters = activeTags.length > 0 || activeCategory; // Added activeCategory check
 
   return (
     <div className="bg-gray-800 rounded-lg p-4 sticky top-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-white">筛选</h3>
-        {hasActiveFilters && ( // 使用更新后的 hasActiveFilters
+        <h3 className="text-lg font-semibold text-white">{t("filters")}</h3>
+        {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={onClearFilters}
+            onClick={onClearFiltersAction}
             className="text-cyan-500 hover:text-cyan-400 hover:bg-gray-700 p-1 h-auto"
           >
             <X className="h-4 w-4 mr-1" />
-            清除
+            {t("clear")}
           </Button>
         )}
       </div>
 
-      {/* 活跃的筛选条件 */}
-      {/* --- 修改活跃筛选区域 --- */}
-      {/* 直接使用 props 来渲染活跃筛选，确保与父组件状态一致 */}
+      {/* Active Filters */}
       {hasActiveFilters && (
         <div className="mb-4 pb-4 border-b border-gray-700">
-          <p className="text-sm text-gray-400 mb-2">活跃筛选:</p>
+          <p className="text-sm text-gray-400 mb-2">{t("activeFilters")}:</p>
           <div className="flex flex-wrap gap-2">
-            {/* 使用 activeTags prop 渲染 */}
+            {/* Render using activeTags prop */}
             {activeTags.map((tagSlug) => {
               const tag = tags.find((t) => t.slug === tagSlug);
               return (
@@ -155,7 +125,7 @@ export default function FilterSidebar({
                   key={tagSlug}
                   variant="secondary"
                   className="bg-cyan-900/50 hover:bg-cyan-800/50 text-cyan-100 cursor-pointer"
-                  // 点击时仍然调用 handleTagChange 来移除内部状态和通知父组件
+                  // Still call handleTagChange on click to remove internal state and notify parent
                   onClick={() => handleTagChange(tagSlug, false)}
                 >
                   {tag?.name || tagSlug}
@@ -164,84 +134,91 @@ export default function FilterSidebar({
               );
             })}
 
-            {/* 使用 startDate 和 endDate props 渲染 */}
-            {(startDate || endDate) && (
-              <Badge
-                variant="secondary"
-                className="bg-cyan-900/50 hover:bg-cyan-800/50 text-cyan-100 cursor-pointer"
-                // 点击时重置内部状态并通知父组件
-                onClick={() => {
-                  setDateRange({ startDate: null, endDate: null }); // 清除内部状态
-                  onFilterChange("dateRange", {
-                    startDate: null,
-                    endDate: null,
-                  }); // 通知父组件
-                }}
-              >
-                {/* 使用 props 渲染日期 */}
-                {startDate && endDate
-                  ? `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
-                  : startDate
-                  ? `从 ${startDate.toLocaleDateString()}`
-                  : `至 ${endDate?.toLocaleDateString()}`}
-                <X className="ml-1 h-3 w-3" />
-              </Badge>
-            )}
+            {/* Render using activeCategory prop */}
+            {activeCategory &&
+              (() => {
+                const category = categories.find(
+                  (c) => c.slug === activeCategory
+                );
+                return (
+                  <Badge
+                    key={activeCategory}
+                    variant="secondary"
+                    className="bg-cyan-900/50 hover:bg-cyan-800/50 text-cyan-100 cursor-pointer"
+                    // Call handleCategoryChange on click to clear internal state and notify parent
+                    onClick={() => handleCategoryChange(null)}
+                  >
+                    {category?.name || activeCategory}
+                    <X className="ml-1 h-3 w-3" />
+                  </Badge>
+                );
+              })()}
           </div>
         </div>
       )}
-      {/* --- 活跃筛选区域结束 --- */}
 
       <Accordion
         type="multiple"
-        defaultValue={["tags", "date"]}
+        defaultValue={["tags", "category", "sort"]}
         className="w-full"
       >
         <AccordionItem value="tags" className="border-b border-gray-700">
           <AccordionTrigger className="text-base py-3 hover:no-underline">
             <div className="flex items-center">
               <Tag className="h-4 w-4 mr-2" />
-              <span>标签</span>
+              <span>{t("tags")}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            {/* --- 标签列表渲染 --- */}
+            {/* Tag List Rendering */}
             <div className="grid gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-              {/* 遍历传入的 tags prop */}
+              {/* Iterate over the passed tags prop */}
               {tags.map((tag) => (
                 <Label
-                  key={tag._id} // 使用 tag._id 作为 key
+                  key={tag._id} // Use tag._id as key
                   className="flex items-center gap-2 font-normal cursor-pointer hover:text-cyan-400 transition-colors"
                 >
                   <Checkbox
-                    // checked 状态取决于当前 tag.slug 是否在 selectedTags 数组中
+                    // Checked state depends on whether the current tag.slug is in the selectedTags array
                     checked={selectedTags.includes(tag.slug)}
-                    // 当 Checkbox 状态改变时，调用 handleTagChange 更新状态并通知父组件
+                    // When Checkbox state changes, call handleTagChange to update state and notify parent
                     onCheckedChange={(checked) =>
                       handleTagChange(tag.slug, checked as boolean)
                     }
                     className="data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                   />
-                  {/* 显示标签名称 */}
+                  {/* Display tag name */}
                   <span className="truncate">{tag.name}</span>
                 </Label>
               ))}
             </div>
-            {/* --- 标签列表渲染结束 --- */}
           </AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="category" className="border-b border-gray-700">
           <AccordionTrigger className="text-base py-3 hover:no-underline">
             <div className="flex items-center">
-              <Tag className="h-4 w-4 mr-2" />
-              <span>分类</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              <span>{t("categories")}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
             <div className="grid gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
               <Label
-                key="all"
+                key="all-categories"
                 className="flex items-center gap-2 font-normal cursor-pointer hover:text-cyan-400 transition-colors"
               >
                 <Checkbox
@@ -249,18 +226,22 @@ export default function FilterSidebar({
                   onCheckedChange={() => handleCategoryChange(null)}
                   className="data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                 />
-                全部分类
+                {t("allCategories")}
               </Label>
+              {/* Iterate over the passed categories prop */}
               {categories.map((category) => (
                 <Label
-                  key={category._id}
+                  key={category._id} // Use category._id as key
                   className="flex items-center gap-2 font-normal cursor-pointer hover:text-cyan-400 transition-colors"
                 >
                   <Checkbox
+                    // Checked state depends on whether the current category.slug matches selectedCategory
                     checked={selectedCategory === category.slug}
+                    // When Checkbox state changes, call handleCategoryChange with the category slug
                     onCheckedChange={() => handleCategoryChange(category.slug)}
                     className="data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                   />
+                  {/* Display category name */}
                   {category.name}
                 </Label>
               ))}
@@ -268,37 +249,41 @@ export default function FilterSidebar({
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="date" className="border-b border-gray-700">
+        {/* 排序选项 */}
+        <AccordionItem value="sort" className="border-b-0">
           <AccordionTrigger className="text-base py-3 hover:no-underline">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-2" />
-              <span>发布日期</span>
+              <span>{t("sortBy")}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="grid gap-4">
-              <div>
-                <Label className="text-sm text-gray-400 mb-1 block">
-                  开始日期
-                </Label>
-                <DatePicker
-                  // DatePicker 状态依赖内部 dateRange state
-                  date={dateRange.startDate}
-                  setDate={(date) => handleDateChange("startDate", date)}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Label className="text-sm text-gray-400 mb-1 block">
-                  结束日期
-                </Label>
-                <DatePicker
-                  // DatePicker 状态依赖内部 dateRange state
-                  date={dateRange.endDate}
-                  setDate={(date) => handleDateChange("endDate", date)}
-                  className="w-full"
-                />
-              </div>
+            <div className="space-y-4">
+              <Select
+                value={selectedSortOrder}
+                onValueChange={(value: SortOrder) => {
+                  setSelectedSortOrder(value);
+                  onFilterChangeAction("sort", value);
+                }}
+              >
+                <SelectTrigger className="w-full bg-gray-700 border-gray-600">
+                  <SelectValue placeholder={t("selectSortOrder")} />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-700 border-gray-600">
+                  <SelectItem value="publishedAt-desc">
+                    {t("newestFirst")}
+                  </SelectItem>
+                  <SelectItem value="publishedAt-asc">
+                    {t("oldestFirst")}
+                  </SelectItem>
+                  <SelectItem value="updatedAt-desc">
+                    {t("lastUpdated")}
+                  </SelectItem>
+                  <SelectItem value="updatedAt-asc">
+                    {t("oldestUpdated")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </AccordionContent>
         </AccordionItem>

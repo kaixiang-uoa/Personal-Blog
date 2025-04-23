@@ -2,128 +2,125 @@ const User = require('../models/User');
 const Post = require('../models/Post');
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
+const { success, createError } = require('../utils/responseHandler');
 
 /**
- * @desc    获取所有用户
+ * @desc    Get all users
  * @route   GET /api/users
  * @access  Private/Admin
  */
 exports.getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find().select('-password').sort({ createdAt: -1 });
-  
-  res.status(200).json({
-    success: true,
-    count: users.length,
-    users
+
+  return success(res, { 
+    users,
+    count: users.length 
   });
 });
 
 /**
- * @desc    获取单个用户
+ * @desc    Get a single user by ID
  * @route   GET /api/users/:id
  * @access  Private/Admin
  */
 exports.getUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id).select('-password');
-  
+
   if (!user) {
-    res.status(404);
-    throw new Error('用户不存在');
+    throw createError('User not found', 404);
   }
-  
-  res.status(200).json({
-    success: true,
-    user
-  });
+
+  return success(res, { user });
 });
 
 /**
- * @desc    创建用户
+ * @desc    Create a user
  * @route   POST /api/users
  * @access  Private/Admin
  */
 exports.createUser = asyncHandler(async (req, res) => {
   const { username, email, password, displayName, role } = req.body;
-  
-  // 检查用户是否已存在
+
+  // Check if user already exists
   const userExists = await User.findOne({ $or: [{ email }, { username }] });
   if (userExists) {
-    res.status(400);
-    throw new Error('用户已存在');
+    throw createError('User already exists', 400);
   }
-  
-  // 创建用户
+
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  // Create user
   const user = await User.create({
     username,
     email,
-    password,
+    password: hashedPassword,
     displayName: displayName || username,
     role: role || 'user'
   });
+
+  // Return user without password
+  const createdUser = await User.findById(user._id).select('-password');
   
-  res.status(201).json({
-    success: true,
-    user: {
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      displayName: user.displayName,
-      role: user.role,
-      avatar: user.avatar
-    }
-  });
+  return success(res, { user: createdUser }, 201, 'User created successfully');
 });
 
 /**
- * @desc    更新用户
+ * @desc    Update a user
  * @route   PUT /api/users/:id
  * @access  Private/Admin
  */
 exports.updateUser = asyncHandler(async (req, res) => {
+  const { username, email, password, displayName, role, bio, avatar } = req.body;
+  
+  // Find user
   let user = await User.findById(req.params.id);
   
   if (!user) {
-    res.status(404);
-    throw new Error('用户不存在');
+    throw createError('用户不存在', 404);
   }
   
-  // 如果更新了用户名或邮箱，检查是否已存在
-  if ((req.body.username && req.body.username !== user.username) || 
-      (req.body.email && req.body.email !== user.email)) {
-    const userExists = await User.findOne({
-      $or: [
-        { username: req.body.username, _id: { $ne: req.params.id } },
-        { email: req.body.email, _id: { $ne: req.params.id } }
-      ]
-    });
-    
-    if (userExists) {
-      res.status(400);
-      throw new Error('用户名或邮箱已被使用');
+  // Check if email or username is already taken by another user
+  if (email && email !== user.email) {
+    const emailExists = await User.findOne({ email });
+    if (emailExists) {
+      throw createError('该邮箱已被使用', 400);
     }
   }
   
-  // 如果更新了密码，需要加密
-  if (req.body.password) {
-    const salt = await bcrypt.genSalt(10);
-    req.body.password = await bcrypt.hash(req.body.password, salt);
+  if (username && username !== user.username) {
+    const usernameExists = await User.findOne({ username });
+    if (usernameExists) {
+      throw createError('该用户名已被使用', 400);
+    }
   }
   
-  // 更新用户
-  user = await User.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true, runValidators: true }
-  ).select('-password');
+  // Update user fields
+  user.username = username || user.username;
+  user.email = email || user.email;
+  user.displayName = displayName || user.displayName;
+  user.role = role || user.role;
+  user.bio = bio !== undefined ? bio : user.bio;
+  user.avatar = avatar || user.avatar;
   
-  res.status(200).json({
-    success: true,
-    user
-  });
+  // Update password if provided
+  if (password) {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+  }
+  
+  // Save updated user
+  await user.save();
+  
+  // Return updated user without password
+  const updatedUser = await User.findById(user._id).select('-password');
+  
+  return success(res, { user: updatedUser }, 200, '用户更新成功');
 });
 
 /**
- * @desc    删除用户
+ * @desc    Delete a user
  * @route   DELETE /api/users/:id
  * @access  Private/Admin
  */
@@ -131,69 +128,56 @@ exports.deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   
   if (!user) {
-    res.status(404);
-    throw new Error('用户不存在');
+    throw createError('用户不存在', 404);
   }
   
-  // 检查是否有文章由此用户发布
-  const postCount = await Post.countDocuments({ author: req.params.id });
-  if (postCount > 0) {
-    res.status(400);
-    throw new Error(`无法删除此用户，有 ${postCount} 篇文章由该用户发布`);
-  }
+  // Delete user's posts or reassign them
+  // await Post.deleteMany({ author: user._id });
   
-  await user.deleteOne();
+  await user.remove();
   
-  res.status(200).json({
-    success: true,
-    message: '用户已删除'
-  });
+  return success(res, null, 200, '用户删除成功');
 });
 
 /**
- * @desc    更新当前用户信息
+ * @desc    Update current user profile
  * @route   PUT /api/users/profile
  * @access  Private
  */
 exports.updateProfile = asyncHandler(async (req, res) => {
-  let user = await User.findById(req.user.id);
+  const { displayName, bio, avatar, currentPassword, newPassword } = req.body;
   
-  // 不允许更新角色
-  if (req.body.role) {
-    delete req.body.role;
+  // Get current user
+  const user = await User.findById(req.user.id);
+  
+  if (!user) {
+    throw createError('用户不存在', 404);
   }
   
-  // 如果更新了用户名或邮箱，检查是否已存在
-  if ((req.body.username && req.body.username !== user.username) || 
-      (req.body.email && req.body.email !== user.email)) {
-    const userExists = await User.findOne({
-      $or: [
-        { username: req.body.username, _id: { $ne: req.user.id } },
-        { email: req.body.email, _id: { $ne: req.user.id } }
-      ]
-    });
+  // Update basic profile fields
+  user.displayName = displayName || user.displayName;
+  user.bio = bio !== undefined ? bio : user.bio;
+  user.avatar = avatar || user.avatar;
+  
+  // If user wants to change password
+  if (currentPassword && newPassword) {
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
     
-    if (userExists) {
-      res.status(400);
-      throw new Error('用户名或邮箱已被使用');
+    if (!isMatch) {
+      throw createError('当前密码不正确', 400);
     }
-  }
-  
-  // 如果更新了密码，需要加密
-  if (req.body.password) {
+    
+    // Hash new password
     const salt = await bcrypt.genSalt(10);
-    req.body.password = await bcrypt.hash(req.body.password, salt);
+    user.password = await bcrypt.hash(newPassword, salt);
   }
   
-  // 更新用户
-  user = await User.findByIdAndUpdate(
-    req.user.id,
-    req.body,
-    { new: true, runValidators: true }
-  ).select('-password');
+  // Save updated profile
+  await user.save();
   
-  res.status(200).json({
-    success: true,
-    user
-  });
+  // Return updated user without password
+  const updatedUser = await User.findById(user._id).select('-password');
+  
+  return success(res, { user: updatedUser }, 200, '个人资料更新成功');
 });

@@ -10,9 +10,9 @@ const tagRouter = require('./routers/tagRouters');
 const commentRouter = require('./routers/commentRouters');
 const mediaRouter = require('./routers/mediaRouters');
 const settingRouter = require('./routers/settingRouters');
-// 添加认证路由
+// Add authentication router
 const authRouter = require('./routers/authRouters');
-// 添加错误处理中间件
+// Add error handling middleware
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 
 // loading .env configuration.
@@ -25,17 +25,17 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 配置静态文件目录，用于访问上传的媒体文件
+// Configure static file directory for accessing uploaded media files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/',(req,res) =>{
     res.send('Back-end is running');
 })
 
-// 添加API版本前缀
+// Add API version prefix
 const API_PREFIX = '/api/v1';
 
-// 注册路由
+// Register routes
 app.use(`${API_PREFIX}/posts`, postRouter);
 app.use(`${API_PREFIX}/users`, userRouter);
 app.use(`${API_PREFIX}/categories`, categoryRouter);
@@ -45,10 +45,10 @@ app.use(`${API_PREFIX}/media`, mediaRouter);
 app.use(`${API_PREFIX}/settings`, settingRouter);
 app.use(`${API_PREFIX}/auth`, authRouter);
 
-// 404处理
+// 404 handler
 app.use(notFound);
 
-// 错误处理中间件
+// Error handling middleware
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3002;

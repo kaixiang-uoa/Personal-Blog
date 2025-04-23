@@ -10,22 +10,22 @@ const {
 } = require('../controllers/categoryController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
-// 获取所有分类
+// Get all categories
 router.get('/', getAllCategories);
 
-// 通过slug获取分类
+// Get category by slug
 router.get('/slug/:slug', getCategoryBySlug);
 
-// 通过ID获取分类
+// Get category by ID
 router.get('/:id', getCategoryById);
 
-// 创建分类 (需要管理员权限)
+// Create category (requires admin privileges)
 router.post('/', protect, restrictTo('admin'), createCategory);
 
-// 更新分类 (需要管理员权限)
+// Update category (requires admin privileges)
 router.put('/:id', protect, restrictTo('admin'), updateCategory);
 
-// 删除分类 (需要管理员权限)
+// Delete category (requires admin privileges)
 router.delete('/:id', protect, restrictTo('admin'), deleteCategory);
 
 module.exports = router;

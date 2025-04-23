@@ -10,22 +10,21 @@ const {
 } = require('../controllers/tagController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
-// 获取所有标签
+// Get all tags
 router.get('/', getAllTags);
-
-// 通过slug获取标签
+// Get tag by slug
 router.get('/slug/:slug', getTagBySlug);
 
-// 通过ID获取标签
+// Get tag by ID
 router.get('/:id', getTagById);
 
-// 创建标签 (需要管理员权限)
+// Create tag (requires admin privileges)
 router.post('/', protect, restrictTo('admin'), createTag);
 
-// 更新标签 (需要管理员权限)
+// Update tag (requires admin privileges)
 router.put('/:id', protect, restrictTo('admin'), updateTag);
 
-// 删除标签 (需要管理员权限)
+// Delete tag (requires admin privileges)
 router.delete('/:id', protect, restrictTo('admin'), deleteTag);
 
 module.exports = router;

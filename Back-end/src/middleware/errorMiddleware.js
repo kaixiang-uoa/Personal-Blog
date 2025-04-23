@@ -1,8 +1,8 @@
-// 错误处理中间件
+// Error handling middleware
 exports.errorHandler = (err, req, res, next) => {
-  // 获取状态码，默认为500
+  // Get status code, default to 500
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  
+
   res.status(statusCode);
   res.json({
     success: false,
@@ -11,9 +11,9 @@ exports.errorHandler = (err, req, res, next) => {
   });
 };
 
-// 404错误处理
+// 404 error handler
 exports.notFound = (req, res, next) => {
-  const error = new Error(`找不到 - ${req.originalUrl}`);
-  error.statusCode = 404;
-  next(error);
+  const error = new Error(`Not Found - ${req.originalUrl}`);
+  error.statusCode = 404; // Set status code for 404
+  next(error); // Pass error to the next middleware (errorHandler)
 };

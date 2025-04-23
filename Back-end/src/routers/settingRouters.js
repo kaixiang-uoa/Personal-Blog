@@ -8,16 +8,16 @@ const {
 } = require('../controllers/settingController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
-// 获取所有设置
+// Get all settings
 router.get('/', protect, restrictTo('admin'), getAllSettings);
 
-// 获取单个设置
+// Get a single setting
 router.get('/:id', protect, restrictTo('admin'), getSettingById);
 
-// 更新设置
+// Update a setting
 router.put('/:id', protect, restrictTo('admin'), updateSetting);
 
-// 创建设置
+// Create a setting
 router.post('/', protect, restrictTo('admin'), createSetting);
 
 module.exports = router;

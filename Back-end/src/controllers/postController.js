@@ -5,7 +5,7 @@ const asyncHandler = require('express-async-handler');
 const { success, paginate, createError } = require('../utils/responseHandler');
 
 /**
- * @desc    获取所有文章，支持标签、分类、搜索、日期等综合筛选
+ * @desc    Get all posts, supports filtering by tags, categories, search, date, etc.
  * @route   GET /api/posts
  * @access  Public
  */
@@ -17,25 +17,29 @@ exports.getAllPosts = asyncHandler(async (req, res) => {
     categorySlug,
     tagSlug,
     search,
-    startDate,
-    endDate
+    sort: sortKey = 'publishedAt-desc', // 默认按发布时间降序排序
+    lang = 'zh',
   } = req.query;
 
   const query = { status };
 
-  // 分类筛选
+
+  const debugPost = await Post.findOne(query);
+
+
+  // Category filter
   if (categorySlug) {
     const category = await Category.findOne({ slug: categorySlug });
     if (category) query.categories = category._id;
   }
 
-  // 标签筛选
+  // Tag filter
   if (tagSlug) {
     const tag = await Tag.findOne({ slug: tagSlug });
     if (tag) query.tags = tag._id;
   }
 
-  // 搜索关键词筛选
+  // Search keyword filter
   if (search) {
     query.$or = [
       { title: { $regex: search, $options: 'i' } },
@@ -44,63 +48,138 @@ exports.getAllPosts = asyncHandler(async (req, res) => {
     ];
   }
 
-  // 日期范围筛选
-  if (startDate || endDate) {
-    query.publishedAt = {};
-    if (startDate) query.publishedAt.$gte = new Date(startDate);
-    if (endDate) query.publishedAt.$lte = new Date(endDate);
-  }
+  const sortOptions = {
+    'publishedAt-desc': '-publishedAt',
+    'publishedAt-asc': 'publishedAt',
+    'updatedAt-desc': '-updatedAt',
+    'updatedAt-asc': 'updatedAt',
+  };
 
+  const sort = sortOptions[sortKey] || '-publishedAt';
+ 
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   const posts = await Post.find(query)
     .populate('author', 'username displayName avatar')
-    .populate('categories', 'name slug')
+    .populate('categories', 'name name_en name_zh slug')
     .populate('tags', 'name slug')
-    .sort({ publishedAt: -1 })
+    .sort(sort) // 使用传入的排序参数
     .skip(skip)
     .limit(parseInt(limit));
 
   const total = await Post.countDocuments(query);
-  return paginate(res, posts, page, limit, total);
+  
+  // Transform posts to include localized category names
+  const transformedPosts = posts.map(post => {
+    const transformedPost = post.toObject();
+    
+    // Transform categories
+    if (transformedPost.categories && transformedPost.categories.length > 0) {
+      transformedPost.categories = transformedPost.categories.map(category => {
+        const transformedCategory = {...category};
+        
+        // Replace name with language-specific version
+        if (lang === 'en' && transformedCategory.name_en) {
+          transformedCategory.name = transformedCategory.name_en;
+        } else if (lang === 'zh' && transformedCategory.name_zh) {
+          transformedCategory.name = transformedCategory.name_zh;
+        }
+        
+        return transformedCategory;
+      });
+    }
+    
+    return transformedPost;
+  });
+ 
+  return success(res, {
+    posts: transformedPosts,
+    total: total,
+    totalPages: Math.ceil(total / parseInt(limit)),
+    currentPage: parseInt(page)
+  });
 });
 
 /**
- * @desc    获取单篇文章
+ * @desc    Get a single post by ID
  * @route   GET /api/posts/:id
  * @access  Public
  */
 exports.getPostById = asyncHandler(async (req, res) => {
+  const lang = req.query.lang || 'zh'; // Add language parameter
+  
   const post = await Post.findById(req.params.id)
     .populate('author', 'username displayName avatar')
-    .populate('categories', 'name slug')
+    .populate('categories', 'name name_en name_zh slug')
     .populate('tags', 'name slug');
 
-  if (!post) throw createError('文章不存在', 404);
+  if (!post) throw createError('Post not found', 404);
   post.viewCount += 1;
   await post.save();
-  return success(res, { post });
+  
+  // Transform post to include localized category names
+  const transformedPost = post.toObject();
+  
+  // Transform categories
+  if (transformedPost.categories && transformedPost.categories.length > 0) {
+    transformedPost.categories = transformedPost.categories.map(category => {
+      const transformedCategory = {...category};
+      
+      // Replace name with language-specific version
+      if (lang === 'en' && transformedCategory.name_en) {
+        transformedCategory.name = transformedCategory.name_en;
+      } else if (lang === 'zh' && transformedCategory.name_zh) {
+        transformedCategory.name = transformedCategory.name_zh;
+      }
+      
+      return transformedCategory;
+    });
+  }
+  
+  return success(res, { post: transformedPost });
 });
 
 /**
- * @desc    通过slug获取文章
+ * @desc    Get a post by slug
  * @route   GET /api/posts/slug/:slug
  * @access  Public
  */
 exports.getPostBySlug = asyncHandler(async (req, res) => {
+  const lang = req.query.lang || 'zh'; // Add language parameter
+  
   const post = await Post.findOne({ slug: req.params.slug })
     .populate('author', 'username displayName avatar')
-    .populate('categories', 'name slug')
+    .populate('categories', 'name name_en name_zh slug')
     .populate('tags', 'name slug');
 
-  if (!post) throw createError('文章不存在', 404);
+  if (!post) throw createError('Post not found', 404);
   post.viewCount += 1;
   await post.save();
-  return success(res, { post });
+  
+  // Transform post to include localized category names
+  const transformedPost = post.toObject();
+  
+  // Transform categories
+  if (transformedPost.categories && transformedPost.categories.length > 0) {
+    transformedPost.categories = transformedPost.categories.map(category => {
+      const transformedCategory = {...category};
+      
+      // Replace name with language-specific version
+      if (lang === 'en' && transformedCategory.name_en) {
+        transformedCategory.name = transformedCategory.name_en;
+      } else if (lang === 'zh' && transformedCategory.name_zh) {
+        transformedCategory.name = transformedCategory.name_zh;
+      }
+      
+      return transformedCategory;
+    });
+  }
+  
+  return success(res, { post: transformedPost });
 });
 
 /**
- * @desc    创建文章
+ * @desc    Create a post
  * @route   POST /api/posts
  * @access  Private/Admin
  */
@@ -118,7 +197,7 @@ exports.createPost = asyncHandler(async (req, res) => {
   } = req.body;
 
   const slugExists = await Post.findOne({ slug });
-  if (slugExists) throw createError('该slug已被使用，请使用其他slug', 400);
+  if (slugExists) throw createError('This slug is already in use, please use another slug', 400);
 
   const post = await Post.create({
     title,
@@ -138,17 +217,17 @@ exports.createPost = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    更新文章
+ * @desc    Update a post
  * @route   PUT /api/posts/:id
  * @access  Private/Admin
  */
 exports.updatePost = asyncHandler(async (req, res) => {
   let post = await Post.findById(req.params.id);
-  if (!post) throw createError('文章不存在', 404);
+  if (!post) throw createError('Post not found', 404);
 
   if (req.body.slug && req.body.slug !== post.slug) {
     const slugExists = await Post.findOne({ slug: req.body.slug, _id: { $ne: req.params.id } });
-    if (slugExists) throw createError('该slug已被使用，请使用其他slug', 400);
+    if (slugExists) throw createError('This slug is already in use, please use another slug', 400);
   }
 
   if (req.body.status === 'published' && post.status !== 'published') {
@@ -159,18 +238,17 @@ exports.updatePost = asyncHandler(async (req, res) => {
     new: true,
     runValidators: true,
   });
-
   return success(res, { post });
 });
 
 /**
- * @desc    删除文章
+ * @desc    Delete a post
  * @route   DELETE /api/posts/:id
  * @access  Private/Admin
  */
 exports.deletePost = asyncHandler(async (req, res) => {
   const post = await Post.findById(req.params.id);
-  if (!post) throw createError('文章不存在', 404);
+  if (!post) throw createError('Post not found', 404);
   await post.deleteOne();
-  return success(res, { message: '文章已删除' });
+  return success(res, { message: 'Post deleted successfully' });
 });

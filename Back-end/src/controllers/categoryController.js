@@ -1,129 +1,213 @@
 const Category = require('../models/Category');
 const Post = require('../models/Post');
 const asyncHandler = require('express-async-handler');
+const { success, createError } = require('../utils/responseHandler');
 
 /**
- * @desc    获取所有分类
+ * @desc    Get all categories
  * @route   GET /api/categories
  * @access  Public
  */
 exports.getAllCategories = asyncHandler(async (req, res) => {
-  const categories = await Category.find().sort({ name: 1 });
+  // Get language preference from query parameter or default to 'zh'
+  let lang = 'zh';
+  if(req.query.lang){
+    lang = Array.isArray(req.query.lang)? req.query.lang[0] : req.query.lang;
+  }
   
-  res.status(200).json({
-    success: true,
-    count: categories.length,
-    categories
+  // Get all categories
+  const categories = await Category.find().sort({ name: 1 });
+  // Transform categories based on language preference
+  const transformedCategories = categories.map(category => {
+    const transformed = category.toObject();
+    
+    // Replace name and description with language-specific versions
+    if (lang === 'en' && transformed.name_en) {
+      transformed.name = transformed.name_en;
+    } else if (lang === 'zh' && transformed.name_zh) {
+      transformed.name = transformed.name_zh;
+    }
+    
+    if (lang === 'en' && transformed.description_en) {
+      transformed.description = transformed.description_en;
+    } else if (lang === 'zh' && transformed.description_zh) {
+      transformed.description = transformed.description_zh;
+    }
+    
+    return transformed;
+  });
+
+  return success(res, { 
+    categories: transformedCategories,
+    count: transformedCategories.length 
   });
 });
 
 /**
- * @desc    获取单个分类
+ * @desc    Get a single category by ID
  * @route   GET /api/categories/:id
  * @access  Public
  */
 exports.getCategoryById = asyncHandler(async (req, res) => {
-  const category = await Category.findById(req.params.id);
+  // Get language preference from query parameter or default to 'zh'
+  const lang = req.query.lang || 'zh';
   
+  const category = await Category.findById(req.params.id);
+
   if (!category) {
-    res.status(404);
-    throw new Error('分类不存在');
+    throw createError('Category not found', 404);
   }
   
-  res.status(200).json({
-    success: true,
-    category
-  });
+  // Transform category based on language preference
+  const transformed = category.toObject();
+  
+  // Replace name and description with language-specific versions
+  if (lang === 'en' && transformed.name_en) {
+    transformed.name = transformed.name_en;
+  } else if (lang === 'zh' && transformed.name_zh) {
+    transformed.name = transformed.name_zh;
+  }
+  
+  if (lang === 'en' && transformed.description_en) {
+    transformed.description = transformed.description_en;
+  } else if (lang === 'zh' && transformed.description_zh) {
+    transformed.description = transformed.description_zh;
+  }
+
+  return success(res, { category: transformed });
 });
 
 /**
- * @desc    通过slug获取分类
+ * @desc    Get a category by slug
  * @route   GET /api/categories/slug/:slug
  * @access  Public
  */
 exports.getCategoryBySlug = asyncHandler(async (req, res) => {
-  const category = await Category.findOne({ slug: req.params.slug });
+  // Get language preference from query parameter or default to 'zh'
+  const lang = req.query.lang || 'zh';
   
+  const category = await Category.findOne({ slug: req.params.slug });
+
   if (!category) {
-    res.status(404);
-    throw new Error('分类不存在');
+    throw createError('Category not found', 404);
   }
   
-  res.status(200).json({
-    success: true,
-    category
-  });
+  // Transform category based on language preference
+  const transformed = category.toObject();
+  
+  // Replace name and description with language-specific versions
+  if (lang === 'en' && transformed.name_en) {
+    transformed.name = transformed.name_en;
+  } else if (lang === 'zh' && transformed.name_zh) {
+    transformed.name = transformed.name_zh;
+  }
+  
+  if (lang === 'en' && transformed.description_en) {
+    transformed.description = transformed.description_en;
+  } else if (lang === 'zh' && transformed.description_zh) {
+    transformed.description = transformed.description_zh;
+  }
+
+  return success(res, { category: transformed });
 });
 
 /**
- * @desc    创建分类
+ * @desc    Create a category
  * @route   POST /api/categories
  * @access  Private/Admin
  */
 exports.createCategory = asyncHandler(async (req, res) => {
-  const { name, slug, description } = req.body;
-  
-  // 检查slug是否已存在
+  const { 
+    name, 
+    name_en, 
+    name_zh, 
+    slug, 
+    description, 
+    description_en, 
+    description_zh, 
+    parent, 
+    featuredImage 
+  } = req.body;
+
+  // Check if slug already exists
   const slugExists = await Category.findOne({ slug });
   if (slugExists) {
-    res.status(400);
-    throw new Error('该slug已被使用，请使用其他slug');
+    throw createError('This slug is already in use, please use another one', 400);
   }
-  
-  // 创建分类
+
+  // Create category
   const category = await Category.create({
     name,
+    name_en,
+    name_zh,
     slug,
-    description
+    description,
+    description_en,
+    description_zh,
+    parent: parent || null,
+    featuredImage
   });
-  
-  res.status(201).json({
-    success: true,
-    category
-  });
+
+  return success(res, { category }, 201, 'Category created successfully');
 });
 
 /**
- * @desc    更新分类
+ * @desc    Update a category
  * @route   PUT /api/categories/:id
  * @access  Private/Admin
  */
 exports.updateCategory = asyncHandler(async (req, res) => {
+  const { 
+    name, 
+    name_en, 
+    name_zh, 
+    slug, 
+    description, 
+    description_en, 
+    description_zh, 
+    parent, 
+    featuredImage 
+  } = req.body;
+  
+  // Find category
   let category = await Category.findById(req.params.id);
   
   if (!category) {
-    res.status(404);
-    throw new Error('分类不存在');
+    throw createError('Category not found', 404);
   }
   
-  // 如果更新了slug，检查新slug是否已存在
-  if (req.body.slug && req.body.slug !== category.slug) {
-    const slugExists = await Category.findOne({ 
-      slug: req.body.slug,
-      _id: { $ne: req.params.id }
-    });
-    
+  // Check if slug is already taken by another category
+  if (slug && slug !== category.slug) {
+    const slugExists = await Category.findOne({ slug });
     if (slugExists) {
-      res.status(400);
-      throw new Error('该slug已被使用，请使用其他slug');
+      throw createError('This slug is already in use, please use another one', 400);
     }
   }
   
-  // 更新分类
-  category = await Category.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true, runValidators: true }
-  );
+  // Prevent circular parent reference
+  if (parent && parent.toString() === category._id.toString()) {
+    throw createError('Category can not be its own parent', 400);
+  }
   
-  res.status(200).json({
-    success: true,
-    category
-  });
+  // Update category fields
+  category.name = name || category.name;
+  category.name_en = name_en !== undefined ? name_en : category.name_en;
+  category.name_zh = name_zh !== undefined ? name_zh : category.name_zh;
+  category.slug = slug || category.slug;
+  category.description = description !== undefined ? description : category.description;
+  category.description_en = description_en !== undefined ? description_en : category.description_en;
+  category.description_zh = description_zh !== undefined ? description_zh : category.description_zh;
+  category.parent = parent || category.parent;
+  category.featuredImage = featuredImage || category.featuredImage;
+  
+  // Save updated category
+  await category.save();
+  
+  return success(res, { category }, 200, 'Category updated successfully');
 });
 
 /**
- * @desc    删除分类
+ * @desc    Delete a category
  * @route   DELETE /api/categories/:id
  * @access  Private/Admin
  */
@@ -131,21 +215,22 @@ exports.deleteCategory = asyncHandler(async (req, res) => {
   const category = await Category.findById(req.params.id);
   
   if (!category) {
-    res.status(404);
-    throw new Error('分类不存在');
+    throw createError('Category not found', 404);
   }
   
-  // 检查是否有文章使用此分类
-  const postCount = await Post.countDocuments({ categories: req.params.id });
-  if (postCount > 0) {
-    res.status(400);
-    throw new Error(`无法删除此分类，有 ${postCount} 篇文章正在使用它`);
+  // Check if category has children
+  const hasChildren = await Category.findOne({ parent: category._id });
+  if (hasChildren) {
+    throw createError('This category has children, can not be deleted', 400);
   }
   
-  await category.deleteOne();
+  // Update posts to remove this category
+  await Post.updateMany(
+    { category: category._id },
+    { $set: { category: null } }
+  );
   
-  res.status(200).json({
-    success: true,
-    message: '分类已删除'
-  });
+  await category.remove();
+  
+  return success(res, null, 200, 'Category deleted successfully');
 });

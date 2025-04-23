@@ -2,121 +2,119 @@ const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const { success, createError } = require('../utils/responseHandler');
 
 /**
- * @desc    用户登录
+ * @desc    User login
  * @route   POST /api/auth/login
  * @access  Public
  */
 exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  
-  // 验证请求
+
+  // Validate request
   if (!email || !password) {
-    res.status(400);
-    throw new Error('请提供邮箱和密码');
+    throw createError('Please provide email and password', 400);
   }
-  
-  // 查找用户
+
+  // Find user by email
   const user = await User.findOne({ email });
-  
-  // 验证用户和密码
+
+  // Check if user exists and password is correct
   if (!user || !(await bcrypt.compare(password, user.password))) {
-    res.status(401);
-    throw new Error('邮箱或密码不正确');
+    throw createError('邮箱或密码不正确', 401);
   }
-  
-  // 更新最后登录时间
-  user.lastLogin = Date.now();
-  await user.save();
-  
-  // 生成JWT
+
+  // Generate JWT token
   const token = jwt.sign(
     { id: user._id, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: '30d' }
+    { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
   );
-  
-  res.status(200).json({
-    success: true,
-    token,
-    user: {
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      displayName: user.displayName,
-      role: user.role,
-      avatar: user.avatar
-    }
-  });
+
+  // Return user data without password
+  const userData = {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    displayName: user.displayName,
+    role: user.role,
+    avatar: user.avatar,
+    bio: user.bio
+  };
+
+  return success(res, { 
+    user: userData,
+    token 
+  }, 200, '登录成功');
 });
 
 /**
- * @desc    获取当前用户信息
+ * @desc    Get current user profile
  * @route   GET /api/auth/me
  * @access  Private
  */
 exports.getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id).select('-password');
-  
-  res.status(200).json({
-    success: true,
-    user
-  });
+
+  if (!user) {
+    throw createError('用户不存在', 404);
+  }
+
+  return success(res, { user });
 });
 
 /**
- * @desc    注册用户 (仅在开发环境可用)
+ * @desc    Register a new user
  * @route   POST /api/auth/register
  * @access  Public
  */
 exports.register = asyncHandler(async (req, res) => {
-  // 仅在开发环境允许注册
-  if (process.env.NODE_ENV === 'production') {
-    res.status(403);
-    throw new Error('注册功能在生产环境不可用');
-  }
-  
   const { username, email, password, displayName } = req.body;
-  
-  // 验证请求
+
+  // Validate request
   if (!username || !email || !password) {
-    res.status(400);
-    throw new Error('请提供用户名、邮箱和密码');
+    throw createError('请提供用户名、邮箱和密码', 400);
   }
-  
-  // 检查用户是否已存在
+
+  // Check if user already exists
   const userExists = await User.findOne({ $or: [{ email }, { username }] });
   if (userExists) {
-    res.status(400);
-    throw new Error('用户已存在');
+    throw createError('用户已存在', 400);
   }
-  
-  // 创建用户
+
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  // Create user
   const user = await User.create({
     username,
     email,
-    password, // 密码会在模型中自动哈希
-    displayName: displayName || username,
-    role: 'user' // 默认角色
+    password: hashedPassword,
+    displayName: displayName || username
   });
-  
-  // 生成JWT
+
+  // Generate JWT token
   const token = jwt.sign(
     { id: user._id, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: '30d' }
+    { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
   );
-  
-  res.status(201).json({
-    success: true,
-    token,
-    user: {
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      displayName: user.displayName,
-      role: user.role
-    }
-  });
+
+  // Return user data without password
+  const userData = {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    displayName: user.displayName,
+    role: user.role,
+    avatar: user.avatar,
+    bio: user.bio
+  };
+
+  return success(res, { 
+    user: userData,
+    token 
+  }, 201, '注册成功');
 });

@@ -13,9 +13,9 @@ interface TagListProps {
 }
 
 const TagList: React.FC<TagListProps> = ({ tags, onTagClick, activeTag }) => {
-  // 添加空数组检查，确保tags存在
+  // Add check for empty array to ensure tags exist
   if (!tags || !Array.isArray(tags)) {
-    return null; // 如果tags不存在或不是数组，不渲染任何内容
+    return null; // If tags don't exist or aren't an array, render nothing
   }
 
   return (

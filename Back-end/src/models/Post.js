@@ -59,17 +59,23 @@ const PostSchema = new Schema({
     allowComments: {
         type: Boolean,
         default: true
-    }
+    },
+    publishedAt: {
+        type: Date,
+        default: null
+      }
 },
 { timestamps: true }
 );
 
-// 添加自动生成 slug 的中间件
+// Middleware to auto-generate slug
 PostSchema.pre('save', function(next) {
     if (!this.slug && this.title) {
         this.slug = this.title
             .toLowerCase()
+            // Replace non-word characters (excluding Chinese) with hyphens
             .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+            // Remove leading/trailing hyphens
             .replace(/^-+|-+$/g, '');
     }
     next();

@@ -10,22 +10,22 @@ const {
 } = require('../controllers/postController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
-// 获取所有文章
+// Get all posts
 router.get('/', getAllPosts);
 
-// 通过slug获取文章
+// Get post by slug
 router.get('/slug/:slug', getPostBySlug);
 
-// 通过ID获取文章
+// Get post by ID
 router.get('/:id', getPostById);
 
-// 创建文章 (需要管理员权限)
+// Create post (requires admin privileges)
 router.post('/', protect, restrictTo('admin'), createPost);
 
-// 更新文章 (需要管理员权限)
+// Update post (requires admin privileges)
 router.put('/:id', protect, restrictTo('admin'), updatePost);
 
-// 删除文章 (需要管理员权限)
+// Delete post (requires admin privileges)
 router.delete('/:id', protect, restrictTo('admin'), deletePost);
 
 module.exports = router;

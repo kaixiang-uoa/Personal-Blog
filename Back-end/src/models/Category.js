@@ -7,6 +7,15 @@ const CategorySchema = new Schema({
         required: true,
         trim: true
     },
+    // Add multilingual support for name
+    name_en: {
+        type: String,
+        trim: true
+    },
+    name_zh: {
+        type: String,
+        trim: true
+    },
     slug: {
         type: String,
         required: true,
@@ -14,6 +23,15 @@ const CategorySchema = new Schema({
         trim: true
     },
     description: {
+        type: String,
+        trim: true
+    },
+    // Add multilingual support for description
+    description_en: {
+        type: String,
+        trim: true
+    },
+    description_zh: {
         type: String,
         trim: true
     },
@@ -29,14 +47,34 @@ const CategorySchema = new Schema({
 { timestamps: true }
 );
 
-// 添加自动生成 slug 的中间件
+// Middleware to auto-generate slug
 CategorySchema.pre('save', function(next) {
     if (!this.slug && this.name) {
         this.slug = this.name
             .toLowerCase()
+            // Replace non-word characters (excluding Chinese) with hyphens
             .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+            // Remove leading/trailing hyphens
             .replace(/^-+|-+$/g, '');
     }
+    
+    // Set default language values if not provided
+    if (!this.name_zh && this.name) {
+        this.name_zh = this.name;
+    }
+    
+    if (!this.name_en && this.name) {
+        this.name_en = this.name;
+    }
+    
+    if (!this.description_zh && this.description) {
+        this.description_zh = this.description;
+    }
+    
+    if (!this.description_en && this.description) {
+        this.description_en = this.description;
+    }
+    
     next();
 });
 

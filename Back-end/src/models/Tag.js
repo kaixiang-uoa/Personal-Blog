@@ -21,12 +21,14 @@ const TagSchema = new Schema({
 { timestamps: true }
 );
 
-// 添加自动生成 slug 的中间件
+// Middleware to auto-generate slug
 TagSchema.pre('save', function(next) {
     if (!this.slug && this.name) {
         this.slug = this.name
             .toLowerCase()
+            // Replace non-word characters (excluding Chinese) with hyphens
             .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+            // Remove leading/trailing hyphens
             .replace(/^-+|-+$/g, '');
     }
     next();

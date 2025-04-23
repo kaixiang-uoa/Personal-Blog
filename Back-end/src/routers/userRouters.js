@@ -10,22 +10,22 @@ const {
 } = require('../controllers/userController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
-// 获取所有用户 (需要管理员权限)
+// Get all users (requires admin privileges)
 router.get('/', protect, restrictTo('admin'), getAllUsers);
 
-// 更新当前用户信息
+// Update current user information
 router.put('/profile', protect, updateProfile);
 
-// 获取单个用户 (需要管理员权限)
+// Get single user (requires admin privileges)
 router.get('/:id', protect, restrictTo('admin'), getUserById);
 
-// 创建用户 (需要管理员权限)
+// Create user (requires admin privileges)
 router.post('/', protect, restrictTo('admin'), createUser);
 
-// 更新用户 (需要管理员权限)
+// Update user (requires admin privileges)
 router.put('/:id', protect, restrictTo('admin'), updateUser);
 
-// 删除用户 (需要管理员权限)
+// Delete user (requires admin privileges)
 router.delete('/:id', protect, restrictTo('admin'), deleteUser);
 
 module.exports = router;

@@ -1,129 +1,112 @@
 const Tag = require('../models/Tag');
 const Post = require('../models/Post');
 const asyncHandler = require('express-async-handler');
+const { success, createError } = require('../utils/responseHandler');
 
 /**
- * @desc    获取所有标签
+ * @desc    Get all tags
  * @route   GET /api/tags
  * @access  Public
  */
 exports.getAllTags = asyncHandler(async (req, res) => {
   const tags = await Tag.find().sort({ name: 1 });
-  
-  res.status(200).json({
-    success: true,
-    count: tags.length,
-    tags
+
+  return success(res, { 
+    tags,
+    count: tags.length 
   });
 });
 
 /**
- * @desc    获取单个标签
+ * @desc    Get a single tag by ID
  * @route   GET /api/tags/:id
  * @access  Public
  */
 exports.getTagById = asyncHandler(async (req, res) => {
   const tag = await Tag.findById(req.params.id);
-  
+
   if (!tag) {
-    res.status(404);
-    throw new Error('标签不存在');
+    throw createError('Tag not found', 404);
   }
-  
-  res.status(200).json({
-    success: true,
-    tag
-  });
+
+  return success(res, { tag });
 });
 
 /**
- * @desc    通过slug获取标签
+ * @desc    Get a tag by slug
  * @route   GET /api/tags/slug/:slug
  * @access  Public
  */
 exports.getTagBySlug = asyncHandler(async (req, res) => {
   const tag = await Tag.findOne({ slug: req.params.slug });
-  
+
   if (!tag) {
-    res.status(404);
-    throw new Error('标签不存在');
+    throw createError('Tag not found', 404);
   }
-  
-  res.status(200).json({
-    success: true,
-    tag
-  });
+
+  return success(res, { tag });
 });
 
 /**
- * @desc    创建标签
+ * @desc    Create a tag
  * @route   POST /api/tags
  * @access  Private/Admin
  */
 exports.createTag = asyncHandler(async (req, res) => {
   const { name, slug, description } = req.body;
-  
-  // 检查slug是否已存在
+
+  // Check if slug already exists
   const slugExists = await Tag.findOne({ slug });
   if (slugExists) {
-    res.status(400);
-    throw new Error('该slug已被使用，请使用其他slug');
+    throw createError('This slug is already in use, please use another one', 400);
   }
-  
-  // 创建标签
+
+  // Create tag
   const tag = await Tag.create({
     name,
     slug,
     description
   });
-  
-  res.status(201).json({
-    success: true,
-    tag
-  });
+
+  return success(res, { tag }, 201, 'Tag created successfully');
 });
 
 /**
- * @desc    更新标签
+ * @desc    Update a tag
  * @route   PUT /api/tags/:id
  * @access  Private/Admin
  */
 exports.updateTag = asyncHandler(async (req, res) => {
+  const { name, slug, description } = req.body;
+  
+  // Find tag
   let tag = await Tag.findById(req.params.id);
   
   if (!tag) {
-    res.status(404);
-    throw new Error('标签不存在');
+    throw createError('标签不存在', 404);
   }
   
-  // 如果更新了slug，检查新slug是否已存在
-  if (req.body.slug && req.body.slug !== tag.slug) {
-    const slugExists = await Tag.findOne({ 
-      slug: req.body.slug,
-      _id: { $ne: req.params.id }
-    });
-    
+  // Check if slug is already taken by another tag
+  if (slug && slug !== tag.slug) {
+    const slugExists = await Tag.findOne({ slug });
     if (slugExists) {
-      res.status(400);
-      throw new Error('该slug已被使用，请使用其他slug');
+      throw createError('该别名已被使用，请使用其他别名', 400);
     }
   }
   
-  // 更新标签
-  tag = await Tag.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true, runValidators: true }
-  );
+  // Update tag fields
+  tag.name = name || tag.name;
+  tag.slug = slug || tag.slug;
+  tag.description = description !== undefined ? description : tag.description;
   
-  res.status(200).json({
-    success: true,
-    tag
-  });
+  // Save updated tag
+  await tag.save();
+  
+  return success(res, { tag }, 200, '标签更新成功');
 });
 
 /**
- * @desc    删除标签
+ * @desc    Delete a tag
  * @route   DELETE /api/tags/:id
  * @access  Private/Admin
  */
@@ -131,21 +114,16 @@ exports.deleteTag = asyncHandler(async (req, res) => {
   const tag = await Tag.findById(req.params.id);
   
   if (!tag) {
-    res.status(404);
-    throw new Error('标签不存在');
+    throw createError('标签不存在', 404);
   }
   
-  // 检查是否有文章使用此标签
-  const postCount = await Post.countDocuments({ tags: req.params.id });
-  if (postCount > 0) {
-    res.status(400);
-    throw new Error(`无法删除此标签，有 ${postCount} 篇文章正在使用它`);
-  }
+  // Remove tag from posts
+  await Post.updateMany(
+    { tags: tag._id },
+    { $pull: { tags: tag._id } }
+  );
   
-  await tag.deleteOne();
+  await tag.remove();
   
-  res.status(200).json({
-    success: true,
-    message: '标签已删除'
-  });
+  return success(res, null, 200, '标签删除成功');
 });

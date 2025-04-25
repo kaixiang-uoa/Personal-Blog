@@ -8,8 +8,8 @@ import Navbar from "../components/Navbar";
 import ArticleCard from "../components/ArticleCard";
 import TagFilter from "../components/TagFilter";
 import FilterSidebar from "../components/FilterSidebar";
-import SortSelector from "@/components/SortSelector";
-import ArticleSkeleton from "../../components/ArticleSkeleton";
+import SortSelector from "@/app/components/SortSelector";
+import ArticleSkeleton from "../components/ArticleSkeleton";
 
 import { Article, Category, Tag, PostsData, SortOrder } from "@/services/interface";
 import { postApi, categoryApi, tagApi } from "@/services/api";
@@ -26,10 +26,11 @@ export default function Home() {
   const searchParam = useMemo(() => searchParams.get("search"), [searchParams]);
   const pageParam = useMemo(() => searchParams.get("page"), [searchParams]);
 
-  const validSortOrders: SortOrder[] = [
-    "publishedAt-desc", "publishedAt-asc", "updatedAt-desc", "updatedAt-asc"
-  ];
+  
   const sortParam = useMemo(() => {
+    const validSortOrders: SortOrder[] = [
+      "publishedAt-desc", "publishedAt-asc", "updatedAt-desc", "updatedAt-asc"
+    ];
     const raw = searchParams.get("sort");
     return validSortOrders.includes(raw as SortOrder) ? raw as SortOrder : "publishedAt-desc";
   }, [searchParams]);
@@ -42,7 +43,7 @@ export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalArticles, setTotalArticles] = useState(0);
+  const [,setTotalArticles] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,14 +97,20 @@ export default function Home() {
     updateUrlParams({ tags: selectedTags, page: null });
   };
 
-  const handleFilterChange = (type: "tags" | "category" | "sort", value: any) => {
+  type FilterChangeType =
+  | { type: "tags"; value: string[] }
+  | { type: "category"; value: string }
+  | { type: "sort"; value: SortOrder }
+
+
+  const handleFilterChange = ({type,value} : FilterChangeType ) => {
     if (type === "tags") {
-      updateUrlParams({ tags: value, page: null });
+      updateUrlParams({ tags: value as string[], page: null });
     } else if (type === "category") {
-      updateUrlParams({ category: value, page: null });
+      updateUrlParams({ category: value as string, page: null });
     } else if (type === "sort") {
-      setSortOrder(value);
-      updateUrlParams({ sort: value, page: null });
+      setSortOrder(value as SortOrder);
+      updateUrlParams({ sort: value as string, page: null });
     }
   };
 
@@ -142,8 +149,9 @@ export default function Home() {
           setArticles([]);
           setError(response.message || "获取文章失败");
         }
-      } catch (err: any) {
-        setError(err.message || "获取文章失败");
+      } catch (err:unknown) {
+        const errorMessage = err instanceof Error? err.message : "获取文章失败";
+        setError(errorMessage);
         setArticles([]);
       } finally {
         setLoading(false);
@@ -258,7 +266,7 @@ export default function Home() {
             <div className="flex justify-end mb-6">
               <SortSelector
                 value={sortOrder}
-                onChange={(value) => handleFilterChange("sort", value)}
+                onChange={(val) => handleFilterChange({ type: "sort", value: val as SortOrder })}
                 className="md:hidden"
               />
             </div>

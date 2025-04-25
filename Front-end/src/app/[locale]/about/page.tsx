@@ -1,4 +1,7 @@
-import Navbar from "../components/Navbar";
+"use client";
+export const dynamic = "force-dynamic";
+export const dynamicParams = false;
+import Navbar from "../../components/Navbar";
 
 export default function AboutMe() {
   return (
@@ -10,19 +13,29 @@ export default function AboutMe() {
         <section className="mb-12">
           <h1 className="text-4xl font-extrabold mb-4">About Me</h1>
           <p className="text-lg">
-            Hello! I'm a passionate developer with a love for technology and innovation. I enjoy creating solutions that make a difference and sharing my knowledge with others.
+            Hello! I&apos;m a passionate developer with a love for technology
+            and innovation. I enjoy creating solutions that make a difference
+            and sharing my knowledge with others.
           </p>
         </section>
 
-        {/* Contact Information */}
+        {/* Contact Info */}
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-4">Contact Information</h2>
           <ul className="list-disc list-inside">
-            <li>Email: <a href="mailto:your.email@example.com" className="text-cyan-600 hover:text-cyan-400">your.email@example.com</a></li>
+            <li>
+              Email:{" "}
+              <a
+                href="mailto:your.email@example.com"
+                className="text-cyan-600 hover:text-cyan-400"
+              >
+                your.email@example.com
+              </a>
+            </li>
           </ul>
         </section>
 
-        {/* Professional Skills */}
+        {/* Skills */}
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-4">Professional Skills</h2>
           <ul className="list-disc list-inside">
@@ -55,24 +68,52 @@ export default function AboutMe() {
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-4">Projects</h2>
           <ul className="list-disc list-inside">
-            <li>Project A: Description and <a href="#" className="text-cyan-600 hover:text-cyan-400">GitHub Link</a></li>
-            <li>Project B: Description and <a href="#" className="text-cyan-600 hover:text-cyan-400">GitHub Link</a></li>
+            <li>
+              Project A: Description and{" "}
+              <a href="#" className="text-cyan-600 hover:text-cyan-400">
+                GitHub Link
+              </a>
+            </li>
+            <li>
+              Project B: Description and{" "}
+              <a href="#" className="text-cyan-600 hover:text-cyan-400">
+                GitHub Link
+              </a>
+            </li>
           </ul>
         </section>
 
-        {/* Social Links */}
+        {/* Social */}
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-4">Connect with Me</h2>
           <ul className="list-disc list-inside">
-            <li><a href="https://github.com/yourusername" className="text-cyan-600 hover:text-cyan-400">GitHub</a></li>
-            <li><a href="https://linkedin.com/in/yourusername" className="text-cyan-600 hover:text-cyan-400">LinkedIn</a></li>
+            <li>
+              <a
+                href="https://github.com/yourusername"
+                className="text-cyan-600 hover:text-cyan-400"
+              >
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://linkedin.com/in/yourusername"
+                className="text-cyan-600 hover:text-cyan-400"
+              >
+                LinkedIn
+              </a>
+            </li>
           </ul>
         </section>
       </div>
 
       <footer className="bg-gray-800 py-6">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-gray-400">&copy; {new Date().getFullYear()} My Personal Blog. All rights reserved.</p>
+          <p className="text-gray-400">
+            &copy;{" "}
+            {typeof window !== "undefined" ? new Date().getFullYear() : "2024"}{" "}
+            My Personal Blog. All rights reserved.
+          </p>
         </div>
       </footer>
     </main>

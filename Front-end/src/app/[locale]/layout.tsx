@@ -1,23 +1,20 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { notFound } from 'next/navigation';
-import { routing } from '@/i18n/routing';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/app/components/ErrorBoundary';
 
-export default async function LocaleLayout({
-  children,
-  params,
-}: {
+interface LocaleLayoutProps {
   children: React.ReactNode;
-  params: { locale: string };
-}) {
-  // 使用 Promise.resolve() 来确保 params 被正确处理
-  const locale = (await Promise.resolve(params)).locale;
+  params: Promise<{ locale: string }>; // ✅ 改成 Promise
+}
 
-  // 异步加载消息文件
+export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
+  const { locale } = await params; // ✅ 解构 Promise
+
   let messages;
   try {
     messages = (await import(`../../../messages/${locale}.json`)).default;
   } catch (error) {
+    console.error('Failed to load messages:', error);
     notFound();
   }
 

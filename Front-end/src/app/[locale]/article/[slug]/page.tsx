@@ -10,7 +10,7 @@ import { Article } from "@/services/interface";
 
 export default function ArticlePage() {
   const t = useTranslations('common');
-  const { slug } = useParams();
+  const { slug, locale } = useParams();
   const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,8 +21,6 @@ export default function ArticlePage() {
       try {
         setLoading(true);
         const response = await postApi.getPostBySlug(slug as string);
-        console.log("Fetched article:", response);
-        // 修改这里：直接从 response 获取 post，而不是从 response.data 中获取
         setArticle(response.data.post);
         setLoading(false);
       } catch (err) {
@@ -37,21 +35,10 @@ export default function ArticlePage() {
     }
   }, [slug, t]);
 
-  // Handle tag click
+  // 处理标签点击事件，跳转到带有标签筛选的首页
   const handleTagClick = (tagSlug: string) => {
-    // 获取当前语言
-    const locale = useParams().locale;
-    // 添加语言前缀到路径
     router.push(`/${locale}?tag=${tagSlug}`);
-  };
-
-  // 在返回的 JSX 中也需要更新链接
-  <Link
-    href={`/${useParams().locale}`}
-    className="text-cyan-600 hover:text-cyan-400 mb-4 inline-block"
-  >
-    &larr; {t('backToHome')}
-  </Link>
+  }
 
   return (
     <main className="min-h-screen bg-gray-900 text-gray-200">
@@ -59,7 +46,7 @@ export default function ArticlePage() {
 
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <Link
-          href="/"
+          href={`/${locale}`}
           className="text-cyan-600 hover:text-cyan-400 mb-4 inline-block"
         >
           &larr; {t('backToHome')}
@@ -74,7 +61,7 @@ export default function ArticlePage() {
           <div className="text-center py-10">
             <div className="bg-red-900/30 border border-red-700 rounded-lg p-6">
               <p className="text-xl text-red-400">{error}</p>
-              <Link href="/" className="mt-4 inline-block text-cyan-500 hover:text-cyan-400">
+              <Link href={`/${locale}`} className="mt-4 inline-block text-cyan-500 hover:text-cyan-400">
                 {t('backToHome')}
               </Link>
             </div>
@@ -113,7 +100,7 @@ export default function ArticlePage() {
                 {article.categories.map(category => (
                   <Link 
                     key={category._id} 
-                    href={`/?category=${category.slug}`}
+                    href={`/${locale}?category=${category.slug}`}
                     className="text-cyan-500 hover:text-cyan-400 mr-2"
                   >
                     {category.name}
@@ -147,7 +134,7 @@ export default function ArticlePage() {
           <div className="text-center py-10">
             <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-6">
               <p className="text-xl">{t('notFound')}</p>
-              <Link href="/" className="mt-4 inline-block text-cyan-500 hover:text-cyan-400">
+              <Link href={`/${locale}`} className="mt-4 inline-block text-cyan-500 hover:text-cyan-400">
                 {t('backToHome')}
               </Link>
             </div>

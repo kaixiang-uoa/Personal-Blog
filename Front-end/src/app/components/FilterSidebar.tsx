@@ -1,17 +1,17 @@
 "use client"
 import { useState, useEffect } from "react"; // Import useEffect
 // import { useRouter } from "next/navigation";
-import { Calendar, Tag, X } from "lucide-react";
+import { Tag, X } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+} from "@/app/components/ui/accordion";
+import { Button } from "@/app/components/ui/button";
+import { Badge } from "@/app/components/ui/badge";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import { Label } from "@/app/components/ui/label";
 import { useTranslations } from "next-intl";
 import {
   Select,
@@ -19,9 +19,13 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../components/ui/select";
+} from "./ui/select";
 import type { SortOrder } from "@/services/interface";
 
+type FilterChangeType =
+  | { type: "tags"; value: string[] }
+  | { type: "category"; value: string }
+  | { type: "sort"; value: SortOrder }
 interface FilterSidebarProps {
   tags: {
     _id: string;
@@ -39,7 +43,8 @@ interface FilterSidebarProps {
   activeTags: string[];
   activeCategory: string | null;
   sortOrder?: SortOrder;
-  onFilterChangeAction: (type: "tags" | "category" | "sort", value: any) => void;
+  
+  onFilterChangeAction: (payload: FilterChangeType) => void;
   onClearFiltersAction: () => void;
 }
 
@@ -83,13 +88,13 @@ export default function FilterSidebar({
     }
 
     setSelectedTags(newSelectedTags);
-    onFilterChangeAction("tags", newSelectedTags);
+    onFilterChangeAction({type: "tags", value: newSelectedTags});
   };
 
   // When a category is selected or deselected, update internal state and notify parent
   const handleCategoryChange = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
-    onFilterChangeAction("category", categorySlug);
+    onFilterChangeAction({ type: "category",value: categorySlug || ""});
   };
 
   // Directly use props to determine if there are active filters, ensuring consistency with parent state
@@ -253,7 +258,7 @@ export default function FilterSidebar({
         <AccordionItem value="sort" className="border-b-0">
           <AccordionTrigger className="text-base py-3 hover:no-underline">
             <div className="flex items-center">
-              <Calendar className="h-4 w-4 mr-2" />
+              {/* <Calendar className="h-4 w-4 mr-2" /> */}
               <span>{t("sortBy")}</span>
             </div>
           </AccordionTrigger>
@@ -263,7 +268,7 @@ export default function FilterSidebar({
                 value={selectedSortOrder}
                 onValueChange={(value: SortOrder) => {
                   setSelectedSortOrder(value);
-                  onFilterChangeAction("sort", value);
+                  onFilterChangeAction( {type: "sort", value });
                 }}
               >
                 <SelectTrigger className="w-full bg-gray-700 border-gray-600">

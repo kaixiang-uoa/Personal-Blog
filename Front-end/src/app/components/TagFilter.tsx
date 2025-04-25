@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { Tag } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { Badge } from "@/app/components/ui/badge"
+import { ScrollArea, ScrollBar } from "@/app/components/ui/scroll-area"
 
 interface TagProps {
   _id: string

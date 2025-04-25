@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 export function useRetry<T>(
   fetchFunction: () => Promise<T>,
-  dependencies: any[] = [],
+  // dependencies: unknown[] = [],
   options = { maxRetries: 3, retryDelay: 5000 }
 ) {
   const [data, setData] = useState<T | null>(null);
@@ -40,7 +40,7 @@ export function useRetry<T>(
   
   useEffect(() => {
     fetchData();
-  }, [...dependencies, retryCount]);
+  }, [fetchData]);
   
   // 手动重试的函数
   const retry = useCallback(() => {

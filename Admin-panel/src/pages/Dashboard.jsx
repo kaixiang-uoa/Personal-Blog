@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, BarChart3, PieChart, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Separator } from '../components/ui/separator';
 import { Button } from '../components/ui/button';
 // 引入模拟API
 import { fetchMockData } from '../services/mockApi';
@@ -54,7 +53,7 @@ const Dashboard = () => {
     );
   }
 
-  const { stats, recentPosts, popularPosts, trafficData } = dashboardData;
+  const { stats, popularPosts, trafficData } = dashboardData;
 
   return (
     <div className="container mx-auto p-6">

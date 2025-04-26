@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Cloud, 
   FileImage, 
@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Separator } from '../components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 // Replace context import with mock API
 // import { useAdminContext } from '../contexts/AdminContext';
@@ -29,15 +28,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 
 const MediaManagement = () => {
-  // Replace context with state and API call
-  // const { mediaFiles } = useAdminContext();
   const [mediaFiles, setMediaFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredMedia, setFilteredMedia] = useState([]);
   const [selectedType, setSelectedType] = useState('all');
   const [selectedDate, setSelectedDate] = useState('all');
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState([]);
   const [viewMode, setViewMode] = useState('grid');
   
@@ -59,48 +56,55 @@ const MediaManagement = () => {
     fetchMedia();
   }, []);
 
+  // 使用 useCallback 包装 filterMedia 函数
+  const filterMedia = useCallback(() => {
+  // 函数内容
+  let filteredFiles = [...mediaFiles];
+  
+  // 按搜索词过滤
+  if (searchTerm) {
+    filteredFiles = filteredFiles.filter(file => 
+      file.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+  
+  // 按类型过滤
+  if (selectedType && selectedType !== 'all') {
+    filteredFiles = filteredFiles.filter(file => 
+      file.type.startsWith(selectedType)
+    );
+  }
+  
+  // 按日期过滤
+  if (selectedDate && selectedDate !== 'all') {
+    const now = new Date();
+    const oneDay = 24 * 60 * 60 * 1000;
+    const oneWeek = 7 * oneDay;
+    const oneMonth = 30 * oneDay;
+    
+    filteredFiles = filteredFiles.filter(media => {
+      const mediaDate = new Date(media.uploadDate);
+      const diff = now - mediaDate;
+      
+      switch(selectedDate) {
+        case 'today':
+          return diff < oneDay;
+        case 'week':
+          return diff < oneWeek;
+        case 'month':
+          return diff < oneMonth;
+        default:
+          return true;
+      }
+    });
+  }
+  
+  setFilteredMedia(filteredFiles);
+  }, [mediaFiles, searchTerm, selectedType, selectedDate]);
+  
   useEffect(() => {
     filterMedia();
-  }, [mediaFiles, searchTerm, selectedType, selectedDate]);
-
-  const filterMedia = () => {
-    let results = [...mediaFiles];
-    
-    if (searchTerm) {
-      results = results.filter(media => 
-        media.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    if (selectedType !== 'all') {
-      results = results.filter(media => media.type.startsWith(selectedType));
-    }
-    
-    if (selectedDate !== 'all') {
-      const now = new Date();
-      const oneDay = 24 * 60 * 60 * 1000;
-      const oneWeek = 7 * oneDay;
-      const oneMonth = 30 * oneDay;
-      
-      results = results.filter(media => {
-        const mediaDate = new Date(media.uploadDate);
-        const diff = now - mediaDate;
-        
-        switch(selectedDate) {
-          case 'today':
-            return diff < oneDay;
-          case 'week':
-            return diff < oneWeek;
-          case 'month':
-            return diff < oneMonth;
-          default:
-            return true;
-        }
-      });
-    }
-    
-    setFilteredMedia(results);
-  };
+  }, [filterMedia]);
 
   // Add loading state handling
   if (loading) {

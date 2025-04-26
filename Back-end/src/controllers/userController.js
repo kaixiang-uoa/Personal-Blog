@@ -1,15 +1,14 @@
-const User = require('../models/User');
-const Post = require('../models/Post');
-const asyncHandler = require('express-async-handler');
-const bcrypt = require('bcryptjs');
-const { success, createError } = require('../utils/responseHandler');
+import User from '../models/User.js';
+import asyncHandler from 'express-async-handler';
+import bcrypt from 'bcryptjs';
+import {  success, createError  } from '../utils/responseHandler.js';
 
 /**
  * @desc    Get all users
  * @route   GET /api/users
  * @access  Private/Admin
  */
-exports.getAllUsers = asyncHandler(async (req, res) => {
+export const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find().select('-password').sort({ createdAt: -1 });
 
   return success(res, { 
@@ -23,7 +22,7 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
  * @route   GET /api/users/:id
  * @access  Private/Admin
  */
-exports.getUserById = asyncHandler(async (req, res) => {
+export const getUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id).select('-password');
 
   if (!user) {
@@ -38,7 +37,7 @@ exports.getUserById = asyncHandler(async (req, res) => {
  * @route   POST /api/users
  * @access  Private/Admin
  */
-exports.createUser = asyncHandler(async (req, res) => {
+export const createUser = asyncHandler(async (req, res) => {
   const { username, email, password, displayName, role } = req.body;
 
   // Check if user already exists
@@ -71,7 +70,7 @@ exports.createUser = asyncHandler(async (req, res) => {
  * @route   PUT /api/users/:id
  * @access  Private/Admin
  */
-exports.updateUser = asyncHandler(async (req, res) => {
+export const updateUser = asyncHandler(async (req, res) => {
   const { username, email, password, displayName, role, bio, avatar } = req.body;
   
   // Find user
@@ -124,7 +123,7 @@ exports.updateUser = asyncHandler(async (req, res) => {
  * @route   DELETE /api/users/:id
  * @access  Private/Admin
  */
-exports.deleteUser = asyncHandler(async (req, res) => {
+export const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   
   if (!user) {
@@ -144,7 +143,7 @@ exports.deleteUser = asyncHandler(async (req, res) => {
  * @route   PUT /api/users/profile
  * @access  Private
  */
-exports.updateProfile = asyncHandler(async (req, res) => {
+export const updateProfile = asyncHandler(async (req, res) => {
   const { displayName, bio, avatar, currentPassword, newPassword } = req.body;
   
   // Get current user

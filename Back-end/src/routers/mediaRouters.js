@@ -1,21 +1,26 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const {
+import multer from 'multer';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import {
   getAllMedia,
   getMediaById,
   deleteMedia
-} = require('../controllers/mediaController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
-const Media = require('../models/Media');
-const { success, createError } = require('../utils/responseHandler');
+} from '../controllers/mediaController.js';
+import { protect, restrictTo } from '../middleware/authMiddleware.js';
+import Media from '../models/Media.js';
+import { success, createError } from '../utils/responseHandler.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import fs from 'fs';
 
 // Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../../uploads');
-if (!require('fs').existsSync(uploadDir)) {
-  require('fs').mkdirSync(uploadDir, { recursive: true });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const uploadDir = path.join(__dirname, '../../uploads'); // 定义uploadDir变量
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // Configure storage
@@ -87,4 +92,4 @@ router.get('/:id', protect, restrictTo('admin'), getMediaById);
 // Delete media
 router.delete('/:id', protect, restrictTo('admin'), deleteMedia);
 
-module.exports = router;
+export default router;

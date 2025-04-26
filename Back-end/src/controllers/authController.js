@@ -1,15 +1,15 @@
-const User = require('../models/User');
-const asyncHandler = require('express-async-handler');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const { success, createError } = require('../utils/responseHandler');
+import User from '../models/User.js';
+import asyncHandler from 'express-async-handler';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import {  success, createError  } from '../utils/responseHandler.js';
 
 /**
  * @desc    User login
  * @route   POST /api/auth/login
  * @access  Public
  */
-exports.login = asyncHandler(async (req, res) => {
+export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   // Validate request
@@ -54,7 +54,7 @@ exports.login = asyncHandler(async (req, res) => {
  * @route   GET /api/auth/me
  * @access  Private
  */
-exports.getMe = asyncHandler(async (req, res) => {
+export const getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id).select('-password');
 
   if (!user) {
@@ -69,7 +69,7 @@ exports.getMe = asyncHandler(async (req, res) => {
  * @route   POST /api/auth/register
  * @access  Public
  */
-exports.register = asyncHandler(async (req, res) => {
+export const register = asyncHandler(async (req, res) => {
   const { username, email, password, displayName } = req.body;
 
   // Validate request

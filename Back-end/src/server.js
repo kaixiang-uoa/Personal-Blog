@@ -1,19 +1,19 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const path = require('path');
-const connectDB = require('./config/db');
-const postRouter = require('./routers/postRouters');
-const userRouter = require('./routers/userRouters');
-const categoryRouter = require('./routers/categoryRouters');
-const tagRouter = require('./routers/tagRouters');
-const commentRouter = require('./routers/commentRouters');
-const mediaRouter = require('./routers/mediaRouters');
-const settingRouter = require('./routers/settingRouters');
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import path from 'path';
+import connectDB from './config/db.js';
+import postRouter from './routers/postRouters.js';
+import userRouter from './routers/userRouters.js';
+import categoryRouter from './routers/categoryRouters.js';
+import tagRouter from './routers/tagRouters.js';
+import commentRouter from './routers/commentRouters.js';
+import mediaRouter from './routers/mediaRouters.js';
+import settingRouter from './routers/settingRouters.js';
 // Add authentication router
-const authRouter = require('./routers/authRouters');
+import authRouter from './routers/authRouters.js';
 // Add error handling middleware
-const { errorHandler, notFound } = require('./middleware/errorMiddleware');
+import {  errorHandler, notFound  } from './middleware/errorMiddleware.js';
 
 // loading .env configuration.
 dotenv.config();
@@ -25,8 +25,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+
+// Configure static file directory for accessing public files
+app.use(express.static(path.join(path.resolve(), 'public')));
+
 // Configure static file directory for accessing uploaded media files
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join('../uploads')));
 
 app.get('/',(req,res) =>{
     res.send('Back-end is running');

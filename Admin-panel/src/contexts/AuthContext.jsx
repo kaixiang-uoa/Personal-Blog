@@ -1,63 +1,55 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { AuthContext } from "./auth-utils";
 
-// 创建认证上下文
-const AuthContext = createContext();
-
-// 使用钩子来获取认证上下文
-export function useAuth() {
-  return useContext(AuthContext);
-}
-
-// 认证提供者组件
-export function AuthProvider({ children }) {
+function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   // 模拟登录功能
-  const login = (email, password) => {
-    setError('');
-    
-    // 硬编码的用户名和密码
-    if (email === 'example@gmail.com' && password === 'test123456') {
-      const user = {
-        email: email,
-        name: 'Admin User',
-        role: 'admin'
-      };
-      
-      // 存储用户信息到本地存储
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      setCurrentUser(user);
-      return Promise.resolve(user);
-    } else {
-      setError('用户名或密码错误');
-      return Promise.reject(new Error('用户名或密码错误'));
+  const login = async (email, password) => {
+    try {
+      setError(null);
+      // 这里是模拟登录，实际应用中应该调用真实的API
+      if (email === 'example@gmail.com' && password === 'test123456') {
+        const user = {
+          id: 1,
+          name: 'Admin User',
+          email: email,
+          avatar: null,
+          role: 'admin'
+        };
+        setCurrentUser(user);
+        localStorage.setItem('user', JSON.stringify(user));
+        return user;
+      } else {
+        throw new Error('邮箱或密码不正确');
+      }
+    } catch (error) {
+      setError(error.message);
+      throw error;
     }
   };
 
   // 登出功能
   const logout = () => {
-    localStorage.removeItem('currentUser');
     setCurrentUser(null);
-    return Promise.resolve();
+    localStorage.removeItem('user');
   };
 
-  // 检查用户是否已登录
+  // 检查本地存储中是否有用户信息
   useEffect(() => {
-    const user = localStorage.getItem('currentUser');
+    const user = localStorage.getItem('user');
     if (user) {
       setCurrentUser(JSON.parse(user));
     }
     setLoading(false);
   }, []);
 
-  // 提供认证上下文的值
   const value = {
     currentUser,
     login,
     logout,
-    loading,
     error
   };
 
@@ -67,3 +59,6 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
+export { AuthProvider };
+// 注意：不再从这个文件导出 useAuth

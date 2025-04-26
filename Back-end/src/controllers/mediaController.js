@@ -1,15 +1,15 @@
-const Media = require('../models/Media');
-const asyncHandler = require('express-async-handler');
-const { success, paginate, createError } = require('../utils/responseHandler');
-const path = require('path');
-const fs = require('fs');
+import Media from '../models/Media.js';
+import asyncHandler from 'express-async-handler';
+import {  success, paginate, createError  } from '../utils/responseHandler.js';
+import path from 'path';
+import fs from 'fs';
 
 /**
  * @desc    Get all media files
  * @route   GET /api/v1/media
  * @access  Private/Admin
  */
-exports.getAllMedia = asyncHandler(async (req, res) => {
+export const getAllMedia = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, type } = req.query;
 
   // Build query conditions
@@ -36,7 +36,7 @@ exports.getAllMedia = asyncHandler(async (req, res) => {
  * @route   GET /api/v1/media/:id
  * @access  Private/Admin
  */
-exports.getMediaById = asyncHandler(async (req, res) => {
+export const getMediaById = asyncHandler(async (req, res) => {
   const media = await Media.findById(req.params.id);
 
   if (!media) {
@@ -51,7 +51,7 @@ exports.getMediaById = asyncHandler(async (req, res) => {
  * @route   DELETE /api/v1/media/:id
  * @access  Private/Admin
  */
-exports.deleteMedia = asyncHandler(async (req, res) => {
+export const deleteMedia = asyncHandler(async (req, res) => {
   const media = await Media.findById(req.params.id);
 
   if (!media) {

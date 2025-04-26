@@ -1,12 +1,12 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
   getAllSettings,
   getSettingById,
   updateSetting,
   createSetting
-} = require('../controllers/settingController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
+} from '../controllers/settingController.js';
+import {  protect, restrictTo  } from '../middleware/authMiddleware.js';
 
 // Get all settings
 router.get('/', protect, restrictTo('admin'), getAllSettings);
@@ -20,4 +20,4 @@ router.put('/:id', protect, restrictTo('admin'), updateSetting);
 // Create a setting
 router.post('/', protect, restrictTo('admin'), createSetting);
 
-module.exports = router;
+export default router;

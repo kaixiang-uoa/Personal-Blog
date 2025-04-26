@@ -1,13 +1,13 @@
-const Setting = require('../models/Setting');
-const asyncHandler = require('express-async-handler');
-const { success, createError } = require('../utils/responseHandler');
+import Setting from '../models/Setting.js';
+import asyncHandler from 'express-async-handler';
+import {  success, createError  } from '../utils/responseHandler.js';
 
 /**
  * @desc    Get all settings
  * @route   GET /api/v1/settings
  * @access  Private/Admin
  */
-exports.getAllSettings = asyncHandler(async (req, res) => {
+export const getAllSettings = asyncHandler(async (req, res) => {
   const settings = await Setting.find();
 
   // Use unified success response
@@ -19,7 +19,7 @@ exports.getAllSettings = asyncHandler(async (req, res) => {
  * @route   GET /api/v1/settings/:id
  * @access  Private/Admin
  */
-exports.getSettingById = asyncHandler(async (req, res) => {
+export const getSettingById = asyncHandler(async (req, res) => {
   const setting = await Setting.findById(req.params.id);
 
   if (!setting) {
@@ -35,7 +35,7 @@ exports.getSettingById = asyncHandler(async (req, res) => {
  * @route   PUT /api/v1/settings/:id
  * @access  Private/Admin
  */
-exports.updateSetting = asyncHandler(async (req, res) => {
+export const updateSetting = asyncHandler(async (req, res) => {
   let setting = await Setting.findById(req.params.id);
 
   if (!setting) {
@@ -61,7 +61,7 @@ exports.updateSetting = asyncHandler(async (req, res) => {
  * @route   POST /api/v1/settings
  * @access  Private/Admin
  */
-exports.createSetting = asyncHandler(async (req, res) => {
+export const createSetting = asyncHandler(async (req, res) => {
   // Check if setting ID already exists
   const existingSetting = await Setting.findById(req.body._id);
 

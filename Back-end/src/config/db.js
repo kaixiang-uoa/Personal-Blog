@@ -1,13 +1,14 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import { logger } from '../utils/logger.js'; 
 
 const databaseConnect = async () =>{
     try{
         const connect = await mongoose.connect(process.env.MONGODB_URI);
-        console.log(`✅ MongoDB connected: ${connect.connection.host}`);
+        logger.info(`✅ MongoDB connected: ${connect.connection.host}`);
     }catch(err){
-        console.log('❌ MongoDB connection failed:', err.message);
+        logger.error('❌ MongoDB connection failed:', err.message);
         process.exit(1); // stop process.
     }
 }
 
-module.exports = databaseConnect;
+export default databaseConnect;

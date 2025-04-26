@@ -1,15 +1,15 @@
-const Post = require('../models/Post');
-const Tag = require('../models/Tag');
-const Category = require('../models/Category');
-const asyncHandler = require('express-async-handler');
-const { success, paginate, createError } = require('../utils/responseHandler');
+import Post from '../models/Post.js';
+import Tag from '../models/Tag.js';
+import Category from '../models/Category.js';
+import asyncHandler from 'express-async-handler';
+import { success, createError } from '../utils/responseHandler.js';
 
 /**
  * @desc    Get all posts, supports filtering by tags, categories, search, date, etc.
  * @route   GET /api/posts
  * @access  Public
  */
-exports.getAllPosts = asyncHandler(async (req, res) => {
+export const getAllPosts = asyncHandler(async (req, res) => {
   const {
     page = 1,
     limit = 10,
@@ -22,10 +22,6 @@ exports.getAllPosts = asyncHandler(async (req, res) => {
   } = req.query;
 
   const query = { status };
-
-
-  const debugPost = await Post.findOne(query);
-
 
   // Category filter
   if (categorySlug) {
@@ -105,7 +101,7 @@ exports.getAllPosts = asyncHandler(async (req, res) => {
  * @route   GET /api/posts/:id
  * @access  Public
  */
-exports.getPostById = asyncHandler(async (req, res) => {
+export const getPostById = asyncHandler(async (req, res) => {
   const lang = req.query.lang || 'zh'; // Add language parameter
   
   const post = await Post.findById(req.params.id)
@@ -144,7 +140,7 @@ exports.getPostById = asyncHandler(async (req, res) => {
  * @route   GET /api/posts/slug/:slug
  * @access  Public
  */
-exports.getPostBySlug = asyncHandler(async (req, res) => {
+export const getPostBySlug = asyncHandler(async (req, res) => {
   const lang = req.query.lang || 'zh'; // Add language parameter
   
   const post = await Post.findOne({ slug: req.params.slug })
@@ -183,7 +179,7 @@ exports.getPostBySlug = asyncHandler(async (req, res) => {
  * @route   POST /api/posts
  * @access  Private/Admin
  */
-exports.createPost = asyncHandler(async (req, res) => {
+export const createPost = asyncHandler(async (req, res) => {
   const {
     title,
     slug,
@@ -221,7 +217,7 @@ exports.createPost = asyncHandler(async (req, res) => {
  * @route   PUT /api/posts/:id
  * @access  Private/Admin
  */
-exports.updatePost = asyncHandler(async (req, res) => {
+export const updatePost = asyncHandler(async (req, res) => {
   let post = await Post.findById(req.params.id);
   if (!post) throw createError('Post not found', 404);
 
@@ -246,7 +242,7 @@ exports.updatePost = asyncHandler(async (req, res) => {
  * @route   DELETE /api/posts/:id
  * @access  Private/Admin
  */
-exports.deletePost = asyncHandler(async (req, res) => {
+export const deletePost = asyncHandler(async (req, res) => {
   const post = await Post.findById(req.params.id);
   if (!post) throw createError('Post not found', 404);
   await post.deleteOne();

@@ -3,7 +3,7 @@
  */
 
 // Success response
-exports.success = (res, data, statusCode = 200, message = 'Operation successful') => {
+export const success = (res, data, statusCode = 200, message = 'Operation successful') => {
   return res.status(statusCode).json({
     success: true,
     data,
@@ -12,7 +12,7 @@ exports.success = (res, data, statusCode = 200, message = 'Operation successful'
 };
 
 // Success response with pagination
-exports.paginate = (res, data, page, limit, total, message = '成功获取数据列表') => {
+export const paginate = (res, data, page, limit, total, message = '成功获取数据列表') => {
   const currentPage = parseInt(page);
   const totalPages = Math.ceil(total / parseInt(limit));
   return res.status(200).json({
@@ -28,7 +28,7 @@ exports.paginate = (res, data, page, limit, total, message = '成功获取数据
 };
 
 // Error response
-exports.error = (res, message, statusCode = 400) => {
+export const error = (res, message, statusCode = 400) => {
   return res.status(statusCode).json({
     success: false,
     data: null,
@@ -37,7 +37,7 @@ exports.error = (res, message, statusCode = 400) => {
 };
 
 // Create custom error
-exports.createError = (message, statusCode = 400) => {
+export const createError = (message, statusCode = 400) => {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;

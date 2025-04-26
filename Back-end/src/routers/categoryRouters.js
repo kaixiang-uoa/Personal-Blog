@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
   getAllCategories,
   getCategoryById,
   getCategoryBySlug,
   createCategory,
   updateCategory,
   deleteCategory
-} = require('../controllers/categoryController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
+} from '../controllers/categoryController.js';
+import {  protect, restrictTo  } from '../middleware/authMiddleware.js';
 
 // Get all categories
 router.get('/', getAllCategories);
@@ -28,4 +28,4 @@ router.put('/:id', protect, restrictTo('admin'), updateCategory);
 // Delete category (requires admin privileges)
 router.delete('/:id', protect, restrictTo('admin'), deleteCategory);
 
-module.exports = router;
+export default router;

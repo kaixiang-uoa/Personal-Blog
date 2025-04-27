@@ -1,120 +1,128 @@
 import User from '../models/User.js';
-import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import {  success, createError  } from '../utils/responseHandler.js';
 
-/**
- * @desc    User login
- * @route   POST /api/auth/login
- * @access  Public
- */
-export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+// 生成JWT令牌
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN || '30d'
+    });
+};
 
-  // Validate request
-  if (!email || !password) {
-    throw createError('Please provide email and password', 400);
-  }
+// 用户注册
+export const register = async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        
+        // 检查用户是否已存在
+        const userExists = await User.findOne({ 
+            $or: [{ email }, { username }] 
+        });
+        
+        if (userExists) {
+            return res.status(400).json({
+                success: false,
+                message: '用户名或邮箱已被注册'
+            });
+        }
+        
+        // 创建用户
+        const user = await User.create({
+            username,
+            email,
+            password,
+            role: 'user' // 默认角色
+        });
+        
+        // 生成令牌
+        const token = generateToken(user._id);
+        
+        res.status(201).json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '注册失败',
+            error: error.message
+        });
+    }
+};
 
-  // Find user by email
-  const user = await User.findOne({ email });
+// 用户登录
+export const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        // 查找用户
+        const user = await User.findOne({ email });
+        
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: '邮箱或密码不正确'
+            });
+        }
+        
+        // 验证密码
+        const isMatch = await bcrypt.compare(password, user.password);
+        
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: '邮箱或密码不正确'
+            });
+        }
+        
+        // 更新最后登录时间
+        user.lastLogin = Date.now();
+        await user.save();
+        
+        // 生成令牌
+        const token = generateToken(user._id);
+        
+        res.status(200).json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '登录失败',
+            error: error.message
+        });
+    }
+};
 
-  // Check if user exists and password is correct
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    throw createError('邮箱或密码不正确', 401);
-  }
-
-  // Generate JWT token
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
-  );
-
-  // Return user data without password
-  const userData = {
-    _id: user._id,
-    username: user.username,
-    email: user.email,
-    displayName: user.displayName,
-    role: user.role,
-    avatar: user.avatar,
-    bio: user.bio
-  };
-
-  return success(res, { 
-    user: userData,
-    token 
-  }, 200, '登录成功');
-});
-
-/**
- * @desc    Get current user profile
- * @route   GET /api/auth/me
- * @access  Private
- */
-export const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id).select('-password');
-
-  if (!user) {
-    throw createError('用户不存在', 404);
-  }
-
-  return success(res, { user });
-});
-
-/**
- * @desc    Register a new user
- * @route   POST /api/auth/register
- * @access  Public
- */
-export const register = asyncHandler(async (req, res) => {
-  const { username, email, password, displayName } = req.body;
-
-  // Validate request
-  if (!username || !email || !password) {
-    throw createError('请提供用户名、邮箱和密码', 400);
-  }
-
-  // Check if user already exists
-  const userExists = await User.findOne({ $or: [{ email }, { username }] });
-  if (userExists) {
-    throw createError('用户已存在', 400);
-  }
-
-  // Hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
-  // Create user
-  const user = await User.create({
-    username,
-    email,
-    password: hashedPassword,
-    displayName: displayName || username
-  });
-
-  // Generate JWT token
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
-  );
-
-  // Return user data without password
-  const userData = {
-    _id: user._id,
-    username: user.username,
-    email: user.email,
-    displayName: user.displayName,
-    role: user.role,
-    avatar: user.avatar,
-    bio: user.bio
-  };
-
-  return success(res, { 
-    user: userData,
-    token 
-  }, 201, '注册成功');
-});
+// 获取当前用户信息
+export const getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '获取用户信息失败',
+            error: error.message
+        });
+    }
+};

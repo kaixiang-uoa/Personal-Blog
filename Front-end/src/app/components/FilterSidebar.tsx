@@ -1,6 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"; // Import useEffect
-// import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { Tag, X } from "lucide-react";
 import {
   Accordion,
@@ -13,6 +12,7 @@ import { Badge } from "@/app/components/ui/badge";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Label } from "@/app/components/ui/label";
 import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -22,29 +22,28 @@ import {
 } from "./ui/select";
 import type { SortOrder } from "@/services/interface";
 
-type FilterChangeType =
-  | { type: "tags"; value: string[] }
-  | { type: "category"; value: string }
-  | { type: "sort"; value: SortOrder }
-interface FilterSidebarProps {
+export interface FilterSidebarProps {
   tags: {
     _id: string;
     name: string;
+    name_en?: string;
+    name_zh?: string;
     slug: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
+    description?: string;
+    createdAt?: string;
+    updatedAt?: string;
   }[];
+  activeTags: string[];
   categories: {
     _id: string;
     name: string;
+    name_en?: string;
+    name_zh?: string;
     slug: string;
   }[];
-  activeTags: string[];
   activeCategory: string | null;
-  sortOrder?: SortOrder;
-  
-  onFilterChangeAction: (payload: FilterChangeType) => void;
+  sortOrder: SortOrder;
+  onFilterChangeAction: (params: any) => void;
   onClearFiltersAction: () => void;
 }
 
@@ -58,6 +57,7 @@ export default function FilterSidebar({
   onClearFiltersAction
 }: FilterSidebarProps) {
   const t = useTranslations("common");
+  const { locale } = useParams();
   const [selectedTags, setSelectedTags] = useState<string[]>(activeTags || []);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
     activeCategory || null
@@ -65,19 +65,26 @@ export default function FilterSidebar({
   const [selectedSortOrder, setSelectedSortOrder] =
     useState<SortOrder>(sortOrder);
 
-  // const router = useRouter();
+  const getCategoryNameByLocale = (category: any, localeStr: string) => {
+    if (localeStr === 'en') return category.name_en || category.name;
+    if (localeStr === 'zh') return category.name_zh || category.name;
+    return category.name;
+  };
 
-  // When the activeCategories prop changes, sync the internal selectedCategory state
+  const getTagNameByLocale = (tag: any, localeStr: string) => {
+    if (localeStr === 'en') return tag.name_en || tag.name;
+    if (localeStr === 'zh') return tag.name_zh || tag.name;
+    return tag.name;
+  };
+
   useEffect(() => {
     setSelectedCategory(activeCategory || null);
   }, [activeCategory]);
 
-  // When the activeTags prop changes, sync the internal selectedTags state
   useEffect(() => {
     setSelectedTags(activeTags || []);
   }, [activeTags]);
 
-  // When a tag is selected or deselected, update internal state and notify parent
   const handleTagChange = (tagSlug: string, checked: boolean) => {
     let newSelectedTags: string[];
 
@@ -91,14 +98,12 @@ export default function FilterSidebar({
     onFilterChangeAction({type: "tags", value: newSelectedTags});
   };
 
-  // When a category is selected or deselected, update internal state and notify parent
   const handleCategoryChange = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
     onFilterChangeAction({ type: "category",value: categorySlug || ""});
   };
 
-  // Directly use props to determine if there are active filters, ensuring consistency with parent state
-  const hasActiveFilters = activeTags.length > 0 || activeCategory; // Added activeCategory check
+  const hasActiveFilters = activeTags.length > 0 || activeCategory;
 
   return (
     <div className="bg-gray-800 rounded-lg p-4 sticky top-4">
@@ -117,12 +122,10 @@ export default function FilterSidebar({
         )}
       </div>
 
-      {/* Active Filters */}
       {hasActiveFilters && (
         <div className="mb-4 pb-4 border-b border-gray-700">
           <p className="text-sm text-gray-400 mb-2">{t("activeFilters")}:</p>
           <div className="flex flex-wrap gap-2">
-            {/* Render using activeTags prop */}
             {activeTags.map((tagSlug) => {
               const tag = tags.find((t) => t.slug === tagSlug);
               return (
@@ -130,16 +133,14 @@ export default function FilterSidebar({
                   key={tagSlug}
                   variant="secondary"
                   className="bg-cyan-900/50 hover:bg-cyan-800/50 text-cyan-100 cursor-pointer"
-                  // Still call handleTagChange on click to remove internal state and notify parent
                   onClick={() => handleTagChange(tagSlug, false)}
                 >
-                  {tag?.name || tagSlug}
+                  {tag ? getTagNameByLocale(tag, locale as string) : tagSlug}
                   <X className="ml-1 h-3 w-3" />
                 </Badge>
               );
             })}
 
-            {/* Render using activeCategory prop */}
             {activeCategory &&
               (() => {
                 const category = categories.find(
@@ -150,10 +151,9 @@ export default function FilterSidebar({
                     key={activeCategory}
                     variant="secondary"
                     className="bg-cyan-900/50 hover:bg-cyan-800/50 text-cyan-100 cursor-pointer"
-                    // Call handleCategoryChange on click to clear internal state and notify parent
                     onClick={() => handleCategoryChange(null)}
                   >
-                    {category?.name || activeCategory}
+                    {category ? getCategoryNameByLocale(category, locale as string) : activeCategory}
                     <X className="ml-1 h-3 w-3" />
                   </Badge>
                 );
@@ -175,25 +175,20 @@ export default function FilterSidebar({
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            {/* Tag List Rendering */}
             <div className="grid gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-              {/* Iterate over the passed tags prop */}
               {tags.map((tag) => (
                 <Label
-                  key={tag._id} // Use tag._id as key
+                  key={tag._id}
                   className="flex items-center gap-2 font-normal cursor-pointer hover:text-cyan-400 transition-colors"
                 >
                   <Checkbox
-                    // Checked state depends on whether the current tag.slug is in the selectedTags array
                     checked={selectedTags.includes(tag.slug)}
-                    // When Checkbox state changes, call handleTagChange to update state and notify parent
                     onCheckedChange={(checked) =>
                       handleTagChange(tag.slug, checked as boolean)
                     }
                     className="data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                   />
-                  {/* Display tag name */}
-                  <span className="truncate">{tag.name}</span>
+                  <span className="truncate">{getTagNameByLocale(tag, locale as string)}</span>
                 </Label>
               ))}
             </div>
@@ -233,32 +228,26 @@ export default function FilterSidebar({
                 />
                 {t("allCategories")}
               </Label>
-              {/* Iterate over the passed categories prop */}
               {categories.map((category) => (
                 <Label
-                  key={category._id} // Use category._id as key
+                  key={category._id}
                   className="flex items-center gap-2 font-normal cursor-pointer hover:text-cyan-400 transition-colors"
                 >
                   <Checkbox
-                    // Checked state depends on whether the current category.slug matches selectedCategory
                     checked={selectedCategory === category.slug}
-                    // When Checkbox state changes, call handleCategoryChange with the category slug
                     onCheckedChange={() => handleCategoryChange(category.slug)}
                     className="data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                   />
-                  {/* Display category name */}
-                  {category.name}
+                  {getCategoryNameByLocale(category, locale as string)}
                 </Label>
               ))}
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        {/* 排序选项 */}
         <AccordionItem value="sort" className="border-b-0">
           <AccordionTrigger className="text-base py-3 hover:no-underline">
             <div className="flex items-center">
-              {/* <Calendar className="h-4 w-4 mr-2" /> */}
               <span>{t("sortBy")}</span>
             </div>
           </AccordionTrigger>

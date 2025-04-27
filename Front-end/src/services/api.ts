@@ -1,183 +1,113 @@
-"use client";
-import axios, { AxiosError } from "axios";
-import type {
-  PostApiResponse,
-  PostsApiResponse,
-  CategoriesApiResponse,
-  TagsApiResponse,
-  ApiErrorResponse,
-} from "./interface";
+import axios from 'axios';
+import { 
+  ApiResponse, 
+  PostsData, 
+  PostData, 
+  TagsData, 
+  CategoriesData,
+  CommentsData,
+  SortOrder,
+  ApiErrorResponse
+} from './interface';
 
-// --- API Base URL ---
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+// API 基础URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-// --- Axios Instance ---
-const api = axios.create({
+// 创建axios实例
+const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
-// Get current language from URL path
-const getCurrentLanguage = (): string => {
-  if (typeof window !== "undefined") {
-    const pathSegments = window.location.pathname.split("/");
-    if (pathSegments.length > 1 && (pathSegments[1] === "en" || pathSegments[1] === "zh")) {
-      return pathSegments[1];
-    }
-  }
-  return "zh"; // default language
+// 处理API错误
+const handleApiError = (error: any): ApiErrorResponse => {
+  console.error('API Error:', error);
+  return {
+    success: false,
+    message: error.response?.data?.message || '请求失败，请稍后再试',
+    data: null,
+    originalError: error
+  };
 };
 
-// --- Request Interceptor: Attach language to each request ---
-api.interceptors.request.use(
-  (config) => {
-    const lang = getCurrentLanguage();
-    config.params = config.params || {};
-    config.params.lang = lang;
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// --- Response Interceptor: Normalize response structure ---
-api.interceptors.response.use(
-  (response) => {
-    const data = response.data;
-
-    if (data && typeof data === "object" && "success" in data) {
-      return data;
-    }
-
-    if (data && data.posts) {
-      return {
-        success: true,
-        data: {
-          posts: data.posts,
-          total: data.total || 0,
-          totalPages: data.totalPages || 1,
-          currentPage: data.currentPage || 1,
-        },
-        message: "Data fetched successfully",
-      };
-    }
-
-    if (data && (data.post || data.tag || data.category)) {
-      return {
-        success: true,
-        data: data,
-        message: "Data fetched successfully",
-      };
-    }
-
-    if (Array.isArray(data)) {
-      return {
-        success: true,
-        data: { items: data },
-        message: "Data fetched successfully",
-      };
-    }
-
-    return {
-      success: true,
-      data: data,
-      message: "Operation successful",
-    };
-  },
-  (error: AxiosError): Promise<ApiErrorResponse> => {
-    console.error("API Request Error:", error);
-
-    const errorResponse: ApiErrorResponse = {
-      success: false,
-      data: null,
-      message: "Service temporarily unavailable",
-      originalError: error,
-    };
-
-    if (error.response?.data && typeof error.response.data === "object") {
-      const responseData = error.response.data as Record<string, unknown>;
-      if (typeof responseData.message === "string") {
-        errorResponse.message = responseData.message;
-      }
-    }
-
-    if (error.response?.status) {
-      const statusCode = error.response.status;
-      if (statusCode === 404) {
-        errorResponse.message = "Resource not found";
-      } else if (statusCode === 401) {
-        errorResponse.message = "Unauthorized access";
-      } else if (statusCode === 403) {
-        errorResponse.message = "Forbidden operation";
-      } else if (statusCode >= 500) {
-        errorResponse.message = "Server error. Please try again later.";
-      }
-    }
-
-    return Promise.reject(errorResponse);
-  }
-);
-
-// Posts API
+// 文章相关API
 export const postApi = {
+  // 获取所有文章
   getAllPosts: async (
-    page = 1,
-    limit = 10,
-    tag = "",
-    category = "",
-    search = "",
-    sort = "",
-    lang = ""
-  ): Promise<PostsApiResponse> => {
-    const params = new URLSearchParams({
-      page: String(page),
-      limit: String(limit),
-    });
-
-    if (tag) params.append("tagSlug", tag);
-    if (category) params.append("categorySlug", category);
-    if (search) params.append("search", search);
-    if (sort) params.append("sort", sort);
-    if (lang) params.append("lang", lang);
-
-    const response = await api.get<PostsApiResponse>(`/posts?${params.toString()}`);
-    return response.data;
+    page: number = 1,
+    limit: number = 10,
+    tags?: string,
+    category?: string,
+    search?: string,
+    sort: SortOrder = 'publishedAt-desc'
+  ): Promise<ApiResponse<PostsData> | ApiErrorResponse> => {
+    try {
+      const params = { page, limit, tags, category, search, sort };
+      const response = await apiClient.get('/posts', { params });
+      return response.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
   },
 
-  getPostBySlug: async (slug: string, lang = ""): Promise<PostApiResponse> => {
-    const params = new URLSearchParams();
-    if (lang) params.append("lang", lang);
-    const queryString = params.toString() ? `?${params.toString()}` : "";
-
-    const response = await api.get<PostApiResponse>(
-      `/posts/slug/${encodeURIComponent(slug)}${queryString}`
-    );
-    return response.data;
+  // 根据slug获取文章
+  getPostBySlug: async (slug: string): Promise<ApiResponse<PostData> | ApiErrorResponse> => {
+    try {
+      const response = await apiClient.get(`/posts/${slug}`);
+      return response.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
   },
 };
 
-// Categories API
+// 分类相关API
 export const categoryApi = {
-  getAllCategories: async (lang = ""): Promise<CategoriesApiResponse> => {
-    const params = new URLSearchParams();
-    if (lang) params.append("lang", lang);
-    const queryString = params.toString() ? `?${params.toString()}` : "";
-
-    const response = await api.get<CategoriesApiResponse>(`/categories${queryString}`);
-    return response.data;
+  // 获取所有分类
+  getAllCategories: async (locale: string = 'zh'): Promise<ApiResponse<CategoriesData> | ApiErrorResponse> => {
+    try {
+      const response = await apiClient.get('/categories', { params: { locale } });
+      return response.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
   },
 };
 
-// Tags API
+// 标签相关API
 export const tagApi = {
-  getAllTags: async (lang = ""): Promise<TagsApiResponse> => {
-    const params = new URLSearchParams();
-    if (lang) params.append("lang", lang);
-    const queryString = params.toString() ? `?${params.toString()}` : "";
+  // 获取所有标签
+  getAllTags: async (): Promise<ApiResponse<TagsData> | ApiErrorResponse> => {
+    try {
+      const response = await apiClient.get('/tags');
+      return response.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+};
 
-    const response = await api.get<TagsApiResponse>(`/tags${queryString}`);
-    return response.data;
+// 评论相关API
+export const commentApi = {
+  // 获取文章评论
+  getCommentsByPost: async (postId: string): Promise<ApiResponse<CommentsData> | ApiErrorResponse> => {
+    try {
+      const response = await apiClient.get(`/comments/post/${postId}`);
+      return response.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+  
+  // 添加评论
+  addComment: async (postId: string, content: string, parentId?: string): Promise<ApiResponse<any> | ApiErrorResponse> => {
+    try {
+      const response = await apiClient.post('/comments', { postId, content, parentId });
+      return response.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
   },
 };

@@ -26,7 +26,6 @@ export default function Home() {
   const searchParam = useMemo(() => searchParams.get("search"), [searchParams]);
   const pageParam = useMemo(() => searchParams.get("page"), [searchParams]);
 
-  
   const sortParam = useMemo(() => {
     const validSortOrders: SortOrder[] = [
       "publishedAt-desc", "publishedAt-asc", "updatedAt-desc", "updatedAt-asc"
@@ -47,6 +46,13 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 添加一个辅助函数
+  const getCategoryNameByLocale = (category: Category, localeStr: string) => {
+    if (localeStr === 'en') return category.name_en || category.name;
+    if (localeStr === 'zh') return category.name_zh || category.name;
+    return category.name;
+  };
+
   useEffect(() => {
     setSearchTerm(searchParam || "");
     setPage(pageParam ? parseInt(pageParam) : 1);
@@ -64,7 +70,7 @@ export default function Home() {
     search?: string | null
   }) => {
     const newParams = new URLSearchParams(searchParams.toString());
-
+  
     Object.entries(paramsToUpdate).forEach(([key, value]) => {
       if (key === "tags" && Array.isArray(value)) {
         newParams.delete("tag");
@@ -78,8 +84,9 @@ export default function Home() {
         newParams.delete(key);
       }
     });
-
-    router.push(`/?${newParams.toString()}`, { scroll: false });
+  
+    // 修改这一行，确保包含当前的 locale
+    router.push(`/${locale}?${newParams.toString()}`, { scroll: false });
   };
 
   const handlePageChange = (newPage: number) => {
@@ -101,7 +108,6 @@ export default function Home() {
   | { type: "tags"; value: string[] }
   | { type: "category"; value: string }
   | { type: "sort"; value: SortOrder }
-
 
   const handleFilterChange = ({type,value} : FilterChangeType ) => {
     if (type === "tags") {
@@ -139,8 +145,8 @@ export default function Home() {
           searchTerm || undefined,
           sortOrder
         );
-
         if (response.success && response.data) {
+          
           const postsData = response.data as PostsData;
           setArticles(postsData.posts);
           setTotalPages(postsData.totalPages);
@@ -194,12 +200,12 @@ export default function Home() {
           {categories.map((category) => (
             <Link
               key={category._id}
-              href={`/?category=${category.slug}`}
+              href={`/${locale}?category=${category.slug}`}
               scroll={false}
               onClick={() => setPage(1)}
               className={`px-4 py-2 rounded-md ${categoryParam === category.slug ? "bg-cyan-600" : "bg-gray-700"} hover:bg-cyan-700`}
             >
-              {category.name}
+              {getCategoryNameByLocale(category, locale as string)}
             </Link>
           ))}
         </div>
@@ -273,7 +279,12 @@ export default function Home() {
 
             <h2 className="text-3xl font-extrabold text-white mb-8">
               {categoryParam
-                ? `${t("category")}: ${categories.find((c) => c.slug === categoryParam)?.name || categoryParam}`
+                ? `${t("category")}: ${
+                    (() => {
+                      const category = categories.find((c) => c.slug === categoryParam);
+                      return category ? getCategoryNameByLocale(category, locale as string) : categoryParam;
+                    })()
+                  }`
                 : hasActiveFilters
                   ? t("filterResults")
                   : t("latestArticles")}

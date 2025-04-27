@@ -5,19 +5,17 @@ import { Tag } from "lucide-react"
 import { Badge } from "@/app/components/ui/badge"
 import { ScrollArea, ScrollBar } from "@/app/components/ui/scroll-area"
 
-interface TagProps {
-  _id: string
-  name: string
-  slug: string
-  description: string
-  createdAt: string
-  updatedAt: string
+export interface TagProps {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string; // 确保这里是可选的
 }
 
-interface TagFilterProps {
-  tags: TagProps[]
-  activeTags: string[]
-  onTagsChange: (tags: string[]) => void
+export interface TagFilterProps {
+  tags: TagProps[];
+  activeTags: string[];
+  onTagsChange: (tags: string[]) => void;
 }
 
 export default function TagFilter({ tags, activeTags, onTagsChange }: TagFilterProps) {

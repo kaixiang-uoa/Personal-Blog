@@ -1,95 +1,79 @@
 import express from 'express';
-const router = express.Router();
-import multer from 'multer';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import {
-  getAllMedia,
-  getMediaById,
-  deleteMedia
+import { 
+    getAllMedia, 
+    getMediaById, 
+    uploadMedia, 
+    updateMedia, 
+    deleteMedia 
 } from '../controllers/mediaController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
-import Media from '../models/Media.js';
-import { success, createError } from '../utils/responseHandler.js';
+import multer from 'multer';
+import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
 
-// Ensure upload directory exists
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const uploadDir = path.join(__dirname, '../../uploads'); // 定义uploadDir变量
+
+// 确保上传目录存在
+const uploadDir = path.join(__dirname, '..', '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure storage
+// 配置Multer存储
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename
-    const uniqueFilename = `${uuidv4()}${path.extname(file.originalname)}`;
-    cb(null, uniqueFilename);
-  }
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    }
 });
 
-// File filter
+// 文件过滤器
 const fileFilter = (req, file, cb) => {
-  // Accepted file types
-  const allowedTypes = /jpeg|jpg|png|gif|svg|webp/;
-
-  // Check file type
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
-  }
+    // 允许的文件类型
+    const allowedTypes = /jpeg|jpg|png|gif|webp|svg|pdf|doc|docx|xls|xlsx|ppt|pptx/;
+    
+    // 检查文件扩展名
+    const ext = path.extname(file.originalname).toLowerCase();
+    const isAllowed = allowedTypes.test(ext);
+    
+    if (isAllowed) {
+        cb(null, true);
+    } else {
+        cb(new Error('不支持的文件类型'), false);
+    }
 };
 
-// Initialize upload
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // Limit 5MB
-});
-
-// Upload media file
-router.post('/', protect, restrictTo('admin'), upload.single('file'), async (req, res, next) => {
-  try {
-    if (!req.file) {
-      throw createError('Please select a file to upload', 400);
+// 配置上传中间件
+const upload = multer({ 
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB
     }
-
-    // Get file information
-    const { filename, mimetype, size } = req.file;
-
-    // Create media record
-    const media = await Media.create({
-      fileName: filename,
-      url: `/uploads/${filename}`, // Relative URL
-      type: mimetype,
-      size: size,
-      uploadedBy: req.user._id
-    });
-
-    return success(res, { media }, 201);
-  } catch (error) {
-    next(error);
-  }
 });
 
-// Get all media
-router.get('/', protect, restrictTo('admin'), getAllMedia);
+const router = express.Router();
 
-// Get single media
-router.get('/:id', protect, restrictTo('admin'), getMediaById);
+// 获取所有媒体文件
+router.get('/', protect, getAllMedia);
 
-// Delete media
-router.delete('/:id', protect, restrictTo('admin'), deleteMedia);
+// 获取单个媒体文件
+router.get('/:id', protect, getMediaById);
+
+// 上传媒体文件
+router.post('/', protect, upload.single('file'), uploadMedia);
+
+// 更新媒体文件信息
+router.put('/:id', protect, updateMedia);
+
+// 删除媒体文件
+router.delete('/:id', protect, restrictTo('admin', 'editor'), deleteMedia);
 
 export default router;

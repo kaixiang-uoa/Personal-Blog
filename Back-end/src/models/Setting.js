@@ -2,37 +2,29 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const SettingSchema = new Schema({
-    _id: {
+    key: {
         type: String,
+        required: true,
+        unique: true,
+        trim: true
+    },
+    value: {
+        type: Schema.Types.Mixed,
         required: true
     },
-    siteName: String,
-    siteUrl: String,
-    siteDescription: String,
-    postsPerPage: {
-        type: Number,
-        default: 10
-    },
-    adminEmail: String,
-    timezone: {
+    group: {
         type: String,
-        default: 'Asia/Shanghai'
+        enum: ['general', 'appearance', 'seo', 'social', 'advanced'],
+        default: 'general'
     },
-    dateFormat: {
-        type: String,
-        default: 'YYYY-MM-DD'
+    description: {
+        type: String
     },
-    timeFormat: {
-        type: String,
-        default: 'HH:mm:ss'
+    description_en: {
+        type: String
     },
-    language: {
-        type: String,
-        default: 'zh-CN'
-    },
-    updatedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+    description_zh: {
+        type: String
     }
 },
 { timestamps: true }

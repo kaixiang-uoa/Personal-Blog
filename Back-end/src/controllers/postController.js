@@ -62,9 +62,8 @@ export const getAllPosts = asyncHandler(async (req, res) => {
     .sort(sort) // 使用传入的排序参数
     .skip(skip)
     .limit(parseInt(limit));
-
   const total = await Post.countDocuments(query);
-  
+ 
   // Transform posts to include localized category names
   const transformedPosts = posts.map(post => {
     const transformedPost = post.toObject();

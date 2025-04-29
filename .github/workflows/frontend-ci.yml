@@ -59,11 +59,6 @@ jobs:
         run: npm ci
         working-directory: ./Front-end
 
-      - name: Build project (Next.js)
-        run: npm run build
-        working-directory: ./Front-end
-        env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
       - name: Pull Vercel Project Settings
         run: npx vercel pull --yes --token ${{ secrets.VERCEL_TOKEN }}

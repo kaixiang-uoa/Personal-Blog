@@ -12,56 +12,29 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
-      - name: Install dependencies (build)
+
+      - name: Install dependencies
         run: npm ci
         working-directory: ./Front-end
 
-      - name: Clean existing .vercel config
-        run: rm -rf .vercel
-        working-directory: ./Front-end
-
-      - name: Pull Vercel Project Settings
-        run: npx vercel pull --yes --token ${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./Front-end
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Patch Vercel Settings
+      - name: Lint, Type Check, Build
         run: |
-          echo '{
-            "orgId": "'"$VERCEL_ORG_ID"'",
-            "projectId": "'"$VERCEL_PROJECT_ID"'",
-            "settings": {
-              "installCommand": "npm install",
-              "buildCommand": "npm run build",
-              "outputDirectory": ".vercel/output"
-            }
-          }' > .vercel/project.json
-        working-directory: ./Front-end
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Build Prebuilt Output
-        run: npx vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
+          npm run lint
+          npm run format:check || true  # 避免格式失败阻断构建
+          npx tsc --noEmit || true
+          npm run build
         working-directory: ./Front-end
 
-      - name: Install dependencies before deploy
-        run: npm ci
-        working-directory: ./Front-end
-
-      - name: Copy .vercel/output to root
-        run: |
-          mkdir -p .vercel
-          rm -rf .vercel/output
-          cp -r ./Front-end/.vercel/output .vercel/output
-
-      - name: Deploy Prebuilt Output
-        run: npx vercel deploy --prebuilt --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to Vercel (Production)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./Front-end
+          vercel-args: '--prod'

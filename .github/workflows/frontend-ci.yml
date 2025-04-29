@@ -12,46 +12,39 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+
       - name: Install dependencies
         run: npm ci
         working-directory: ./Front-end
 
-      - name: Clean exisiting .vercel config
+      - name: Clean existing .vercel config
         run: rm -rf .vercel
-        working-directory: ./Front-end
-
-      - name: Pull Vercel Project Settings
-        run: npx vercel pull --yes --token ${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./Front-end
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-
-      - name: Show .vercel contents
-        run: cat .vercel/project.json || echo "No project.json"
         working-directory: ./Front-end
 
       - name: Patch Vercel Settings
         run: |
+          mkdir -p .vercel
           echo '{
             "orgId": "'"$VERCEL_ORG_ID"'",
             "projectId": "'"$VERCEL_PROJECT_ID"'",
             "settings": {
               "installCommand": "npm install",
-              "buildCommand": "npm run build",
+              "buildCommand": "npm run build"
             }
           }' > .vercel/project.json
         working-directory: ./Front-end
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Print .vercel/project.json
+        run: cat .vercel/project.json
+        working-directory: ./Front-end
 
       - name: Build Prebuilt Output
         run: npx vercel build --token ${{ secrets.VERCEL_TOKEN }}

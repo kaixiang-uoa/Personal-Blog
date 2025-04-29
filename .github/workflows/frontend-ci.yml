@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   deploy:
@@ -25,8 +25,9 @@ jobs:
       - name: Lint, Type Check, Build
         run: |
           npm run lint
-          npm run format:check || true
+          npm run format:check || true  # 避免格式失败阻断构建
           npx tsc --noEmit || true
+          npm run build
         working-directory: ./Front-end
 
       - name: Deploy to Vercel (Production)

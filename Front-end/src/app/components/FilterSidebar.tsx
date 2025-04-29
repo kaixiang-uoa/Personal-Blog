@@ -14,7 +14,7 @@ import { Label } from '@/app/components/ui/label';
 import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import type { Tag, Category, SortOrder } from '@/services/interface';
+import { Tag, Category, SortOrder } from '@/services/interface';
 
 interface FilterSidebarProps {
   tags: Tag[];
@@ -234,10 +234,9 @@ export default function FilterSidebar({
                   <SelectValue placeholder={t('selectSortOrder')} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-700 border-gray-600">
-                  <SelectItem value="publishedAt-desc">{t('newestFirst')}</SelectItem>
-                  <SelectItem value="publishedAt-asc">{t('oldestFirst')}</SelectItem>
-                  <SelectItem value="updatedAt-desc">{t('lastUpdated')}</SelectItem>
-                  <SelectItem value="updatedAt-asc">{t('oldestUpdated')}</SelectItem>
+                  <SelectItem value="latest">{t('newestFirst')}</SelectItem>
+                  <SelectItem value="oldest">{t('oldestFirst')}</SelectItem>
+                  <SelectItem value="popular">{t('mostPopular')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

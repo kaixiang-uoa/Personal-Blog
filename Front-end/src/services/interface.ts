@@ -29,7 +29,7 @@ export interface Article {
   categories?: Category[];
   tags: Tag[];
   seo?: SEO;
-  category: Category;
+  category: { slug: string };
   views: number;
 }
 
@@ -54,6 +54,8 @@ export interface Category {
   createdAt: string;
   updatedAt: string;
 }
+
+export type CategorySlug = Category['slug'];
 
 // 统一的API响应接口
 export interface ApiResponse<T> {

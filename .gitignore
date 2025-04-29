@@ -87,6 +87,7 @@ web_modules/
 .parcel-cache
 
 # Next.js build output
+Front-end/.next/
 out
 
 # Nuxt.js build / generate output

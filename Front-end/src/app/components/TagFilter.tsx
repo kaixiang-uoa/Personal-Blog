@@ -1,40 +1,38 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Tag } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { useState } from 'react';
+import { Tag } from 'lucide-react';
+import { Badge } from '@/app/components/ui/badge';
+import { ScrollArea, ScrollBar } from '@/app/components/ui/scroll-area';
 
-interface TagProps {
-  _id: string
-  name: string
-  slug: string
-  description: string
-  createdAt: string
-  updatedAt: string
+export interface TagProps {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string; // 确保这里是可选的
 }
 
-interface TagFilterProps {
-  tags: TagProps[]
-  activeTags: string[]
-  onTagsChange: (tags: string[]) => void
+export interface TagFilterProps {
+  tags: TagProps[];
+  activeTags: string[];
+  onTagsChange: (tags: string[]) => void;
 }
 
 export default function TagFilter({ tags, activeTags, onTagsChange }: TagFilterProps) {
-  const [selectedTags, setSelectedTags] = useState<string[]>(activeTags || [])
+  const [selectedTags, setSelectedTags] = useState<string[]>(activeTags || []);
 
   const handleTagClick = (tagSlug: string) => {
-    let newSelectedTags: string[]
+    let newSelectedTags: string[];
 
     if (selectedTags.includes(tagSlug)) {
-      newSelectedTags = selectedTags.filter((t) => t !== tagSlug)
+      newSelectedTags = selectedTags.filter(t => t !== tagSlug);
     } else {
-      newSelectedTags = [...selectedTags, tagSlug]
+      newSelectedTags = [...selectedTags, tagSlug];
     }
 
-    setSelectedTags(newSelectedTags)
-    onTagsChange(newSelectedTags)
-  }
+    setSelectedTags(newSelectedTags);
+    onTagsChange(newSelectedTags);
+  };
 
   return (
     <div className="py-4">
@@ -45,16 +43,16 @@ export default function TagFilter({ tags, activeTags, onTagsChange }: TagFilterP
 
       <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
+          {tags.map(tag => (
             <Badge
               key={tag._id}
-              variant={selectedTags.includes(tag.slug) ? "default" : "secondary"}
+              variant={selectedTags.includes(tag.slug) ? 'default' : 'secondary'}
               className={`
                 cursor-pointer transition-all hover:scale-105
                 ${
                   selectedTags.includes(tag.slug)
-                    ? "bg-cyan-600 hover:bg-cyan-700 text-white"
-                    : "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                    ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                    : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
                 }
               `}
               onClick={() => handleTagClick(tag.slug)}
@@ -66,5 +64,5 @@ export default function TagFilter({ tags, activeTags, onTagsChange }: TagFilterP
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
-  )
+  );
 }

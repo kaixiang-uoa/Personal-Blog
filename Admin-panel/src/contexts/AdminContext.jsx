@@ -1,16 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { useState } from "react";
+import { AdminContext } from "./admin-utils";
 
-// 创建管理员上下文
-const AdminContext = createContext();
-
-// 使用钩子来获取管理员上下文
-export function useAdminContext() {
-  return useContext(AdminContext);
-}
-
-// 管理员提供者组件
-export function AdminProvider({ children }) {
-  // 示例站点设置
+function AdminProvider({ children }) {
   const [siteSettings, setSiteSettings] = useState({
     general: {
       siteTitle: '我的个人博客',
@@ -32,10 +23,8 @@ export function AdminProvider({ children }) {
       fontSize: 'medium',
       enableDarkMode: true,
     },
-    // 其他设置...
   });
 
-  // 添加站点统计数据
   const [siteStats, setSiteStats] = useState({
     totalPosts: 24,
     newPosts: 3,
@@ -52,7 +41,6 @@ export function AdminProvider({ children }) {
     ]
   });
 
-  // 更新站点设置
   const updateSiteSettings = (section, newValues) => {
     setSiteSettings(prevSettings => ({
       ...prevSettings,
@@ -63,7 +51,6 @@ export function AdminProvider({ children }) {
     }));
   };
 
-  // 提供上下文的值
   const value = {
     siteSettings,
     updateSiteSettings,
@@ -77,3 +64,5 @@ export function AdminProvider({ children }) {
     </AdminContext.Provider>
   );
 }
+
+export { AdminProvider };

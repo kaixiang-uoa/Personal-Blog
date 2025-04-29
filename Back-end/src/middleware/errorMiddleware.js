@@ -1,5 +1,5 @@
 // Error handling middleware
-exports.errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res) => {
   // Get status code, default to 500
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
 
@@ -12,8 +12,8 @@ exports.errorHandler = (err, req, res, next) => {
 };
 
 // 404 error handler
-exports.notFound = (req, res, next) => {
+export const notFound = (req, res, next) => {
   const error = new Error(`Not Found - ${req.originalUrl}`);
   error.statusCode = 404; // Set status code for 404
-  next(error); // Pass error to the next middleware (errorHandler)
+  next(error);
 };

@@ -1,14 +1,14 @@
-const Category = require('../models/Category');
-const Post = require('../models/Post');
-const asyncHandler = require('express-async-handler');
-const { success, createError } = require('../utils/responseHandler');
+import Category from '../models/Category.js';
+import Post from '../models/Post.js';
+import asyncHandler from 'express-async-handler';
+import {  success, createError  } from '../utils/responseHandler.js';
 
 /**
  * @desc    Get all categories
  * @route   GET /api/categories
  * @access  Public
  */
-exports.getAllCategories = asyncHandler(async (req, res) => {
+export const getAllCategories = asyncHandler(async (req, res) => {
   // Get language preference from query parameter or default to 'zh'
   let lang = 'zh';
   if(req.query.lang){
@@ -48,7 +48,7 @@ exports.getAllCategories = asyncHandler(async (req, res) => {
  * @route   GET /api/categories/:id
  * @access  Public
  */
-exports.getCategoryById = asyncHandler(async (req, res) => {
+export const getCategoryById = asyncHandler(async (req, res) => {
   // Get language preference from query parameter or default to 'zh'
   const lang = req.query.lang || 'zh';
   
@@ -82,7 +82,7 @@ exports.getCategoryById = asyncHandler(async (req, res) => {
  * @route   GET /api/categories/slug/:slug
  * @access  Public
  */
-exports.getCategoryBySlug = asyncHandler(async (req, res) => {
+export const getCategoryBySlug = asyncHandler(async (req, res) => {
   // Get language preference from query parameter or default to 'zh'
   const lang = req.query.lang || 'zh';
   
@@ -116,7 +116,7 @@ exports.getCategoryBySlug = asyncHandler(async (req, res) => {
  * @route   POST /api/categories
  * @access  Private/Admin
  */
-exports.createCategory = asyncHandler(async (req, res) => {
+export const createCategory = asyncHandler(async (req, res) => {
   const { 
     name, 
     name_en, 
@@ -156,7 +156,7 @@ exports.createCategory = asyncHandler(async (req, res) => {
  * @route   PUT /api/categories/:id
  * @access  Private/Admin
  */
-exports.updateCategory = asyncHandler(async (req, res) => {
+export const updateCategory = asyncHandler(async (req, res) => {
   const { 
     name, 
     name_en, 
@@ -211,7 +211,7 @@ exports.updateCategory = asyncHandler(async (req, res) => {
  * @route   DELETE /api/categories/:id
  * @access  Private/Admin
  */
-exports.deleteCategory = asyncHandler(async (req, res) => {
+export const deleteCategory = asyncHandler(async (req, res) => {
   const category = await Category.findById(req.params.id);
   
   if (!category) {

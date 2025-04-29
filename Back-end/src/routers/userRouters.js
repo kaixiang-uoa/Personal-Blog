@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
   getAllUsers,
   getUserById,
   createUser,
   updateUser,
   deleteUser,
   updateProfile
-} = require('../controllers/userController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
+} from '../controllers/userController.js';
+import {  protect, restrictTo  } from '../middleware/authMiddleware.js';
 
 // Get all users (requires admin privileges)
 router.get('/', protect, restrictTo('admin'), getAllUsers);
@@ -28,4 +28,4 @@ router.put('/:id', protect, restrictTo('admin'), updateUser);
 // Delete user (requires admin privileges)
 router.delete('/:id', protect, restrictTo('admin'), deleteUser);
 
-module.exports = router;
+export default router;

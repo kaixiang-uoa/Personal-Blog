@@ -1,15 +1,15 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const fs = require('fs');
-const path = require('path');
-const connectDB = require('./db');
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import connectDB from './db';
 
 // Import models
-const User = require('../models/User');
-const Post = require('../models/Post');
-const Category = require('../models/Category');
-const Tag = require('../models/Tag');
-const Setting = require('../models/Setting');
+import User from '../models/User';
+import Post from '../models/Post';
+import Category from '../models/Category';
+import Tag from '../models/Tag';
+import Setting from '../models/Setting';
 
 // Load environment variables
 dotenv.config();
@@ -66,7 +66,8 @@ const processReferences = (data, refFields) => {
                 return Array.isArray(parsedIds)
                   ? parsedIds.map(subId => idMap.has(subId) ? idMap.get(subId) : subId)
                   : (idMap.has(id) ? idMap.get(id) : id);
-              } catch (e) {
+              } catch (error) {
+                console.error(`analyse error: ${error.message}`);
                 return idMap.has(id) ? idMap.get(id) : id;
               }
             }
@@ -150,7 +151,12 @@ const seedDatabase = async () => {
       settingData = processReferences(settingData, ['updatedBy']);
       settingData = settingData.map(item => {
         if (item.updatedBy && typeof item.updatedBy === 'string' && !mongoose.Types.ObjectId.isValid(item.updatedBy)) {
-          const { updatedBy, ...rest } = item;
+          const rest = { ...item };
+          delete rest.updatedBy;
+          
+          if (userData.length > 0) {
+            rest.updatedBy = userData[0]._id; // 使用第一个用户的ID
+          }
           return rest;
         }
         return item;

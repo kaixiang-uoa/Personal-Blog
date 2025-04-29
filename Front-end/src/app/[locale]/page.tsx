@@ -29,15 +29,15 @@ export default function Home({ searchParams }: PageProps) {
   const params = useParams();
   const locale = params.locale as string;
   const router = useRouter();
-  
+
   const sort = getStringParam(searchParams.sort, 'latest') as SortOrder;
   const tag = getStringParam(searchParams.tag);
   const category = getStringParam(searchParams.category);
   const search = getStringParam(searchParams.search);
   const page = getStringParam(searchParams.page, '1');
-  
+
   const currentPage = parseInt(page) || 1;
-  
+
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -62,7 +62,7 @@ export default function Home({ searchParams }: PageProps) {
         tag: tag || undefined,
         category: category || undefined,
         search: search || undefined,
-        sort
+        sort,
       });
       setArticles(response.data);
       setTotalPages(Math.ceil(response.total / 10));
@@ -91,30 +91,27 @@ export default function Home({ searchParams }: PageProps) {
 
   const filteredArticles = useMemo(() => {
     let result = [...articles];
-    
+
     // 按标签过滤
     if (tag) {
-      result = result.filter(article => 
-        article.tags.some(t => t.slug === tag)
-      );
+      result = result.filter(article => article.tags.some(t => t.slug === tag));
     }
-    
+
     // 按分类过滤
     if (category) {
-      result = result.filter(article => 
-        (article.category as { slug: string }).slug === category
-      );
+      result = result.filter(article => (article.category as { slug: string }).slug === category);
     }
-    
+
     // 搜索过滤
     if (search) {
       const searchLower = search.toLowerCase();
-      result = result.filter(article =>
-        article.title.toLowerCase().includes(searchLower) ||
-        article.content.toLowerCase().includes(searchLower) 
+      result = result.filter(
+        article =>
+          article.title.toLowerCase().includes(searchLower) ||
+          article.content.toLowerCase().includes(searchLower)
       );
     }
-    
+
     // 排序
     switch (sort) {
       case 'latest':
@@ -127,7 +124,7 @@ export default function Home({ searchParams }: PageProps) {
         result.sort((a, b) => b.views - a.views);
         break;
     }
-    
+
     return result;
   }, [articles, sort, tag, category, search]);
 
@@ -138,8 +135,11 @@ export default function Home({ searchParams }: PageProps) {
   const handleTagsChange = (tags: string[]) => {
     router.push(`/${locale}?tag=${tags.join(',')}`);
   };
-  
-  const handleFilterChange = (params: { type: 'tags' | 'category' | 'sort'; value: string | string[] | SortOrder }) => {
+
+  const handleFilterChange = (params: {
+    type: 'tags' | 'category' | 'sort';
+    value: string | string[] | SortOrder;
+  }) => {
     if (params.type === 'category') {
       router.push(`/${locale}?category=${params.value}`);
     } else if (params.type === 'sort') {
@@ -149,15 +149,15 @@ export default function Home({ searchParams }: PageProps) {
       router.push(`/${locale}?tag=${(params.value as string[]).join(',')}`);
     }
   };
-  
+
   const handleClearFilters = () => {
     router.push(`/${locale}`);
   };
-  
+
   const hasActiveFilters = useMemo(() => {
     return !!tag || !!category || !!search || sort !== 'latest';
   }, [tag, category, search, sort]);
-  
+
   const handlePageChange = (page: number) => {
     router.push(`/${locale}?page=${page}`);
   };
@@ -203,12 +203,18 @@ export default function Home({ searchParams }: PageProps) {
       </section>
 
       <section className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <form onSubmit={(e) => { e.preventDefault(); handleSearch(search); }} className="flex">
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            handleSearch(search);
+          }}
+          className="flex"
+        >
           <input
             type="text"
             placeholder={t('searchPlaceholder')}
             value={search}
-            onChange={(e) => router.push(`/${locale}?q=${e.target.value}`)}
+            onChange={e => router.push(`/${locale}?q=${e.target.value}`)}
             className="w-full px-4 py-2 border border-gray-700 rounded-l-md bg-gray-800 text-white"
           />
           <button type="submit" className="bg-cyan-600 px-4 py-2 rounded-r-md">
@@ -300,7 +306,10 @@ export default function Home({ searchParams }: PageProps) {
                 </div>
                 {totalPages > 1 && (
                   <div className="flex justify-center mt-10">
-                    <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
                       {t('previousPage')}
                     </button>
                     <span>{t('pageInfo', { current: currentPage, total: totalPages })}</span>

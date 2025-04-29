@@ -22,7 +22,10 @@ interface FilterSidebarProps {
   categories: Category[];
   activeCategory: string | null;
   sortOrder: SortOrder;
-  onFilterChangeAction: (params: { type: 'tags' | 'category' | 'sort'; value: string | string[] | SortOrder }) => void;
+  onFilterChangeAction: (params: {
+    type: 'tags' | 'category' | 'sort';
+    value: string | string[] | SortOrder;
+  }) => void;
   onClearFiltersAction: () => void;
 }
 

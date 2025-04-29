@@ -58,7 +58,10 @@ export default function ArticlePage({ params }: PageProps) {
       <Navbar />
 
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <Link href={`/${params.locale}`} className="text-cyan-600 hover:text-cyan-400 mb-4 inline-block">
+        <Link
+          href={`/${params.locale}`}
+          className="text-cyan-600 hover:text-cyan-400 mb-4 inline-block"
+        >
           &larr; {t('backToHome')}
         </Link>
 

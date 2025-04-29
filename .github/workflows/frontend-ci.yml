@@ -33,6 +33,11 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+
+      - name: Show .vercel contents
+        run: cat .vercel/project.json || echo "No project.json"
+        working-directory: ./Front-end
+
       - name: Patch Vercel Settings
         run: |
           echo '{

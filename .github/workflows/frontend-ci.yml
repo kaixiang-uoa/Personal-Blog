@@ -63,8 +63,13 @@ jobs:
       
       - name: Copy .vercel/output to root
         run: |
+          mkdir -p .vercel
           rm -rf .vercel/output
           cp -r ./Front-end/.vercel/output .vercel/output
+
+      - name: Print .vercel/output contents
+        run: ls -la .vercel/output
+        working-directory: ./Front-end
 
 
       - name: Deploy Prebuilt Output

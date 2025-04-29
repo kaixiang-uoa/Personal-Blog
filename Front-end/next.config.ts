@@ -4,6 +4,8 @@ const withNextIntl = createNextIntlPlugin();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone', 
+
   eslint: {
     // 在生产构建时忽略 ESLint 错误
     ignoreDuringBuilds: true,

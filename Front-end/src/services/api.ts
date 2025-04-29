@@ -25,11 +25,11 @@ export const postApi = {
     const response = await api.get('/posts', { params });
     return response.data;
   },
-  
+
   getPostBySlug: async (slug: string) => {
     const response = await api.get<{ data: { post: Article } }>(`/posts/${slug}`);
     return response.data;
-  }
+  },
 };
 
 // 分类相关 API
@@ -37,7 +37,7 @@ export const categoryApi = {
   getAllCategories: async () => {
     const response = await api.get<{ data: Category[] }>('/categories');
     return response.data;
-  }
+  },
 };
 
 // 标签相关 API
@@ -45,7 +45,7 @@ export const tagApi = {
   getAllTags: async () => {
     const response = await api.get<{ data: Tag[] }>('/tags');
     return response.data;
-  }
+  },
 };
 
 // 评论相关 API
@@ -54,12 +54,12 @@ export const commentApi = {
     const response = await api.get<{ data: Comment[] }>(`/comments/post/${postId}`);
     return response.data;
   },
-  
+
   createComment: async (postId: string, content: string) => {
     const response = await api.post<{ data: Comment }>('/comments', {
       postId,
-      content
+      content,
     });
     return response.data;
-  }
+  },
 };

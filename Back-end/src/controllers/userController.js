@@ -1,183 +1,185 @@
-const User = require('../models/User');
-const Post = require('../models/Post');
-const asyncHandler = require('express-async-handler');
-const bcrypt = require('bcryptjs');
-const { success, createError } = require('../utils/responseHandler');
+import User from '../models/User.js';
+import { success, error } from '../utils/responseHandler.js';
+import bcrypt from 'bcryptjs';
 
-/**
- * @desc    Get all users
- * @route   GET /api/users
- * @access  Private/Admin
- */
-exports.getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select('-password').sort({ createdAt: -1 });
-
-  return success(res, { 
-    users,
-    count: users.length 
-  });
-});
-
-/**
- * @desc    Get a single user by ID
- * @route   GET /api/users/:id
- * @access  Private/Admin
- */
-exports.getUserById = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id).select('-password');
-
-  if (!user) {
-    throw createError('User not found', 404);
-  }
-
-  return success(res, { user });
-});
-
-/**
- * @desc    Create a user
- * @route   POST /api/users
- * @access  Private/Admin
- */
-exports.createUser = asyncHandler(async (req, res) => {
-  const { username, email, password, displayName, role } = req.body;
-
-  // Check if user already exists
-  const userExists = await User.findOne({ $or: [{ email }, { username }] });
-  if (userExists) {
-    throw createError('User already exists', 400);
-  }
-
-  // Hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
-  // Create user
-  const user = await User.create({
-    username,
-    email,
-    password: hashedPassword,
-    displayName: displayName || username,
-    role: role || 'user'
-  });
-
-  // Return user without password
-  const createdUser = await User.findById(user._id).select('-password');
-  
-  return success(res, { user: createdUser }, 201, 'User created successfully');
-});
-
-/**
- * @desc    Update a user
- * @route   PUT /api/users/:id
- * @access  Private/Admin
- */
-exports.updateUser = asyncHandler(async (req, res) => {
-  const { username, email, password, displayName, role, bio, avatar } = req.body;
-  
-  // Find user
-  let user = await User.findById(req.params.id);
-  
-  if (!user) {
-    throw createError('用户不存在', 404);
-  }
-  
-  // Check if email or username is already taken by another user
-  if (email && email !== user.email) {
-    const emailExists = await User.findOne({ email });
-    if (emailExists) {
-      throw createError('该邮箱已被使用', 400);
-    }
-  }
-  
-  if (username && username !== user.username) {
-    const usernameExists = await User.findOne({ username });
-    if (usernameExists) {
-      throw createError('该用户名已被使用', 400);
-    }
-  }
-  
-  // Update user fields
-  user.username = username || user.username;
-  user.email = email || user.email;
-  user.displayName = displayName || user.displayName;
-  user.role = role || user.role;
-  user.bio = bio !== undefined ? bio : user.bio;
-  user.avatar = avatar || user.avatar;
-  
-  // Update password if provided
-  if (password) {
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-  }
-  
-  // Save updated user
-  await user.save();
-  
-  // Return updated user without password
-  const updatedUser = await User.findById(user._id).select('-password');
-  
-  return success(res, { user: updatedUser }, 200, '用户更新成功');
-});
-
-/**
- * @desc    Delete a user
- * @route   DELETE /api/users/:id
- * @access  Private/Admin
- */
-exports.deleteUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id);
-  
-  if (!user) {
-    throw createError('用户不存在', 404);
-  }
-  
-  // Delete user's posts or reassign them
-  // await Post.deleteMany({ author: user._id });
-  
-  await user.remove();
-  
-  return success(res, null, 200, '用户删除成功');
-});
-
-/**
- * @desc    Update current user profile
- * @route   PUT /api/users/profile
- * @access  Private
- */
-exports.updateProfile = asyncHandler(async (req, res) => {
-  const { displayName, bio, avatar, currentPassword, newPassword } = req.body;
-  
-  // Get current user
-  const user = await User.findById(req.user.id);
-  
-  if (!user) {
-    throw createError('用户不存在', 404);
-  }
-  
-  // Update basic profile fields
-  user.displayName = displayName || user.displayName;
-  user.bio = bio !== undefined ? bio : user.bio;
-  user.avatar = avatar || user.avatar;
-  
-  // If user wants to change password
-  if (currentPassword && newPassword) {
-    // Verify current password
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
+// 获取所有用户
+export const getAllUsers = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
     
-    if (!isMatch) {
-      throw createError('当前密码不正确', 400);
+    const options = {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      sort: { createdAt: -1 },
+      select: '-password'
+    };
+    
+    const users = await User.find()
+      .skip((options.page - 1) * options.limit)
+      .limit(options.limit)
+      .sort(options.sort)
+      .select(options.select);
+      
+    const total = await User.countDocuments();
+    
+    return success(res, {
+      users,
+      pagination: {
+        total,
+        page: options.page,
+        limit: options.limit,
+        pages: Math.ceil(total / options.limit)
+      }
+    }, 200, 'user.listSuccess');
+  } catch (err) {
+    return error(res, 'user.listFailed', 500, err.message);
+  }
+};
+
+// 获取单个用户
+export const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select('-password');
+    
+    if (!user) {
+      return error(res, 'user.notFound', 404);
     }
     
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
+    return success(res, user, 200);
+  } catch (err) {
+    return error(res, 'user.getFailed', 500, err.message);
   }
-  
-  // Save updated profile
-  await user.save();
-  
-  // Return updated user without password
-  const updatedUser = await User.findById(user._id).select('-password');
-  
-  return success(res, { user: updatedUser }, 200, '个人资料更新成功');
-});
+};
+
+// 创建用户 (管理员功能)
+export const createUser = async (req, res) => {
+  try {
+    const { username, email, password, role } = req.body;
+    
+    // 检查用户是否已存在
+    const userExists = await User.findOne({ 
+      $or: [{ email }, { username }] 
+    });
+    
+    if (userExists) {
+      return error(res, userExists.email === email ? 'user.emailExists' : 'user.usernameExists', 400);
+    }
+    
+    // 创建用户
+    const user = await User.create({
+      username,
+      email,
+      password,
+      role: role || 'user'
+    });
+    
+    return success(res, {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    }, 201, 'user.created');
+  } catch (err) {
+    return error(res, 'user.createFailed', 500, err.message);
+  }
+};
+
+// 更新用户 (管理员功能)
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, email, role, isActive } = req.body;
+    
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return error(res, 'user.notFound', 404);
+    }
+    
+    // 更新字段
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (role) user.role = role;
+    if (isActive !== undefined) user.isActive = isActive;
+    
+    await user.save();
+    
+    return success(res, {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive
+    }, 200, 'user.updated');
+  } catch (err) {
+    return error(res, 'user.updateFailed', 500, err.message);
+  }
+};
+
+// 删除用户
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return error(res, 'user.notFound', 404);
+    }
+    
+    // 不允许删除自己
+    if (user._id.toString() === req.user.id) {
+      return error(res, 'user.cannotDeleteSelf', 400);
+    }
+    
+    await User.findByIdAndDelete(id);
+    
+    return success(res, null, 200, 'user.deleted');
+  } catch (err) {
+    return error(res, 'user.deleteFailed', 500, err.message);
+  }
+};
+
+// 更新个人资料
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { username, email, currentPassword, newPassword, bio, avatar } = req.body;
+    
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return error(res, 'user.notFound', 404);
+    }
+    
+    // 如果要更新密码，验证当前密码
+    if (newPassword && currentPassword) {
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      
+      if (!isMatch) {
+        return error(res, 'user.passwordIncorrect', 400);
+      }
+      
+      user.password = newPassword;
+    }
+    
+    // 更新其他字段
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (bio) user.bio = bio;
+    if (avatar) user.avatar = avatar;
+    
+    await user.save();
+    
+    return success(res, {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      bio: user.bio,
+      avatar: user.avatar
+    }, 200, 'user.profileUpdated');
+  } catch (err) {
+    return error(res, 'user.updateProfileFailed', 500, err.message);
+  }
+};

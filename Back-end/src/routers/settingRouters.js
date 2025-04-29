@@ -1,23 +1,25 @@
-const express = require('express');
+import express from 'express';
+import { 
+    getAllSettings, 
+    getSettingByKey, 
+    updateSetting, 
+    updateSettings, 
+    deleteSetting 
+} from '../controllers/settingController.js';
+import { protect, restrictTo } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
-const {
-  getAllSettings,
-  getSettingById,
-  updateSetting,
-  createSetting
-} = require('../controllers/settingController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
 
-// Get all settings
-router.get('/', protect, restrictTo('admin'), getAllSettings);
+// 获取所有设置
+router.get('/', getAllSettings);
 
-// Get a single setting
-router.get('/:id', protect, restrictTo('admin'), getSettingById);
+// 获取单个设置
+router.get('/:key', getSettingByKey);
 
-// Update a setting
-router.put('/:id', protect, restrictTo('admin'), updateSetting);
+// 需要管理员权限的路由
+router.put('/:key', protect, restrictTo('admin'), updateSetting);
+router.post('/', protect, restrictTo('admin'), updateSetting);
+router.post('/batch', protect, restrictTo('admin'), updateSettings);
+router.delete('/:key', protect, restrictTo('admin'), deleteSetting);
 
-// Create a setting
-router.post('/', protect, restrictTo('admin'), createSetting);
-
-module.exports = router;
+export default router;

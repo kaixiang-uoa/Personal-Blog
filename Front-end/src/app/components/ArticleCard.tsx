@@ -1,6 +1,6 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Article } from "../../services/interface"; // 导入 Article 接口
+import Image from 'next/image';
+import Link from 'next/link';
+import { Article } from '../../services/interface'; // 导入 Article 接口
 
 interface ArticleCardProps {
   article: Article;
@@ -20,8 +20,8 @@ export default function ArticleCard({ article }: ArticleCardProps) {
       <div className="p-4">
         <h3 className="text-lg font-bold text-gray-900">{article.title}</h3>
         {/* <p className="mt-2 text-gray-600">{article.summary}</p> */}
-        <Link 
-          href={`/article/${article.slug}`} 
+        <Link
+          href={`/article/${article.slug}`}
           className="mt-4 inline-block text-cyan-600 hover:text-cyan-800 font-medium"
         >
           阅读更多 &rarr;

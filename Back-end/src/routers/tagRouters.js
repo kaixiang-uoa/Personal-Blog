@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
   getAllTags,
   getTagById,
   getTagBySlug,
   createTag,
   updateTag,
   deleteTag
-} = require('../controllers/tagController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
+} from '../controllers/tagController.js';
+import {  protect, restrictTo  } from '../middleware/authMiddleware.js';
 
 // Get all tags
 router.get('/', getAllTags);
@@ -27,4 +27,4 @@ router.put('/:id', protect, restrictTo('admin'), updateTag);
 // Delete tag (requires admin privileges)
 router.delete('/:id', protect, restrictTo('admin'), deleteTag);
 
-module.exports = router;
+export default router;

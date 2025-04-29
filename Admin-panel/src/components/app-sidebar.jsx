@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -11,7 +11,6 @@ import { ScrollArea } from './ui/scroll-area';
 import { Sidebar } from './ui/sidebar';
 
 export function AppSidebar() {
-  const location = useLocation();
   
   return (
     <Sidebar className="border-r bg-background">

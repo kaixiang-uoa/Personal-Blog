@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar } from '../components/app-sidebar';
 import { SiteHeader } from '../components/site-header';
 import { SidebarProvider } from '../components/ui/sidebar';
 
 const MainLayout = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   
   // 简化解决方案：监听路由变化，强制刷新组件
   useEffect(() => {

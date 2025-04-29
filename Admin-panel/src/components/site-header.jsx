@@ -11,7 +11,7 @@ import {
 } from "./ui/breadcrumb"
 import { Button } from "./ui/button"
 import { Separator } from "./ui/separator"
-import { useSidebar } from "./ui/sidebar"
+import { useSidebar } from "./ui/sidebar-utils"
 
 export function SiteHeader() {
   const { toggleSidebar } = useSidebar()

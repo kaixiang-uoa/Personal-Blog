@@ -1,14 +1,14 @@
-const Tag = require('../models/Tag');
-const Post = require('../models/Post');
-const asyncHandler = require('express-async-handler');
-const { success, createError } = require('../utils/responseHandler');
+import Tag from '../models/Tag.js';
+import Post from '../models/Post.js';
+import asyncHandler from 'express-async-handler';
+import {  success, createError  } from '../utils/responseHandler.js';
 
 /**
  * @desc    Get all tags
  * @route   GET /api/tags
  * @access  Public
  */
-exports.getAllTags = asyncHandler(async (req, res) => {
+export const getAllTags = asyncHandler(async (req, res) => {
   const tags = await Tag.find().sort({ name: 1 });
 
   return success(res, { 
@@ -22,7 +22,7 @@ exports.getAllTags = asyncHandler(async (req, res) => {
  * @route   GET /api/tags/:id
  * @access  Public
  */
-exports.getTagById = asyncHandler(async (req, res) => {
+export const getTagById = asyncHandler(async (req, res) => {
   const tag = await Tag.findById(req.params.id);
 
   if (!tag) {
@@ -37,7 +37,7 @@ exports.getTagById = asyncHandler(async (req, res) => {
  * @route   GET /api/tags/slug/:slug
  * @access  Public
  */
-exports.getTagBySlug = asyncHandler(async (req, res) => {
+export const getTagBySlug = asyncHandler(async (req, res) => {
   const tag = await Tag.findOne({ slug: req.params.slug });
 
   if (!tag) {
@@ -52,7 +52,7 @@ exports.getTagBySlug = asyncHandler(async (req, res) => {
  * @route   POST /api/tags
  * @access  Private/Admin
  */
-exports.createTag = asyncHandler(async (req, res) => {
+export const createTag = asyncHandler(async (req, res) => {
   const { name, slug, description } = req.body;
 
   // Check if slug already exists
@@ -76,7 +76,7 @@ exports.createTag = asyncHandler(async (req, res) => {
  * @route   PUT /api/tags/:id
  * @access  Private/Admin
  */
-exports.updateTag = asyncHandler(async (req, res) => {
+export const updateTag = asyncHandler(async (req, res) => {
   const { name, slug, description } = req.body;
   
   // Find tag
@@ -110,7 +110,7 @@ exports.updateTag = asyncHandler(async (req, res) => {
  * @route   DELETE /api/tags/:id
  * @access  Private/Admin
  */
-exports.deleteTag = asyncHandler(async (req, res) => {
+export const deleteTag = asyncHandler(async (req, res) => {
   const tag = await Tag.findById(req.params.id);
   
   if (!tag) {

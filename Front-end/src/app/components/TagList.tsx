@@ -30,7 +30,7 @@ const TagList: React.FC<TagListProps> = ({ tags, onTagClick, activeTag }) => {
         >
           全部
         </span>
-        {tags.map((tag) => (
+        {tags.map(tag => (
           <span
             key={tag._id}
             onClick={() => onTagClick(tag.slug)}

@@ -1,46 +1,25 @@
-"use client"
-import { useState, useEffect } from "react";
-import { Tag, X } from "lucide-react";
+'use client';
+import { useState, useEffect } from 'react';
+import { Tag as TagIcon, X } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/app/components/ui/accordion";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { Checkbox } from "@/app/components/ui/checkbox";
-import { Label } from "@/app/components/ui/label";
-import { useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import type { SortOrder } from "@/services/interface";
+} from '@/app/components/ui/accordion';
+import { Button } from '@/app/components/ui/button';
+import { Badge } from '@/app/components/ui/badge';
+import { Checkbox } from '@/app/components/ui/checkbox';
+import { Label } from '@/app/components/ui/label';
+import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import type { Tag, Category, SortOrder } from '@/services/interface';
 
-export interface FilterSidebarProps {
-  tags: {
-    _id: string;
-    name: string;
-    name_en?: string;
-    name_zh?: string;
-    slug: string;
-    description?: string;
-    createdAt?: string;
-    updatedAt?: string;
-  }[];
+interface FilterSidebarProps {
+  tags: Tag[];
   activeTags: string[];
-  categories: {
-    _id: string;
-    name: string;
-    name_en?: string;
-    name_zh?: string;
-    slug: string;
-  }[];
+  categories: Category[];
   activeCategory: string | null;
   sortOrder: SortOrder;
   onFilterChangeAction: (params: any) => void;
@@ -52,18 +31,15 @@ export default function FilterSidebar({
   activeTags,
   categories,
   activeCategory,
-  sortOrder = "publishedAt-desc",
+  sortOrder = 'latest',
   onFilterChangeAction,
-  onClearFiltersAction
+  onClearFiltersAction,
 }: FilterSidebarProps) {
-  const t = useTranslations("common");
+  const t = useTranslations('common');
   const { locale } = useParams();
   const [selectedTags, setSelectedTags] = useState<string[]>(activeTags || []);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    activeCategory || null
-  );
-  const [selectedSortOrder, setSelectedSortOrder] =
-    useState<SortOrder>(sortOrder);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(activeCategory || null);
+  const [selectedSortOrder, setSelectedSortOrder] = useState<SortOrder>(sortOrder);
 
   const getCategoryNameByLocale = (category: any, localeStr: string) => {
     if (localeStr === 'en') return category.name_en || category.name;
@@ -91,16 +67,16 @@ export default function FilterSidebar({
     if (checked) {
       newSelectedTags = [...selectedTags, tagSlug];
     } else {
-      newSelectedTags = selectedTags.filter((t) => t !== tagSlug);
+      newSelectedTags = selectedTags.filter(t => t !== tagSlug);
     }
 
     setSelectedTags(newSelectedTags);
-    onFilterChangeAction({type: "tags", value: newSelectedTags});
+    onFilterChangeAction({ type: 'tags', value: newSelectedTags });
   };
 
   const handleCategoryChange = (categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
-    onFilterChangeAction({ type: "category",value: categorySlug || ""});
+    onFilterChangeAction({ type: 'category', value: categorySlug || '' });
   };
 
   const hasActiveFilters = activeTags.length > 0 || activeCategory;
@@ -108,7 +84,7 @@ export default function FilterSidebar({
   return (
     <div className="bg-gray-800 rounded-lg p-4 sticky top-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-white">{t("filters")}</h3>
+        <h3 className="text-lg font-semibold text-white">{t('filters')}</h3>
         {hasActiveFilters && (
           <Button
             variant="ghost"
@@ -117,17 +93,17 @@ export default function FilterSidebar({
             className="text-cyan-500 hover:text-cyan-400 hover:bg-gray-700 p-1 h-auto"
           >
             <X className="h-4 w-4 mr-1" />
-            {t("clear")}
+            {t('clear')}
           </Button>
         )}
       </div>
 
       {hasActiveFilters && (
         <div className="mb-4 pb-4 border-b border-gray-700">
-          <p className="text-sm text-gray-400 mb-2">{t("activeFilters")}:</p>
+          <p className="text-sm text-gray-400 mb-2">{t('activeFilters')}:</p>
           <div className="flex flex-wrap gap-2">
-            {activeTags.map((tagSlug) => {
-              const tag = tags.find((t) => t.slug === tagSlug);
+            {activeTags.map(tagSlug => {
+              const tag = tags.find(t => t.slug === tagSlug);
               return (
                 <Badge
                   key={tagSlug}
@@ -143,9 +119,7 @@ export default function FilterSidebar({
 
             {activeCategory &&
               (() => {
-                const category = categories.find(
-                  (c) => c.slug === activeCategory
-                );
+                const category = categories.find(c => c.slug === activeCategory);
                 return (
                   <Badge
                     key={activeCategory}
@@ -153,7 +127,9 @@ export default function FilterSidebar({
                     className="bg-cyan-900/50 hover:bg-cyan-800/50 text-cyan-100 cursor-pointer"
                     onClick={() => handleCategoryChange(null)}
                   >
-                    {category ? getCategoryNameByLocale(category, locale as string) : activeCategory}
+                    {category
+                      ? getCategoryNameByLocale(category, locale as string)
+                      : activeCategory}
                     <X className="ml-1 h-3 w-3" />
                   </Badge>
                 );
@@ -162,30 +138,24 @@ export default function FilterSidebar({
         </div>
       )}
 
-      <Accordion
-        type="multiple"
-        defaultValue={["tags", "category", "sort"]}
-        className="w-full"
-      >
+      <Accordion type="multiple" defaultValue={['tags', 'category', 'sort']} className="w-full">
         <AccordionItem value="tags" className="border-b border-gray-700">
           <AccordionTrigger className="text-base py-3 hover:no-underline">
             <div className="flex items-center">
-              <Tag className="h-4 w-4 mr-2" />
-              <span>{t("tags")}</span>
+              <TagIcon className="h-4 w-4 mr-2" />
+              <span>{t('tags')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
             <div className="grid gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-              {tags.map((tag) => (
+              {tags.map(tag => (
                 <Label
                   key={tag._id}
                   className="flex items-center gap-2 font-normal cursor-pointer hover:text-cyan-400 transition-colors"
                 >
                   <Checkbox
                     checked={selectedTags.includes(tag.slug)}
-                    onCheckedChange={(checked) =>
-                      handleTagChange(tag.slug, checked as boolean)
-                    }
+                    onCheckedChange={checked => handleTagChange(tag.slug, checked as boolean)}
                     className="data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                   />
                   <span className="truncate">{getTagNameByLocale(tag, locale as string)}</span>
@@ -212,7 +182,7 @@ export default function FilterSidebar({
                   d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                 />
               </svg>
-              <span>{t("categories")}</span>
+              <span>{t('categories')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -226,9 +196,9 @@ export default function FilterSidebar({
                   onCheckedChange={() => handleCategoryChange(null)}
                   className="data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                 />
-                {t("allCategories")}
+                {t('allCategories')}
               </Label>
-              {categories.map((category) => (
+              {categories.map(category => (
                 <Label
                   key={category._id}
                   className="flex items-center gap-2 font-normal cursor-pointer hover:text-cyan-400 transition-colors"
@@ -248,7 +218,7 @@ export default function FilterSidebar({
         <AccordionItem value="sort" className="border-b-0">
           <AccordionTrigger className="text-base py-3 hover:no-underline">
             <div className="flex items-center">
-              <span>{t("sortBy")}</span>
+              <span>{t('sortBy')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -257,25 +227,17 @@ export default function FilterSidebar({
                 value={selectedSortOrder}
                 onValueChange={(value: SortOrder) => {
                   setSelectedSortOrder(value);
-                  onFilterChangeAction( {type: "sort", value });
+                  onFilterChangeAction({ type: 'sort', value });
                 }}
               >
                 <SelectTrigger className="w-full bg-gray-700 border-gray-600">
-                  <SelectValue placeholder={t("selectSortOrder")} />
+                  <SelectValue placeholder={t('selectSortOrder')} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-700 border-gray-600">
-                  <SelectItem value="publishedAt-desc">
-                    {t("newestFirst")}
-                  </SelectItem>
-                  <SelectItem value="publishedAt-asc">
-                    {t("oldestFirst")}
-                  </SelectItem>
-                  <SelectItem value="updatedAt-desc">
-                    {t("lastUpdated")}
-                  </SelectItem>
-                  <SelectItem value="updatedAt-asc">
-                    {t("oldestUpdated")}
-                  </SelectItem>
+                  <SelectItem value="publishedAt-desc">{t('newestFirst')}</SelectItem>
+                  <SelectItem value="publishedAt-asc">{t('oldestFirst')}</SelectItem>
+                  <SelectItem value="updatedAt-desc">{t('lastUpdated')}</SelectItem>
+                  <SelectItem value="updatedAt-asc">{t('oldestUpdated')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

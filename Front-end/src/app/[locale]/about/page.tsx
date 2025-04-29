@@ -1,7 +1,7 @@
-"use client";
-export const dynamic = "force-dynamic";
+'use client';
+export const dynamic = 'force-dynamic';
 export const dynamicParams = false;
-import Navbar from "../../components/Navbar";
+import Navbar from '../../components/Navbar';
 
 export default function AboutMe() {
   return (
@@ -13,9 +13,8 @@ export default function AboutMe() {
         <section className="mb-12">
           <h1 className="text-4xl font-extrabold mb-4">About Me</h1>
           <p className="text-lg">
-            Hello! I&apos;m a passionate developer with a love for technology
-            and innovation. I enjoy creating solutions that make a difference
-            and sharing my knowledge with others.
+            Hello! I&apos;m a passionate developer with a love for technology and innovation. I
+            enjoy creating solutions that make a difference and sharing my knowledge with others.
           </p>
         </section>
 
@@ -24,11 +23,8 @@ export default function AboutMe() {
           <h2 className="text-3xl font-bold mb-4">Contact Information</h2>
           <ul className="list-disc list-inside">
             <li>
-              Email:{" "}
-              <a
-                href="mailto:your.email@example.com"
-                className="text-cyan-600 hover:text-cyan-400"
-              >
+              Email:{' '}
+              <a href="mailto:your.email@example.com" className="text-cyan-600 hover:text-cyan-400">
                 your.email@example.com
               </a>
             </li>
@@ -69,13 +65,13 @@ export default function AboutMe() {
           <h2 className="text-3xl font-bold mb-4">Projects</h2>
           <ul className="list-disc list-inside">
             <li>
-              Project A: Description and{" "}
+              Project A: Description and{' '}
               <a href="#" className="text-cyan-600 hover:text-cyan-400">
                 GitHub Link
               </a>
             </li>
             <li>
-              Project B: Description and{" "}
+              Project B: Description and{' '}
               <a href="#" className="text-cyan-600 hover:text-cyan-400">
                 GitHub Link
               </a>
@@ -110,9 +106,8 @@ export default function AboutMe() {
       <footer className="bg-gray-800 py-6">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-gray-400">
-            &copy;{" "}
-            {typeof window !== "undefined" ? new Date().getFullYear() : "2024"}{" "}
-            My Personal Blog. All rights reserved.
+            &copy; {typeof window !== 'undefined' ? new Date().getFullYear() : '2024'} My Personal
+            Blog. All rights reserved.
           </p>
         </div>
       </footer>

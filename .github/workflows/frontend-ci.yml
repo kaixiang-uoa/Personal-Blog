@@ -65,4 +65,3 @@ jobs:
 
       - name: Deploy Prebuilt Output
         run: npx vercel deploy --prebuilt --prod --token ${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./Front-end

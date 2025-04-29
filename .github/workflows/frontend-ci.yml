@@ -71,6 +71,24 @@ jobs:
         env:
             VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
             VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      
+
+      - name: Patch Vercel Settings to use npm
+        run: |
+          echo '{
+            "orgId": "'"$VERCEL_ORG_ID"'",
+            "projectId": "'"$VERCEL_PROJECT_ID"'",
+            "settings": {
+              "installCommand": "npm install",
+              "buildCommand": "npm run build",
+              "outputDirectory": ".vercel/output"
+            }
+          }' > .vercel/project.json
+        working-directory: ./Front-end
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
 
       - name: Generate Prebuilt Output
         run: npx vercel build --token ${{ secrets.VERCEL_TOKEN }}

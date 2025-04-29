@@ -61,8 +61,11 @@ jobs:
         run: npx vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
         working-directory: ./Front-end
       
-      - name: Copy prebuilt output to root
-        run: cp -r ./Front-end/.vercel ./.vercel
+      - name: Copy .vercel/output to root
+        run: |
+          rm -rf .vercel/output
+          cp -r ./Front-end/.vercel/output .vercel/output
+
 
       - name: Deploy Prebuilt Output
         run: npx vercel deploy --prebuilt --prod --yes --token ${{ secrets.VERCEL_TOKEN }}

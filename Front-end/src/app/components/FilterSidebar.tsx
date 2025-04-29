@@ -41,13 +41,13 @@ export default function FilterSidebar({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(activeCategory || null);
   const [selectedSortOrder, setSelectedSortOrder] = useState<SortOrder>(sortOrder);
 
-  const getCategoryNameByLocale = (category: any, localeStr: string) => {
+  const getCategoryNameByLocale = (category: Category, localeStr: string) => {
     if (localeStr === 'en') return category.name_en || category.name;
     if (localeStr === 'zh') return category.name_zh || category.name;
     return category.name;
   };
 
-  const getTagNameByLocale = (tag: any, localeStr: string) => {
+  const getTagNameByLocale = (tag: Tag, localeStr: string) => {
     if (localeStr === 'en') return tag.name_en || tag.name;
     if (localeStr === 'zh') return tag.name_zh || tag.name;
     return tag.name;

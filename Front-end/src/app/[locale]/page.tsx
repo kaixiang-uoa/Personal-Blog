@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 
@@ -11,7 +11,7 @@ import FilterSidebar from '../components/FilterSidebar';
 import SortSelector from '@/app/components/SortSelector';
 import ArticleSkeleton from '../components/ArticleSkeleton';
 
-import { Article, Category, Tag, PostsData, SortOrder } from '@/services/interface';
+import { Article, Category, Tag, SortOrder } from '@/services/interface';
 import { postApi, categoryApi, tagApi } from '@/services/api';
 
 export default function HomePage({
@@ -134,7 +134,7 @@ export default function HomePage({
     });
     
     return result;
-  }, [articles, tagParam, categoryParam, searchQuery, sortOrder, validSortOrders]);
+  }, [articles, tagParam, categoryParam, searchQuery, sortOrder]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

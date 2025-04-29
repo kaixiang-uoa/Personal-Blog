@@ -102,15 +102,6 @@ export default function AboutMe() {
           </ul>
         </section>
       </div>
-
-      <footer className="bg-gray-800 py-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-gray-400">
-            &copy; {typeof window !== 'undefined' ? new Date().getFullYear() : '2024'} My Personal
-            Blog. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </main>
   );
 }

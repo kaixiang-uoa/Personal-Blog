@@ -35,7 +35,9 @@ export default function ArticlePage({ params }: { params: { slug: string; locale
     }
   }, [slug, t]);
 
+  // 将 handleTagClick 函数移到组件内部，不要使用 useParams
   const handleTagClick = (tagSlug: string) => {
+    // 直接使用传入的 params.locale
     router.push(`/${locale}?tag=${tagSlug}`);
   };
 

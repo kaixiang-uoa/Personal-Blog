@@ -8,7 +8,19 @@ import Navbar from '../../../components/Navbar';
 import { postApi } from '@/services/api';
 import { Article } from '@/services/interface';
 
-export default function ArticlePage({ params }: { params: { slug: string; locale: string } }) {
+// 使用 Next.js 的内置类型
+// import { PageProps as NextPageProps } from 'next';
+
+// 定义正确的 PageProps 接口
+interface PageProps {
+  params: {
+    slug: string;
+    locale: string;
+  };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default function ArticlePage({ params }: PageProps) {
   const { slug, locale } = params;
   const router = useRouter();
   const t = useTranslations('common');

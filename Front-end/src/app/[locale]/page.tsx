@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
@@ -11,7 +11,7 @@ import FilterSidebar from '../components/FilterSidebar';
 import SortSelector from '@/app/components/SortSelector';
 import ArticleSkeleton from '../components/ArticleSkeleton';
 
-import { Article, Category, Tag, SortOrder, CategorySlug } from '@/services/interface';
+import { Article, Category, Tag, SortOrder } from '@/services/interface';
 import { postApi, categoryApi, tagApi } from '@/services/api';
 
 interface PageProps {
@@ -25,12 +25,12 @@ const getStringParam = (param: string | string[] | undefined, defaultValue = '')
 };
 
 // 类型守卫：检查是否为有效的分类
-const isValidCategory = (category: unknown): category is Category => {
-  return typeof category === 'object' && 
-         category !== null && 
-         'slug' in category &&
-         typeof (category as Category).slug === 'string';
-};
+// const isValidCategory = (category: unknown): category is Category => {
+//   return typeof category === 'object' && 
+//          category !== null && 
+//          'slug' in category &&
+//          typeof (category as Category).slug === 'string';
+// };
 
 export default function Home({ searchParams }: PageProps) {
   const t = useTranslations('common');
@@ -61,7 +61,7 @@ export default function Home({ searchParams }: PageProps) {
     return category.name;
   };
 
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
       const response = await postApi.getAllPosts({
@@ -82,11 +82,11 @@ export default function Home({ searchParams }: PageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, sort, tag, category, search]);
 
   useEffect(() => {
     fetchArticles();
-  }, [currentPage, sort, tag, category, search]);
+  }, [fetchArticles]);
 
   useEffect(() => {
     categoryApi.getAllCategories().then(res => {

@@ -18,11 +18,11 @@ jobs:
         with:
           node-version: '20'
       
-      - name: Install dependencies
+      - name: Install dependencies (build)
         run: npm ci
         working-directory: ./Front-end
 
-      - name: Clean exisiting .vercel config
+      - name: Clean existing .vercel config
         run: rm -rf .vercel
         working-directory: ./Front-end
 
@@ -33,11 +33,6 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-
-      - name: Show .vercel contents
-        run: cat .vercel/project.json || echo "No project.json"
-        working-directory: ./Front-end
-
       - name: Patch Vercel Settings
         run: |
           echo '{
@@ -45,7 +40,8 @@ jobs:
             "projectId": "'"$VERCEL_PROJECT_ID"'",
             "settings": {
               "installCommand": "npm install",
-              "buildCommand": "npm run build"
+              "buildCommand": "npm run build",
+              "outputDirectory": ".vercel/output"
             }
           }' > .vercel/project.json
         working-directory: ./Front-end
@@ -53,24 +49,19 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Print .vercel/project.json
-        run: cat .vercel/project.json
-        working-directory: ./Front-end
-
       - name: Build Prebuilt Output
         run: npx vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
         working-directory: ./Front-end
-      
+
+      - name: Install dependencies before deploy
+        run: npm ci
+        working-directory: ./Front-end
+
       - name: Copy .vercel/output to root
         run: |
           mkdir -p .vercel
           rm -rf .vercel/output
           cp -r ./Front-end/.vercel/output .vercel/output
-
-      - name: Print .vercel/output contents
-        run: ls -la .vercel/output
-        working-directory: ./Front-end
-
 
       - name: Deploy Prebuilt Output
         run: npx vercel deploy --prebuilt --prod --yes --token ${{ secrets.VERCEL_TOKEN }}

@@ -1,0 +1,13 @@
+{
+  "pages": {},
+  "app": {
+    "/Users/kxz/Desktop/Web-practice/Personal-Blog/Front-end/src/app/layout": [
+      "static/media/a34f9d1faa5f3315-s.p.woff2"
+    ],
+    "/Users/kxz/Desktop/Web-practice/Personal-Blog/Front-end/src/app/[locale]/layout": [
+      "static/media/a34f9d1faa5f3315-s.p.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pagesUsingSizeAdjust": false
+}

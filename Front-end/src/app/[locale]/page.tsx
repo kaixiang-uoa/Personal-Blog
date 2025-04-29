@@ -11,36 +11,40 @@ import FilterSidebar from '../components/FilterSidebar';
 import SortSelector from '@/app/components/SortSelector';
 import ArticleSkeleton from '../components/ArticleSkeleton';
 
-import { Article, Category, Tag, SortOrder } from '@/services/interface';
+import { Article, Category, Tag, SortOrder, CategorySlug } from '@/services/interface';
 import { postApi, categoryApi, tagApi } from '@/services/api';
 
-export default function HomePage({
-  searchParams
-}: {
+interface PageProps {
   searchParams: { [key: string]: string | string[] | undefined };
-}) {
+}
+
+// 辅助函数：从 searchParams 中获取字符串值
+const getStringParam = (param: string | string[] | undefined, defaultValue = ''): string => {
+  if (!param) return defaultValue;
+  return Array.isArray(param) ? param[0] || defaultValue : param;
+};
+
+// 类型守卫：检查是否为有效的分类
+const isValidCategory = (category: unknown): category is Category => {
+  return typeof category === 'object' && 
+         category !== null && 
+         'slug' in category &&
+         typeof (category as Category).slug === 'string';
+};
+
+export default function Home({ searchParams }: PageProps) {
   const t = useTranslations('common');
   const params = useParams();
   const locale = params.locale as string;
   const router = useRouter();
   
-  // 获取并验证排序参数
-  const sortParam = searchParams.sort as string;
-  const validSortOrders: SortOrder[] = ['latest', 'oldest', 'popular'];
-  const sortOrder: SortOrder = validSortOrders.includes(sortParam as SortOrder) ? sortParam as SortOrder : 'latest';
+  const sort = getStringParam(searchParams.sort, 'latest') as SortOrder;
+  const tag = getStringParam(searchParams.tag);
+  const category = getStringParam(searchParams.category);
+  const search = getStringParam(searchParams.search);
+  const page = getStringParam(searchParams.page, '1');
   
-  // 获取并验证标签参数
-  const tagParam = searchParams.tag as string;
-  
-  // 获取并验证分类参数
-  const categoryParam = searchParams.category as string;
-  
-  // 获取并验证搜索参数
-  const searchQuery = searchParams.q as string;
-  
-  // 获取并验证分页参数
-  const pageParam = searchParams.page as string;
-  const currentPage = parseInt(pageParam) || 1;
+  const currentPage = parseInt(page) || 1;
   
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -57,32 +61,32 @@ export default function HomePage({
     return category.name;
   };
 
-  useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        setLoading(true);
-        const response = await postApi.getAllPosts(
-          currentPage,
-          10,
-          tagParam || undefined,
-          categoryParam || undefined,
-          searchQuery || undefined,
-          sortOrder
-        );
-        setArticles(response.data);
-        setTotalPages(Math.ceil(response.total / 10));
-        setTotalArticles(response.total);
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : '获取文章失败';
-        setError(errorMessage);
-        setArticles([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchArticles = async () => {
+    try {
+      setLoading(true);
+      const response = await postApi.getAllPosts({
+        page: currentPage,
+        limit: 10,
+        tag: tag || undefined,
+        category: category || undefined,
+        search: search || undefined,
+        sort
+      });
+      setArticles(response.data);
+      setTotalPages(Math.ceil(response.total / 10));
+      setTotalArticles(response.total);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '获取文章失败';
+      setError(errorMessage);
+      setArticles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchArticles();
-  }, [currentPage, categoryParam, tagParam, searchQuery, sortOrder]);
+  }, [currentPage, sort, tag, category, search]);
 
   useEffect(() => {
     categoryApi.getAllCategories().then(res => {
@@ -96,49 +100,47 @@ export default function HomePage({
   const filteredArticles = useMemo(() => {
     let result = [...articles];
     
-    // 应用标签过滤
-    if (tagParam) {
+    // 按标签过滤
+    if (tag) {
       result = result.filter(article => 
-        article.tags?.some(tag => tag.slug === tagParam) ?? false
+        article.tags.some(t => t.slug === tag)
       );
     }
     
-    // 应用分类过滤
-    if (categoryParam) {
+    // 按分类过滤
+    if (category) {
       result = result.filter(article => 
-        article.category.slug === categoryParam
+        (article.category as { slug: string }).slug === category
       );
     }
     
-    // 应用搜索过滤
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    // 搜索过滤
+    if (search) {
+      const searchLower = search.toLowerCase();
       result = result.filter(article =>
-        article.title.toLowerCase().includes(query) ||
-        article.content.toLowerCase().includes(query)
+        article.title.toLowerCase().includes(searchLower) ||
+        article.content.toLowerCase().includes(searchLower) 
       );
     }
     
-    // 应用排序
-    result.sort((a, b) => {
-      switch (sortOrder) {
-        case 'latest':
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-        case 'oldest':
-          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
-        case 'popular':
-          return (b.views || 0) - (a.views || 0);
-        default:
-          return 0;
-      }
-    });
+    // 排序
+    switch (sort) {
+      case 'latest':
+        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case 'oldest':
+        result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        break;
+      case 'popular':
+        result.sort((a, b) => b.views - a.views);
+        break;
+    }
     
     return result;
-  }, [articles, tagParam, categoryParam, searchQuery, sortOrder]);
+  }, [articles, sort, tag, category, search]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push(`/${locale}?q=${searchQuery}`);
+  const handleSearch = (query: string) => {
+    router.push(`/${locale}?q=${encodeURIComponent(query)}`);
   };
 
   const handleTagsChange = (tags: string[]) => {
@@ -150,9 +152,7 @@ export default function HomePage({
       router.push(`/${locale}?category=${params.value}`);
     } else if (params.type === 'sort') {
       const sortValue = params.value as SortOrder;
-      if (validSortOrders.includes(sortValue)) {
-        router.push(`/${locale}?sort=${sortValue}`);
-      }
+      router.push(`/${locale}?sort=${sortValue}`);
     } else if (params.type === 'tags') {
       router.push(`/${locale}?tag=${(params.value as string[]).join(',')}`);
     }
@@ -163,8 +163,8 @@ export default function HomePage({
   };
   
   const hasActiveFilters = useMemo(() => {
-    return !!tagParam || !!categoryParam || !!searchQuery || sortOrder !== 'latest';
-  }, [tagParam, categoryParam, searchQuery, sortOrder]);
+    return !!tag || !!category || !!search || sort !== 'latest';
+  }, [tag, category, search, sort]);
   
   const handlePageChange = (page: number) => {
     router.push(`/${locale}?page=${page}`);
@@ -192,31 +192,31 @@ export default function HomePage({
             href="/"
             scroll={false}
             onClick={() => router.push(`/${locale}`)}
-            className={`px-4 py-2 rounded-md ${!categoryParam ? 'bg-cyan-600' : 'bg-gray-700'} hover:bg-cyan-700`}
+            className={`px-4 py-2 rounded-md ${!category ? 'bg-cyan-600' : 'bg-gray-700'} hover:bg-cyan-700`}
           >
             {t('allCategories')}
           </Link>
-          {categories.map(category => (
+          {categories.map(cat => (
             <Link
-              key={category._id}
-              href={`/${locale}?category=${category.slug}`}
+              key={cat._id}
+              href={`/${locale}?category=${cat.slug}`}
               scroll={false}
-              onClick={() => router.push(`/${locale}?category=${category.slug}`)}
-              className={`px-4 py-2 rounded-md ${categoryParam === category.slug ? 'bg-cyan-600' : 'bg-gray-700'} hover:bg-cyan-700`}
+              onClick={() => router.push(`/${locale}?category=${cat.slug}`)}
+              className={`px-4 py-2 rounded-md ${category === cat.slug ? 'bg-cyan-600' : 'bg-gray-700'} hover:bg-cyan-700`}
             >
-              {getCategoryName(category)}
+              {getCategoryName(cat)}
             </Link>
           ))}
         </div>
       </section>
 
       <section className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <form onSubmit={handleSearch} className="flex">
+        <form onSubmit={(e) => { e.preventDefault(); handleSearch(search); }} className="flex">
           <input
             type="text"
             placeholder={t('searchPlaceholder')}
-            value={searchQuery}
-            onChange={e => router.push(`/${locale}?q=${e.target.value}`)}
+            value={search}
+            onChange={(e) => router.push(`/${locale}?q=${e.target.value}`)}
             className="w-full px-4 py-2 border border-gray-700 rounded-l-md bg-gray-800 text-white"
           />
           <button type="submit" className="bg-cyan-600 px-4 py-2 rounded-r-md">
@@ -227,7 +227,7 @@ export default function HomePage({
 
       <div className="md:hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {tags.length > 0 && (
-          <TagFilter tags={tags} activeTags={[tagParam]} onTagsChange={handleTagsChange} />
+          <TagFilter tags={tags} activeTags={[tag]} onTagsChange={handleTagsChange} />
         )}
       </div>
 
@@ -236,10 +236,10 @@ export default function HomePage({
           <div className="hidden md:block">
             <FilterSidebar
               tags={tags}
-              activeTags={[tagParam]}
+              activeTags={[tag]}
               categories={categories}
-              activeCategory={categoryParam}
-              sortOrder={sortOrder}
+              activeCategory={category}
+              sortOrder={sort as SortOrder}
               onFilterChangeAction={handleFilterChange}
               onClearFiltersAction={handleClearFilters}
             />
@@ -250,19 +250,19 @@ export default function HomePage({
               <div className="bg-gray-800 rounded-lg p-4 flex justify-between items-center mb-6">
                 <div className="flex flex-wrap gap-2 items-center">
                   <span className="text-gray-400">{t('filterConditions')}:</span>
-                  {tagParam && (
+                  {tag && (
                     <span className="bg-cyan-600 text-white px-2 py-1 rounded text-sm">
-                      {t('tag')}: {tags.find(t => t.slug === tagParam)?.name || tagParam}
+                      {t('tag')}: {tags.find(t => t.slug === tag)?.name || tag}
                     </span>
                   )}
-                  {categoryParam && (
+                  {category && (
                     <span className="bg-cyan-600 text-white px-2 py-1 rounded text-sm">
-                      {t('category')}: {getCategoryName(categories.find(c => c.slug === categoryParam))}
+                      {t('category')}: {getCategoryName(categories.find(c => c.slug === category))}
                     </span>
                   )}
-                  {searchQuery && (
+                  {search && (
                     <span className="bg-cyan-600 text-white px-2 py-1 rounded text-sm">
-                      {t('search')}: {searchQuery}
+                      {t('search')}: {search}
                     </span>
                   )}
                 </div>
@@ -277,15 +277,15 @@ export default function HomePage({
 
             <div className="flex justify-end mb-6">
               <SortSelector
-                value={sortOrder}
+                value={sort as SortOrder}
                 onChange={val => handleFilterChange({ type: 'sort', value: val as SortOrder })}
                 className="md:hidden"
               />
             </div>
 
             <h2 className="text-3xl font-extrabold text-white mb-8">
-              {categoryParam
-                ? `${t('category')}: ${getCategoryName(categories.find(c => c.slug === categoryParam))}`
+              {category
+                ? `${t('category')}: ${getCategoryName(categories.find(c => c.slug === category))}`
                 : hasActiveFilters
                   ? t('filterResults')
                   : t('latestArticles')}

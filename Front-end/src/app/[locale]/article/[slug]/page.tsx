@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
@@ -8,11 +8,10 @@ import Navbar from '../../../components/Navbar';
 import { postApi } from '@/services/api';
 import { Article } from '@/services/interface';
 
-export default function ArticlePage() {
-  const t = useTranslations('common');
-  const params = useParams();
-  const router = useRouter();
+export default function ArticlePage({ params }: { params: { slug: string; locale: string } }) {
   const { slug, locale } = params;
+  const router = useRouter();
+  const t = useTranslations('common');
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,9 +35,8 @@ export default function ArticlePage() {
     }
   }, [slug, t]);
 
-  // 处理标签点击事件，跳转到带有标签筛选的首页
-  const handleTagClick = (tag: string) => {
-    router.push(`/${locale}/?tag=${tag}`);
+  const handleTagClick = (tagSlug: string) => {
+    router.push(`/${locale}?tag=${tagSlug}`);
   };
 
   return (

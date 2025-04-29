@@ -11,8 +11,8 @@ import { Article } from '@/services/interface';
 export default function ArticlePage() {
   const t = useTranslations('common');
   const params = useParams();
-  const { slug } = params;
   const router = useRouter();
+  const { slug, locale } = params;
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export default function ArticlePage() {
 
   // 处理标签点击事件，跳转到带有标签筛选的首页
   const handleTagClick = (tag: string) => {
-    router.push(`/${params.locale}/?tag=${tag}`);
+    router.push(`/${locale}/?tag=${tag}`);
   };
 
   return (

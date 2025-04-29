@@ -7,6 +7,6 @@ export default function AboutPage() {
   return (
     <p className="text-gray-300">
       {t('aboutContent')}
-    </p> 
+    </p>
   );
 } 

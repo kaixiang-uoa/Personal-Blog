@@ -23,11 +23,11 @@ export interface Article {
   viewCount?: number;
   commentCount?: number;
   allowComments?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
   author?: Author;
   categories?: Category[];
-  tags?: Tag[];
+  tags: Tag[];
   seo?: SEO;
   category: Category;
   views: number;
@@ -40,8 +40,8 @@ export interface Tag {
   name_zh?: string;
   slug: string;
   description?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Category {
@@ -51,8 +51,8 @@ export interface Category {
   name_zh?: string;
   slug: string;
   description?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // 统一的API响应接口
@@ -96,11 +96,7 @@ export interface PostData {
 export interface Comment {
   _id: string;
   content: string;
-  author: {
-    _id: string;
-    name: string;
-    avatar?: string;
-  };
+  author: string;
   postId: string;
   parentId?: string;
   createdAt: string;

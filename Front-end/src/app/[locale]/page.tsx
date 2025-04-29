@@ -134,7 +134,7 @@ export default function HomePage({
     });
     
     return result;
-  }, [articles, tagParam, categoryParam, searchQuery, sortOrder]);
+  }, [articles, tagParam, categoryParam, searchQuery, sortOrder, validSortOrders]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +145,7 @@ export default function HomePage({
     router.push(`/${locale}?tag=${tags.join(',')}`);
   };
   
-  const handleFilterChange = (params: { type: 'category' | 'sort'; value: string | SortOrder }) => {
+  const handleFilterChange = (params: { type: 'tags' | 'category' | 'sort'; value: string | string[] | SortOrder }) => {
     if (params.type === 'category') {
       router.push(`/${locale}?category=${params.value}`);
     } else if (params.type === 'sort') {
@@ -153,6 +153,8 @@ export default function HomePage({
       if (validSortOrders.includes(sortValue)) {
         router.push(`/${locale}?sort=${sortValue}`);
       }
+    } else if (params.type === 'tags') {
+      router.push(`/${locale}?tag=${(params.value as string[]).join(',')}`);
     }
   };
   

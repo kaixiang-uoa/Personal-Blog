@@ -1,34 +1,28 @@
 import axios from 'axios';
-import type { Article, Category, Tag, Comment } from './interface';
+import type { Article, Category, Tag, Comment, SortOrder } from './interface';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 });
 
 // 文章相关 API
 export const postApi = {
   getAllPosts: async (
-    page: number = 1,
-    limit: number = 10,
-    tags?: string,
+    page: number,
+    limit: number,
+    tag?: string,
     category?: string,
     search?: string,
-    sort?: string
-  ) => {
-    const params = new URLSearchParams();
-    params.append('page', page.toString());
-    params.append('limit', limit.toString());
-    if (tags) params.append('tags', tags);
-    if (category) params.append('category', category);
-    if (search) params.append('search', search);
-    if (sort) params.append('sort', sort);
-    
-    const response = await api.get<{ data: Article[]; total: number }>(`/posts?${params.toString()}`);
+    sort?: SortOrder
+  ): Promise<{ data: Article[]; total: number }> => {
+    const response = await api.get('/posts', {
+      params: { page, limit, tag, category, search, sort },
+    });
     return response.data;
   },
   

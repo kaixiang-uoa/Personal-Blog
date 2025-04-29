@@ -10,19 +10,19 @@ const api = axios.create({
   },
 });
 
+interface GetAllPostsParams {
+  page: number;
+  limit?: number;
+  tag?: string;
+  category?: string;
+  search?: string;
+  sort?: SortOrder;
+}
+
 // 文章相关 API
 export const postApi = {
-  getAllPosts: async (
-    page: number,
-    limit: number,
-    tag?: string,
-    category?: string,
-    search?: string,
-    sort?: SortOrder
-  ): Promise<{ data: Article[]; total: number }> => {
-    const response = await api.get('/posts', {
-      params: { page, limit, tag, category, search, sort },
-    });
+  getAllPosts: async (params: GetAllPostsParams): Promise<{ data: Article[]; total: number }> => {
+    const response = await api.get('/posts', { params });
     return response.data;
   },
   

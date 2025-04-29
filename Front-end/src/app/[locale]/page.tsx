@@ -24,14 +24,6 @@ const getStringParam = (param: string | string[] | undefined, defaultValue = '')
   return Array.isArray(param) ? param[0] || defaultValue : param;
 };
 
-// 类型守卫：检查是否为有效的分类
-// const isValidCategory = (category: unknown): category is Category => {
-//   return typeof category === 'object' && 
-//          category !== null && 
-//          'slug' in category &&
-//          typeof (category as Category).slug === 'string';
-// };
-
 export default function Home({ searchParams }: PageProps) {
   const t = useTranslations('common');
   const params = useParams();

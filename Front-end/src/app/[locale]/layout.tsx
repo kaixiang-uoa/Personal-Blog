@@ -13,8 +13,8 @@ export default function LocaleLayout({
   params: { locale: string };
 }) {
   const messages = useMessages();
-
-  if (!locales.includes(locale as any)) notFound();
+  type LocaleType = typeof locales[number];
+  if (!locales.includes(locale as LocaleType)) notFound();
 
   return (
     <html lang={locale}>

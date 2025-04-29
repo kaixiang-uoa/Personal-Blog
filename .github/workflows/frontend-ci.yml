@@ -47,7 +47,7 @@ jobs:
         working-directory: ./Front-end
 
       - name: Build Prebuilt Output
-        run: npx vercel build --token ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel build --environment=production --token ${{ secrets.VERCEL_TOKEN }}
         working-directory: ./Front-end
 
       - name: Deploy Prebuilt Output

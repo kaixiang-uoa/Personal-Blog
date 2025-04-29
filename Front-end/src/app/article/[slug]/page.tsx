@@ -1,11 +1,11 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import Navbar from "../../components/Navbar";
-import { postApi } from "@/services/api";
-import { Article } from "@/services/interface";
+'use client';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import Navbar from '../../components/Navbar';
+import { postApi } from '@/services/api';
+import { Article } from '@/services/interface';
 
 export default function ArticlePage() {
   const { slug } = useParams();
@@ -19,17 +19,17 @@ export default function ArticlePage() {
       try {
         setLoading(true);
         const response = await postApi.getPostBySlug(slug as string);
-        console.log("Fetched article:", response);
+        console.log('Fetched article:', response);
 
         if (!response.data.post) {
-          throw new Error("Article not found");
+          throw new Error('Article not found');
         }
         setArticle(response.data.post);
 
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch article:", err);
-        setError("获取文章失败，请稍后再试");
+        console.error('Failed to fetch article:', err);
+        setError('获取文章失败，请稍后再试');
         setLoading(false);
       }
     };
@@ -50,10 +50,7 @@ export default function ArticlePage() {
       <Navbar />
 
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="text-cyan-600 hover:text-cyan-400 mb-4 inline-block"
-        >
+        <Link href="/" className="text-cyan-600 hover:text-cyan-400 mb-4 inline-block">
           &larr; 返回首页
         </Link>
 
@@ -66,10 +63,7 @@ export default function ArticlePage() {
           <div className="text-center py-10">
             <div className="bg-red-900/30 border border-red-700 rounded-lg p-6">
               <p className="text-xl text-red-400">{error}</p>
-              <Link
-                href="/"
-                className="mt-4 inline-block text-cyan-500 hover:text-cyan-400"
-              >
+              <Link href="/" className="mt-4 inline-block text-cyan-500 hover:text-cyan-400">
                 返回首页
               </Link>
             </div>
@@ -86,15 +80,14 @@ export default function ArticlePage() {
                   width={800}
                   height={400}
                   className="w-full h-auto rounded-lg"
-                  unoptimized={article.featuredImage.startsWith("http")}
+                  unoptimized={article.featuredImage.startsWith('http')}
                 />
               </div>
             )}
 
             <div className="mb-4 text-gray-400 flex items-center">
               <span className="mr-4">
-                发布于:{" "}
-                {new Date(article.publishedAt).toLocaleDateString("zh-CN")}
+                发布于: {new Date(article.publishedAt).toLocaleDateString('zh-CN')}
               </span>
               {article.author && (
                 <span className="flex items-center">
@@ -106,7 +99,7 @@ export default function ArticlePage() {
             {article.categories && article.categories.length > 0 && (
               <div className="mb-4">
                 <span className="text-gray-400 mr-2">分类:</span>
-                {article.categories.map((category) => (
+                {article.categories.map(category => (
                   <Link
                     key={category._id}
                     href={`/?category=${category.slug}`}
@@ -123,7 +116,7 @@ export default function ArticlePage() {
               <div className="mb-4">
                 <span className="text-gray-400 mr-2">标签:</span>
                 <div className="inline-flex flex-wrap gap-2">
-                  {article.tags.map((tag) => (
+                  {article.tags.map(tag => (
                     <span
                       key={tag._id}
                       onClick={() => handleTagClick(tag.slug)}
@@ -144,10 +137,7 @@ export default function ArticlePage() {
           <div className="text-center py-10">
             <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-6">
               <p className="text-xl">文章不存在或已被删除</p>
-              <Link
-                href="/"
-                className="mt-4 inline-block text-cyan-500 hover:text-cyan-400"
-              >
+              <Link href="/" className="mt-4 inline-block text-cyan-500 hover:text-cyan-400">
                 返回首页
               </Link>
             </div>
@@ -158,8 +148,7 @@ export default function ArticlePage() {
       <footer className="bg-gray-800 py-6 mt-12">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-gray-400">
-            &copy; {new Date().getFullYear()} My Personal Blog. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} My Personal Blog. All rights reserved.
           </p>
         </div>
       </footer>

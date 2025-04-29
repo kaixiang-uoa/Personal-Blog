@@ -14,7 +14,7 @@ export interface SEO {
 export interface Article {
   _id: string;
   title: string;
-  content: string; 
+  content: string;
   excerpt: string;
   slug: string;
   featuredImage?: string;
@@ -29,13 +29,17 @@ export interface Article {
   categories?: Category[];
   tags?: Tag[];
   seo?: SEO;
+  category: Category;
+  views: number;
 }
 
 export interface Tag {
   _id: string;
   name: string;
+  name_en?: string;
+  name_zh?: string;
   slug: string;
-  description?: string; // 保持为可选属性
+  description?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -46,6 +50,9 @@ export interface Category {
   name_en?: string;
   name_zh?: string;
   slug: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // 统一的API响应接口
@@ -89,11 +96,13 @@ export interface PostData {
 export interface Comment {
   _id: string;
   content: string;
-  user: Author;
-  post: string;
-  parentComment?: string;
-  replies?: Comment[];
-  isEdited: boolean;
+  author: {
+    _id: string;
+    name: string;
+    avatar?: string;
+  };
+  postId: string;
+  parentId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -115,11 +124,7 @@ export interface ApiErrorResponse {
   success: boolean;
   message: string;
   data: null;
-  originalError?: import("axios").AxiosError;
+  originalError?: import('axios').AxiosError;
 }
 
-export type SortOrder =
-  | "publishedAt-desc"
-  | "publishedAt-asc"
-  | "updatedAt-desc"
-  | "updatedAt-asc";
+export type SortOrder = 'latest' | 'oldest' | 'popular';

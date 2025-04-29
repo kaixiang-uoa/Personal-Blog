@@ -37,7 +37,6 @@ jobs:
             "settings": {
               "installCommand": "npm install",
               "buildCommand": "npm run build",
-              "outputDirectory": ".vercel/output"
             }
           }' > .vercel/project.json
         working-directory: ./Front-end

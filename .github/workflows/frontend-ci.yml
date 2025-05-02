@@ -22,21 +22,31 @@ jobs:
         run: npm ci
         working-directory: ./Front-end
 
-      - name: Install Vercel CLI (Pinned Version)
-        run: npm install --global vercel@41.7.0
-
-      - name: Generate .vercel/project.json
-        run: |
-          mkdir -p Front-end/.vercel
-          echo '{
-            "orgId": "'"${{ secrets.VERCEL_ORG_ID }}"'",
-            "projectId": "'"${{ secrets.VERCEL_PROJECT_ID }}"'"
-          }' > Front-end/.vercel/project.json
-
-      - name: Build Project
-        run: npm run build
+      - name: Install Vercel CLI (Pinned)
+        run: npm install --no-save vercel@41.7.0
         working-directory: ./Front-end
 
-      - name: Deploy to Vercel (Stable CLI)
-        run: vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
+      - name: Setup project.json (overwrite just in case)
+        run: |
+          mkdir -p .vercel
+          echo '{
+            "orgId": "${{ secrets.VERCEL_ORG_ID }}",
+            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+            "settings": {
+              "framework": "nextjs",
+              "installCommand": "npm install",
+              "buildCommand": "npm run build",
+              "outputDirectory": ".vercel/output",
+              "rootDirectory": null,
+              "nodeVersion": "20.x"
+            }
+          }' > .vercel/project.json
+        working-directory: ./Front-end
+
+      - name: Build with Vercel CLI
+        run: npx vercel build --token ${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./Front-end
+
+      - name: Deploy Prebuilt Output
+        run: npx vercel deploy --prebuilt --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
         working-directory: ./Front-end

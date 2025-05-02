@@ -135,3 +135,6 @@ dist
 
 # MacOS
 .DS_Store
+
+# Ignore Vercel local config
+.vercel/

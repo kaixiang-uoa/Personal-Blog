@@ -35,7 +35,7 @@ jobs:
             "settings": {
               "framework": "nextjs",
               "installCommand": "npm install",
-              "buildCommand": "npm run build",
+              "buildCommand": "next build",
               "outputDirectory": ".vercel/output",
               "rootDirectory": null,
               "nodeVersion": "20.x"

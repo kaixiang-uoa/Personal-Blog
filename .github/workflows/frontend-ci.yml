@@ -23,30 +23,20 @@ jobs:
         working-directory: ./Front-end
 
       - name: Install Vercel CLI (Pinned Version)
-        run: npm install --no-save vercel@41.7.0
-        working-directory: ./Front-end
+        run: npm install --global vercel@41.7.0
 
-      - name: Setup Vercel Project Link
+      - name: Generate .vercel/project.json
         run: |
-          mkdir -p .vercel
+          mkdir -p Front-end/.vercel
           echo '{
-            "orgId": "${{ secrets.VERCEL_ORG_ID }}",
-            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}"
-          }' > .vercel/project.json
-        working-directory: ./Front-end
+            "orgId": "'"${{ secrets.VERCEL_ORG_ID }}"'",
+            "projectId": "'"${{ secrets.VERCEL_PROJECT_ID }}"'"
+          }' > Front-end/.vercel/project.json
 
-      - name: Run Checks and Build
-        run: |
-          npm run lint || true
-          npm run format:check || true
-          npx tsc --noEmit || true
-          npm run build
+      - name: Build Project
+        run: npm run build
         working-directory: ./Front-end
 
       - name: Deploy to Vercel (Stable CLI)
-        run: npx vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
-        working-directory: ./Front-end
-
-      - name: Show Deployment Info
-        run: echo "Deployed to https://vercel.com/${{ secrets.VERCEL_ORG_ID }}/personal-blog"
+        run: vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
         working-directory: ./Front-end

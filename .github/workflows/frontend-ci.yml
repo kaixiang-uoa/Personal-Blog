@@ -30,11 +30,10 @@ jobs:
           npm run build
         working-directory: ./Front-end
 
-      - name: Deploy to Vercel (Production)
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./Front-end
-          vercel-args: '--prod'
+      - name: Link project if not linked
+        run: npx vercel link --yes --token ${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./Front-end
+
+      - name: Deploy using local Vercel CLI
+        run: npx vercel deploy --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./Front-end

@@ -137,4 +137,5 @@ dist
 .DS_Store
 
 # Ignore Vercel local config
-.vercel/
+# .vercel/
+# .vercel

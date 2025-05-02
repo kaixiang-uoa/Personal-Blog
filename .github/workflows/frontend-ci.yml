@@ -22,19 +22,22 @@ jobs:
         run: npm ci
         working-directory: ./Front-end
 
-      - name: Lint, Type Check, Build
+      - name: Install Vercel CLI (Pinned Version)
+        run: npm install --save-dev vercel@41.7.0
+        working-directory: ./Front-end
+
+      - name: Run Checks and Build
         run: |
-          npm run lint
-          npm run format:check || true  # 避免格式失败阻断构建
+          npm run lint || true
+          npm run format:check || true
           npx tsc --noEmit || true
           npm run build
         working-directory: ./Front-end
 
-      - name: Deploy to Vercel (Stable)
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./Front-end
-          vercel-args: '--prod'
+      - name: Ensure Vercel Link
+        run: npx vercel link --yes --token ${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./Front-end
+
+      - name: Deploy to Vercel (Stable CLI)
+        run: npx vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./Front-end

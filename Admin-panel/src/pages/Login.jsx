@@ -10,7 +10,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, error } = useAuth();
+  const { login, loginAsGuest, error } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -22,6 +22,18 @@ export default function Login() {
       navigate('/dashboard');
     } catch (error) {
       console.error('登录失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    try {
+      setLoading(true);
+      await loginAsGuest();
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('访客登录失败:', error);
     } finally {
       setLoading(false);
     }
@@ -73,13 +85,25 @@ export default function Login() {
             </div>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? '登录中...' : '登录'}
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? '登录中...' : '登录'}
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGuestLogin}
+              disabled={loading}
+            >
+              以访客身份登录
+            </Button>
+          </div>
         </form>
       </div>
     </div>

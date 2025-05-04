@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 
@@ -11,33 +11,38 @@ import FilterSidebar from '../components/FilterSidebar';
 import SortSelector from '@/app/components/SortSelector';
 import ArticleSkeleton from '../components/ArticleSkeleton';
 
-import { Article, Category, Tag, SortOrder } from '@/services/interface';
-import { postApi, categoryApi, tagApi } from '@/services/api';
-
-interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+import { Article, Category, Tag, SortOrder } from '@/types';
+import { postApi } from '@/services/postApi';
+import {categoryApi} from '@/services/categoryApi';
+import {tagApi} from '@/services/tagApi';
 
 // 辅助函数：从 searchParams 中获取字符串值
-const getStringParam = (param: string | string[] | undefined, defaultValue = ''): string => {
+const getStringParam = (param: string | string[] | null | undefined, defaultValue = ''): string => {
   if (!param) return defaultValue;
   return Array.isArray(param) ? param[0] || defaultValue : param;
 };
 
-export default function Home({ searchParams }: PageProps) {
+const getArrayParam = (param: string | string[] | null | undefined): string[] => {
+  if (!param) return [];
+  const str = Array.isArray(param) ? param[0] : param;
+  return str.split(',').map(s => s.trim()).filter(Boolean);
+};
+
+export default function Home() {  // 移除 searchParams 参数
   const t = useTranslations('common');
   const params = useParams();
   const locale = params.locale as string;
   const router = useRouter();
+  const searchParams = useSearchParams();  // 使用 useSearchParams 钩子
 
-  const sort = getStringParam(searchParams.sort, 'latest') as SortOrder;
-  const tag = getStringParam(searchParams.tag);
-  const category = getStringParam(searchParams.category);
-  const search = getStringParam(searchParams.search);
-  const page = getStringParam(searchParams.page, '1');
-
+  // 使用 searchParams.get() 方法获取参数
+  const sort = getStringParam(searchParams.get('sort'), 'latest') as SortOrder;
+  const tagsParam = getArrayParam(searchParams.get('tag'));
+  const tagsKey = useMemo(() => tagsParam.join(','), [tagsParam]);
+  const category = getStringParam(searchParams.get('category'));
+  const search = getStringParam(searchParams.get('search'));
+  const page = getStringParam(searchParams.get('page'), '1');
   const currentPage = parseInt(page) || 1;
-
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -46,25 +51,19 @@ export default function Home({ searchParams }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 添加一个辅助函数
-  const getCategoryNameByLocale = (category: Category, localeStr: string) => {
-    if (localeStr === 'en') return category.name_en || category.name;
-    if (localeStr === 'zh') return category.name_zh || category.name;
-    return category.name;
-  };
-
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
       const response = await postApi.getAllPosts({
         page: currentPage,
         limit: 10,
-        tag: tag || undefined,
+        tag: tagsParam.length > 0 ? tagsParam.join(',') : undefined,
         category: category || undefined,
         search: search || undefined,
         sort,
+        lang: locale
       });
-      setArticles(response.data);
+      setArticles(response.posts);
       setTotalPages(Math.ceil(response.total / 10));
       setTotalArticles(response.total);
     } catch (err: unknown) {
@@ -74,18 +73,18 @@ export default function Home({ searchParams }: PageProps) {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, sort, tag, category, search]);
+  }, [currentPage, sort, tagsKey, category, search]);
 
   useEffect(() => {
     fetchArticles();
   }, [fetchArticles]);
 
   useEffect(() => {
-    categoryApi.getAllCategories().then(res => {
-      setCategories(res.data || []);
+    categoryApi.getAllCategories({lang:locale}).then(res => {
+      setCategories(res.categories || []);
     });
-    tagApi.getAllTags().then(res => {
-      setTags(res.data || []);
+    tagApi.getAllTags({lang:locale}).then(res => {
+      setTags(res.tags || []);
     });
   }, [locale]);
 
@@ -93,13 +92,17 @@ export default function Home({ searchParams }: PageProps) {
     let result = [...articles];
 
     // 按标签过滤
-    if (tag) {
-      result = result.filter(article => article.tags.some(t => t.slug === tag));
+    if (tagsParam.length > 0) {
+      result = result.filter(article => 
+        Array.isArray(article.tags) &&
+        article.tags.some(t => tagsParam.includes(t?.slug)));
     }
 
     // 按分类过滤
     if (category) {
-      result = result.filter(article => (article.category as { slug: string }).slug === category);
+      result = result.filter(article => 
+        Array.isArray(article.categories) && 
+        article.categories.some(c => c?.slug === category))
     }
 
     // 搜索过滤
@@ -126,13 +129,13 @@ export default function Home({ searchParams }: PageProps) {
     }
 
     return result;
-  }, [articles, sort, tag, category, search]);
+  }, [articles, sort, tagsParam, category, search]);
 
   const handleSearch = (query: string) => {
-    router.push(`/${locale}?q=${encodeURIComponent(query)}`);
+    router.push(`/${locale}?search=${encodeURIComponent(query)}`);
   };
 
-  const handleTagsChange = (tags: string[]) => {
+  const handleTagsChange = (tags: string[]) => {   // 主要修改的这个地方
     router.push(`/${locale}?tag=${tags.join(',')}`);
   };
 
@@ -140,14 +143,17 @@ export default function Home({ searchParams }: PageProps) {
     type: 'tags' | 'category' | 'sort';
     value: string | string[] | SortOrder;
   }) => {
+     const urlParams = new URLSearchParams(searchParams.toString());
     if (params.type === 'category') {
-      router.push(`/${locale}?category=${params.value}`);
+      urlParams.set('category', params.value as string);
     } else if (params.type === 'sort') {
-      const sortValue = params.value as SortOrder;
-      router.push(`/${locale}?sort=${sortValue}`);
+      urlParams.set('sort', params.value as string);
     } else if (params.type === 'tags') {
-      router.push(`/${locale}?tag=${(params.value as string[]).join(',')}`);
+      const tagArray = params.value as string[];
+      urlParams.set('tag', tagArray.join(','));
     }
+    router.push(`/${locale}?${urlParams.toString()}`);
+  
   };
 
   const handleClearFilters = () => {
@@ -155,18 +161,15 @@ export default function Home({ searchParams }: PageProps) {
   };
 
   const hasActiveFilters = useMemo(() => {
-    return !!tag || !!category || !!search || sort !== 'latest';
-  }, [tag, category, search, sort]);
+    return tagsParam.length > 0 || !!category || !!search || sort !== 'latest';
+  }, [tagsParam, category, search, sort]);
 
   const handlePageChange = (page: number) => {
     router.push(`/${locale}?page=${page}`);
   };
 
-  const getCategoryName = (category: Category | undefined) => {
-    if (!category) return '';
-    return getCategoryNameByLocale(category, locale);
-  };
-
+  const getCategoryName =(category: Category | undefined) => category?.name || '';
+  
   return (
     <main className="min-h-screen bg-gray-900 text-gray-200">
       <Navbar />
@@ -214,7 +217,7 @@ export default function Home({ searchParams }: PageProps) {
             type="text"
             placeholder={t('searchPlaceholder')}
             value={search}
-            onChange={e => router.push(`/${locale}?q=${e.target.value}`)}
+            onChange={e => router.push(`/${locale}?search=${e.target.value}`)}
             className="w-full px-4 py-2 border border-gray-700 rounded-l-md bg-gray-800 text-white"
           />
           <button type="submit" className="bg-cyan-600 px-4 py-2 rounded-r-md">
@@ -225,7 +228,7 @@ export default function Home({ searchParams }: PageProps) {
 
       <div className="md:hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {tags.length > 0 && (
-          <TagFilter tags={tags} activeTags={[tag]} onTagsChange={handleTagsChange} />
+          <TagFilter tags={tags} activeTags={tagsParam} onTagsChangeAction={handleTagsChange} />
         )}
       </div>
 
@@ -234,12 +237,13 @@ export default function Home({ searchParams }: PageProps) {
           <div className="hidden md:block">
             <FilterSidebar
               tags={tags}
-              activeTags={[tag]}
+              activeTags={tagsParam}
               categories={categories}
               activeCategory={category}
               sortOrder={sort as SortOrder}
               onFilterChangeAction={handleFilterChange}
               onClearFiltersAction={handleClearFilters}
+              currentLocale={locale}
             />
           </div>
 
@@ -248,9 +252,10 @@ export default function Home({ searchParams }: PageProps) {
               <div className="bg-gray-800 rounded-lg p-4 flex justify-between items-center mb-6">
                 <div className="flex flex-wrap gap-2 items-center">
                   <span className="text-gray-400">{t('filterConditions')}:</span>
-                  {tag && (
+                  {tagsParam && (
                     <span className="bg-cyan-600 text-white px-2 py-1 rounded text-sm">
-                      {t('tag')}: {tags.find(t => t.slug === tag)?.name || tag}
+                      {t('tag')}:{''}
+                      {tagsParam.map(slug => tags.find(t=>t.slug === slug)?.name).join(', ')}
                     </span>
                   )}
                   {category && (

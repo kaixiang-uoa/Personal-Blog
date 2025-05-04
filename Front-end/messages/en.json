@@ -43,6 +43,7 @@
     "sortBy": "Sort By",
     "newestFirst": "Newest First",
     "oldestFirst": "Oldest First",
+    "mostPopular": "Most Popular",
     "lastUpdated": "Recently Updated",
     "oldestUpdated": "Oldest Updated",
     "selectSortOrder": "Select Sort Order"

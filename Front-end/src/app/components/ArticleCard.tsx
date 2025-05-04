@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Article } from '../../services/interface'; // 导入 Article 接口
+import { Article } from '@/types'; 
 
 interface ArticleCardProps {
   article: Article;
@@ -24,7 +24,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
           href={`/article/${article.slug}`}
           className="mt-4 inline-block text-cyan-600 hover:text-cyan-800 font-medium"
         >
-          阅读更多 &rarr;
+          read more &rarr;
         </Link>
       </div>
     </div>

@@ -1,25 +1,43 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
-const TagSchema = new Schema({
-    name: {
+const TagSchema = new Schema(
+    {
+      name: {
         type: String,
         required: true,
-        trim: true
-    },
-    slug: {
+        trim: true,
+      },
+      name_en: {
+        type: String,
+        trim: true,
+      },
+      name_zh: {
+        type: String,
+        trim: true,
+      },
+      slug: {
         type: String,
         required: true,
         unique: true,
-        trim: true
-    },
-    description: {
+        trim: true,
+      },
+      description: {
         type: String,
-        trim: true
-    }
-},
-{ timestamps: true }
-);
+        trim: true,
+      },
+      description_en: {
+        type: String,
+        trim: true,
+      },
+      description_zh: {
+        type: String,
+        trim: true,
+      },
+    },
+    { timestamps: true }
+  );
+  
 
 // Middleware to auto-generate slug
 TagSchema.pre('save', function(next) {

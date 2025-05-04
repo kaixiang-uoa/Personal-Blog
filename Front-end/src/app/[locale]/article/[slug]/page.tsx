@@ -1,27 +1,18 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter,useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import Navbar from '../../../components/Navbar';
-import { postApi } from '@/services/api';
-import { Article } from '@/services/interface';
+import { postApi } from '@/services/postApi';
+import { Article } from '@/types';
 
-// 使用 Next.js 的内置类型
-// import { PageProps as NextPageProps } from 'next';
 
-// 定义正确的 PageProps 接口
-interface PageProps {
-  params: {
-    slug: string;
-    locale: string;
-  };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default function ArticlePage({ params }: PageProps) {
-  const { slug, locale } = params;
+export default function ArticlePage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const locale = params.locale as string;
   const router = useRouter();
   const t = useTranslations('common');
   const [article, setArticle] = useState<Article | null>(null);
@@ -33,7 +24,7 @@ export default function ArticlePage({ params }: PageProps) {
       try {
         setLoading(true);
         const response = await postApi.getPostBySlug(slug as string);
-        setArticle(response.data.post);
+        setArticle(response.post);
         setLoading(false);
       } catch (err) {
         console.error('Failed to fetch article:', err);
@@ -51,6 +42,12 @@ export default function ArticlePage({ params }: PageProps) {
   const handleTagClick = (tagSlug: string) => {
     // 直接使用传入的 params.locale
     router.push(`/${locale}?tag=${tagSlug}`);
+  };
+
+  const handleCategreClick = (categorySlug: string) => {
+    // 直接使用传入的 params.locale
+    console.log('categorySlug:', categorySlug);
+    router.push(`/${locale}?category=${categorySlug}`);
   };
 
   return (
@@ -116,8 +113,9 @@ export default function ArticlePage({ params }: PageProps) {
                 {article.categories.map(category => (
                   <Link
                     key={category._id}
+                    onClick={() =>handleCategreClick(category.slug)}
                     href={`/${params.locale}/?category=${category.slug}`}
-                    className="text-cyan-500 hover:text-cyan-400 mr-2"
+                    className="px-2 py-1 bg-cyan-600 text-white rounded-md text-sm cursor-pointer transition-colors hover:bg-cyan-700"
                   >
                     {category.name}
                   </Link>

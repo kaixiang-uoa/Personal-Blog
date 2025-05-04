@@ -2,6 +2,7 @@ import Tag from '../models/Tag.js';
 import Post from '../models/Post.js';
 import asyncHandler from 'express-async-handler';
 import {  success, createError  } from '../utils/responseHandler.js';
+import {transformLocalizedTags} from '../utils/transformLocalizedTags.js';
 
 /**
  * @desc    Get all tags
@@ -9,10 +10,14 @@ import {  success, createError  } from '../utils/responseHandler.js';
  * @access  Public
  */
 export const getAllTags = asyncHandler(async (req, res) => {
+  let lang = 'en';
+  if(req.query.lang){
+    lang = Array.isArray(req.query.lang)? req.query.lang[0] : req.query.lang;
+  }
   const tags = await Tag.find().sort({ name: 1 });
-
+  const transformedCategories = transformLocalizedTags(tags, lang);
   return success(res, { 
-    tags,
+    tags: transformedCategories,
     count: tags.length 
   });
 });

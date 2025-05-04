@@ -1,10 +1,10 @@
 [
   {
     "_id": "b2ea2353-e29f-44b2-af64-19b6d3725f1d",
-    "title": "第 1 篇博客文章",
+    "title": "Blog Post 1",
     "slug": "blog-post-1",
-    "excerpt": "这是第 1 篇文章的摘要。",
-    "content": "这是一篇简短的博客内容，介绍开发中的一些技术点（文章 1）。",
+    "excerpt": "This is the excerpt for the first post.",
+    "content": "This is a brief blog content introducing some technical points in development (Post 1).",
     "author": "d59a2e7a-f2aa-47b0-890e-ee774e4db1e4",
     "status": "published",
     "categories": [
@@ -15,12 +15,12 @@
     ],
     "featuredImage": "",
     "seo": {
-      "metaTitle": "博客文章 1",
-      "metaDescription": "这是第 1 篇博客文章的描述",
+      "metaTitle": "Blog Post 1",
+      "metaDescription": "This is the description for the first blog post",
       "keywords": [
         "blog",
         "post",
-        "文章1"
+        "post1"
       ]
     },
     "viewCount": 0,
@@ -32,10 +32,10 @@
   },
   {
     "_id": "d014c2b2-13fa-4b17-b141-78837ad79752",
-    "title": "第 2 篇博客文章",
+    "title": "Blog Post 2",
     "slug": "blog-post-2",
-    "excerpt": "这是第 2 篇文章的摘要。",
-    "content": "这是一篇简短的博客内容，介绍开发中的一些技术点（文章 2）。",
+    "excerpt": "This is the excerpt for the second post.",
+    "content": "This is a brief blog content introducing some technical points in development (Post 2).",
     "author": "d59a2e7a-f2aa-47b0-890e-ee774e4db1e4",
     "status": "published",
     "categories": [
@@ -46,12 +46,12 @@
     ],
     "featuredImage": "",
     "seo": {
-      "metaTitle": "博客文章 2",
-      "metaDescription": "这是第 2 篇博客文章的描述",
+      "metaTitle": "Blog Post 2",
+      "metaDescription": "This is the description for the second blog post",
       "keywords": [
         "blog",
         "post",
-        "文章2"
+        "post2"
       ]
     },
     "viewCount": 0,
@@ -63,10 +63,10 @@
   },
   {
     "_id": "2c615683-49c3-472f-99c0-54fe80f4657f",
-    "title": "第 3 篇博客文章",
+    "title": "Blog Post 3",
     "slug": "blog-post-3",
-    "excerpt": "这是第 3 篇文章的摘要。",
-    "content": "这是一篇简短的博客内容，介绍开发中的一些技术点（文章 3）。",
+    "excerpt": "This is the excerpt for the third post.",
+    "content": "This is a brief blog content introducing some technical points in development (Post 3).",
     "author": "d59a2e7a-f2aa-47b0-890e-ee774e4db1e4",
     "status": "published",
     "categories": [
@@ -77,12 +77,12 @@
     ],
     "featuredImage": "",
     "seo": {
-      "metaTitle": "博客文章 3",
-      "metaDescription": "这是第 3 篇博客文章的描述",
+      "metaTitle": "Blog Post 3",
+      "metaDescription": "This is the description for the third blog post",
       "keywords": [
         "blog",
         "post",
-        "文章3"
+        "post3"
       ]
     },
     "viewCount": 0,
@@ -94,10 +94,10 @@
   },
   {
     "_id": "d83ba3f9-f57e-40f0-9f1a-dbc639520bd6",
-    "title": "第 4 篇博客文章",
+    "title": "Blog Post 4",
     "slug": "blog-post-4",
-    "excerpt": "这是第 4 篇文章的摘要。",
-    "content": "这是一篇简短的博客内容，介绍开发中的一些技术点（文章 4）。",
+    "excerpt": "This is the excerpt for the fourth post.",
+    "content": "This is a brief blog content introducing some technical points in development (Post 4).",
     "author": "d59a2e7a-f2aa-47b0-890e-ee774e4db1e4",
     "status": "published",
     "categories": [
@@ -108,12 +108,12 @@
     ],
     "featuredImage": "",
     "seo": {
-      "metaTitle": "博客文章 4",
-      "metaDescription": "这是第 4 篇博客文章的描述",
+      "metaTitle": "Blog Post 4",
+      "metaDescription": "This is the description for the fourth blog post",
       "keywords": [
         "blog",
         "post",
-        "文章4"
+        "post4"
       ]
     },
     "viewCount": 0,
@@ -125,10 +125,10 @@
   },
   {
     "_id": "ecfef67a-c6f5-4a09-9555-fa7c1690a58a",
-    "title": "第 5 篇博客文章",
+    "title": "Blog Post 5",
     "slug": "blog-post-5",
-    "excerpt": "这是第 5 篇文章的摘要。",
-    "content": "这是一篇简短的博客内容，介绍开发中的一些技术点（文章 5）。",
+    "excerpt": "This is the excerpt for the fifth post.",
+    "content": "This is a brief blog content introducing some technical points in development (Post 5).",
     "author": "d59a2e7a-f2aa-47b0-890e-ee774e4db1e4",
     "status": "published",
     "categories": [
@@ -139,12 +139,12 @@
     ],
     "featuredImage": "",
     "seo": {
-      "metaTitle": "博客文章 5",
-      "metaDescription": "这是第 5 篇博客文章的描述",
+      "metaTitle": "Blog Post 5",
+      "metaDescription": "This is the description for the fifth blog post",
       "keywords": [
         "blog",
         "post",
-        "文章5"
+        "post5"
       ]
     },
     "viewCount": 0,

@@ -15,14 +15,9 @@ export default function LocaleLayout({
   const messages = useMessages();
   type LocaleType = (typeof locales)[number];
   if (!locales.includes(locale as LocaleType)) notFound();
-
   return (
-    <html lang={locale}>
-      <body className={inter.className}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {children}
+    </NextIntlClientProvider>
   );
 }

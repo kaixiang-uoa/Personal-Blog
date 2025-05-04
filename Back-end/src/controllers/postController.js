@@ -3,6 +3,10 @@ import Tag from '../models/Tag.js';
 import Category from '../models/Category.js';
 import asyncHandler from 'express-async-handler';
 import { success, createError } from '../utils/responseHandler.js';
+import { populatePostQuery } from '../utils/populatePostQuery.js';
+import { getPopulatedPostById, getPopulatedPostBySlug } from '../utils/populateUtils.js';
+import { transformLocalizedCategories } from '../utils/transformLocalizedCategories.js';
+import { transformLocalizedTags } from '../utils/transformLocalizedTags.js';
 
 /**
  * @desc    Get all posts, supports filtering by tags, categories, search, date, etc.
@@ -17,10 +21,9 @@ export const getAllPosts = asyncHandler(async (req, res) => {
     categorySlug,
     tagSlug,
     search,
-    sort: sortKey = 'publishedAt-desc', // 默认按发布时间降序排序
-    lang = 'zh',
+    sort: sortKey = 'publishedAt-desc',
+    lang,
   } = req.query;
-
   const query = { status };
 
   // Category filter
@@ -31,8 +34,11 @@ export const getAllPosts = asyncHandler(async (req, res) => {
 
   // Tag filter
   if (tagSlug) {
-    const tag = await Tag.findOne({ slug: tagSlug });
-    if (tag) query.tags = tag._id;
+    const tagSlugs = tagSlug.split(',').map(s => s.trim()).filter(Boolean); 
+    const tags = await Tag.findOne({ slug:  { $in: tagSlugs } });
+    if (tags.length > 0) {
+      query.tags = { $in: tags.map(t => t._id) };
+    }
   }
 
   // Search keyword filter
@@ -40,7 +46,7 @@ export const getAllPosts = asyncHandler(async (req, res) => {
     query.$or = [
       { title: { $regex: search, $options: 'i' } },
       { content: { $regex: search, $options: 'i' } },
-      { excerpt: { $regex: search, $options: 'i' } }
+      { excerpt: { $regex: search, $options: 'i' } },
     ];
   }
 
@@ -52,46 +58,32 @@ export const getAllPosts = asyncHandler(async (req, res) => {
   };
 
   const sort = sortOptions[sortKey] || '-publishedAt';
- 
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
-  const posts = await Post.find(query)
-    .populate('author', 'username displayName avatar')
-    .populate('categories', 'name name_en name_zh slug')
-    .populate('tags', 'name slug')
-    .sort(sort) // 使用传入的排序参数
-    .skip(skip)
-    .limit(parseInt(limit));
+  const posts = await populatePostQuery(
+    Post.find(query).sort(sort).skip(skip).limit(parseInt(limit))
+  );
+
   const total = await Post.countDocuments(query);
- 
-  // Transform posts to include localized category names
+
   const transformedPosts = posts.map(post => {
     const transformedPost = post.toObject();
-    
-    // Transform categories
+
     if (transformedPost.categories && transformedPost.categories.length > 0) {
-      transformedPost.categories = transformedPost.categories.map(category => {
-        const transformedCategory = {...category};
-        
-        // Replace name with language-specific version
-        if (lang === 'en' && transformedCategory.name_en) {
-          transformedCategory.name = transformedCategory.name_en;
-        } else if (lang === 'zh' && transformedCategory.name_zh) {
-          transformedCategory.name = transformedCategory.name_zh;
-        }
-        
-        return transformedCategory;
-      });
+      transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
     }
-    
+
+    if (transformedPost.tags && transformedPost.tags.length > 0) {
+      transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
+    }
     return transformedPost;
   });
- 
+
   return success(res, {
     posts: transformedPosts,
-    total: total,
+    total,
     totalPages: Math.ceil(total / parseInt(limit)),
-    currentPage: parseInt(page)
+    currentPage: parseInt(page),
   });
 });
 
@@ -101,36 +93,21 @@ export const getAllPosts = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getPostById = asyncHandler(async (req, res) => {
-  const lang = req.query.lang || 'zh'; // Add language parameter
-  
-  const post = await Post.findById(req.params.id)
-    .populate('author', 'username displayName avatar')
-    .populate('categories', 'name name_en name_zh slug')
-    .populate('tags', 'name slug');
-
+  const lang = req.query.lang || 'zh';
+  const post = await getPopulatedPostById(req.params.id);
   if (!post) throw createError('Post not found', 404);
   post.viewCount += 1;
   await post.save();
-  
-  // Transform post to include localized category names
+
   const transformedPost = post.toObject();
-  
-  // Transform categories
   if (transformedPost.categories && transformedPost.categories.length > 0) {
-    transformedPost.categories = transformedPost.categories.map(category => {
-      const transformedCategory = {...category};
-      
-      // Replace name with language-specific version
-      if (lang === 'en' && transformedCategory.name_en) {
-        transformedCategory.name = transformedCategory.name_en;
-      } else if (lang === 'zh' && transformedCategory.name_zh) {
-        transformedCategory.name = transformedCategory.name_zh;
-      }
-      
-      return transformedCategory;
-    });
+    transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
   }
-  
+
+  if (transformedPost.tags && transformedPost.tags.length > 0) {
+    transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
+  }
+
   return success(res, { post: transformedPost });
 });
 
@@ -140,36 +117,20 @@ export const getPostById = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getPostBySlug = asyncHandler(async (req, res) => {
-  const lang = req.query.lang || 'zh'; // Add language parameter
-  
-  const post = await Post.findOne({ slug: req.params.slug })
-    .populate('author', 'username displayName avatar')
-    .populate('categories', 'name name_en name_zh slug')
-    .populate('tags', 'name slug');
-
+  const lang = req.query.lang || 'zh';
+  const post = await getPopulatedPostBySlug(req.params.slug);
   if (!post) throw createError('Post not found', 404);
   post.viewCount += 1;
   await post.save();
-  
-  // Transform post to include localized category names
+
   const transformedPost = post.toObject();
-  
-  // Transform categories
   if (transformedPost.categories && transformedPost.categories.length > 0) {
-    transformedPost.categories = transformedPost.categories.map(category => {
-      const transformedCategory = {...category};
-      
-      // Replace name with language-specific version
-      if (lang === 'en' && transformedCategory.name_en) {
-        transformedCategory.name = transformedCategory.name_en;
-      } else if (lang === 'zh' && transformedCategory.name_zh) {
-        transformedCategory.name = transformedCategory.name_zh;
-      }
-      
-      return transformedCategory;
-    });
+    transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
   }
-  
+
+  if (transformedPost.tags && transformedPost.tags.length > 0) {
+    transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
+  }
   return success(res, { post: transformedPost });
 });
 
@@ -188,7 +149,7 @@ export const createPost = asyncHandler(async (req, res) => {
     tags,
     status,
     featuredImage,
-    seo
+    seo,
   } = req.body;
 
   const slugExists = await Post.findOne({ slug });
@@ -205,10 +166,11 @@ export const createPost = asyncHandler(async (req, res) => {
     status: status || 'draft',
     featuredImage,
     seo,
-    publishedAt: status === 'published' ? Date.now() : null
+    publishedAt: status === 'published' ? Date.now() : null,
   });
 
-  return success(res, { post }, 201);
+  const populatedPost = await getPopulatedPostById(post._id);
+  return success(res, { post: populatedPost }, 201);
 });
 
 /**
@@ -233,7 +195,9 @@ export const updatePost = asyncHandler(async (req, res) => {
     new: true,
     runValidators: true,
   });
-  return success(res, { post });
+
+  const populatedPost = await getPopulatedPostById(post._id);
+  return success(res, { post: populatedPost });
 });
 
 /**
@@ -242,7 +206,7 @@ export const updatePost = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 export const deletePost = asyncHandler(async (req, res) => {
-  const post = await Post.findById(req.params.id);
+  const post = await getPopulatedPostById(req.params.id);
   if (!post) throw createError('Post not found', 404);
   await post.deleteOne();
   return success(res, { message: 'Post deleted successfully' });

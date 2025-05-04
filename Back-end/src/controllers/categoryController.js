@@ -2,6 +2,7 @@ import Category from '../models/Category.js';
 import Post from '../models/Post.js';
 import asyncHandler from 'express-async-handler';
 import {  success, createError  } from '../utils/responseHandler.js';
+import { transformLocalizedCategories } from '../utils/transformLocalizedCategories.js';
 
 /**
  * @desc    Get all categories
@@ -10,7 +11,7 @@ import {  success, createError  } from '../utils/responseHandler.js';
  */
 export const getAllCategories = asyncHandler(async (req, res) => {
   // Get language preference from query parameter or default to 'zh'
-  let lang = 'zh';
+  let lang = 'en';
   if(req.query.lang){
     lang = Array.isArray(req.query.lang)? req.query.lang[0] : req.query.lang;
   }
@@ -18,24 +19,7 @@ export const getAllCategories = asyncHandler(async (req, res) => {
   // Get all categories
   const categories = await Category.find().sort({ name: 1 });
   // Transform categories based on language preference
-  const transformedCategories = categories.map(category => {
-    const transformed = category.toObject();
-    
-    // Replace name and description with language-specific versions
-    if (lang === 'en' && transformed.name_en) {
-      transformed.name = transformed.name_en;
-    } else if (lang === 'zh' && transformed.name_zh) {
-      transformed.name = transformed.name_zh;
-    }
-    
-    if (lang === 'en' && transformed.description_en) {
-      transformed.description = transformed.description_en;
-    } else if (lang === 'zh' && transformed.description_zh) {
-      transformed.description = transformed.description_zh;
-    }
-    
-    return transformed;
-  });
+  const transformedCategories = transformLocalizedCategories(categories, lang);
 
   return success(res, { 
     categories: transformedCategories,
@@ -59,21 +43,8 @@ export const getCategoryById = asyncHandler(async (req, res) => {
   }
   
   // Transform category based on language preference
-  const transformed = category.toObject();
+  const transformed = transformLocalizedCategories([category], lang)[0];
   
-  // Replace name and description with language-specific versions
-  if (lang === 'en' && transformed.name_en) {
-    transformed.name = transformed.name_en;
-  } else if (lang === 'zh' && transformed.name_zh) {
-    transformed.name = transformed.name_zh;
-  }
-  
-  if (lang === 'en' && transformed.description_en) {
-    transformed.description = transformed.description_en;
-  } else if (lang === 'zh' && transformed.description_zh) {
-    transformed.description = transformed.description_zh;
-  }
-
   return success(res, { category: transformed });
 });
 
@@ -93,20 +64,7 @@ export const getCategoryBySlug = asyncHandler(async (req, res) => {
   }
   
   // Transform category based on language preference
-  const transformed = category.toObject();
-  
-  // Replace name and description with language-specific versions
-  if (lang === 'en' && transformed.name_en) {
-    transformed.name = transformed.name_en;
-  } else if (lang === 'zh' && transformed.name_zh) {
-    transformed.name = transformed.name_zh;
-  }
-  
-  if (lang === 'en' && transformed.description_en) {
-    transformed.description = transformed.description_en;
-  } else if (lang === 'zh' && transformed.description_zh) {
-    transformed.description = transformed.description_zh;
-  }
+  const transformed = transformLocalizedCategories([category], lang)[0];
 
   return success(res, { category: transformed });
 });

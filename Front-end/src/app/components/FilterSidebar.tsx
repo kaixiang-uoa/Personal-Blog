@@ -14,7 +14,7 @@ import { Label } from '@/app/components/ui/label';
 import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Tag, Category, SortOrder } from '@/services/interface';
+import { Tag, Category, SortOrder } from '@/types';
 
 interface FilterSidebarProps {
   tags: Tag[];
@@ -22,6 +22,7 @@ interface FilterSidebarProps {
   categories: Category[];
   activeCategory: string | null;
   sortOrder: SortOrder;
+  currentLocale: string;
   onFilterChangeAction: (params: {
     type: 'tags' | 'category' | 'sort';
     value: string | string[] | SortOrder;
@@ -34,26 +35,24 @@ export default function FilterSidebar({
   activeTags,
   categories,
   activeCategory,
+  currentLocale,
   sortOrder = 'latest',
+  
   onFilterChangeAction,
   onClearFiltersAction,
 }: FilterSidebarProps) {
   const t = useTranslations('common');
-  const { locale } = useParams();
   const [selectedTags, setSelectedTags] = useState<string[]>(activeTags || []);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(activeCategory || null);
   const [selectedSortOrder, setSelectedSortOrder] = useState<SortOrder>(sortOrder);
 
-  const getCategoryNameByLocale = (category: Category, localeStr: string) => {
-    if (localeStr === 'en') return category.name_en || category.name;
-    if (localeStr === 'zh') return category.name_zh || category.name;
-    return category.name;
-  };
-
-  const getTagNameByLocale = (tag: Tag, localeStr: string) => {
-    if (localeStr === 'en') return tag.name_en || tag.name;
-    if (localeStr === 'zh') return tag.name_zh || tag.name;
-    return tag.name;
+  const getLocalizedName = (
+    item: { name: string; name_en?: string; name_zh?: string },
+    locale: string
+  ): string => {
+    if (locale === 'en') return item.name_en || item.name;
+    if (locale === 'zh') return item.name_zh || item.name;
+    return item.name;
   };
 
   useEffect(() => {
@@ -68,9 +67,9 @@ export default function FilterSidebar({
     let newSelectedTags: string[];
 
     if (checked) {
-      newSelectedTags = [...selectedTags, tagSlug];
+      newSelectedTags = [...selectedTags.filter(Boolean), tagSlug];
     } else {
-      newSelectedTags = selectedTags.filter(t => t !== tagSlug);
+      newSelectedTags = selectedTags.filter(t => t !== tagSlug && Boolean(t));
     }
 
     setSelectedTags(newSelectedTags);
@@ -114,7 +113,7 @@ export default function FilterSidebar({
                   className="bg-cyan-900/50 hover:bg-cyan-800/50 text-cyan-100 cursor-pointer"
                   onClick={() => handleTagChange(tagSlug, false)}
                 >
-                  {tag ? getTagNameByLocale(tag, locale as string) : tagSlug}
+                  {tag ? getLocalizedName(tag, currentLocale) : tagSlug}
                   <X className="ml-1 h-3 w-3" />
                 </Badge>
               );
@@ -131,7 +130,7 @@ export default function FilterSidebar({
                     onClick={() => handleCategoryChange(null)}
                   >
                     {category
-                      ? getCategoryNameByLocale(category, locale as string)
+                      ? getLocalizedName(category, currentLocale)
                       : activeCategory}
                     <X className="ml-1 h-3 w-3" />
                   </Badge>
@@ -161,7 +160,7 @@ export default function FilterSidebar({
                     onCheckedChange={checked => handleTagChange(tag.slug, checked as boolean)}
                     className="data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                   />
-                  <span className="truncate">{getTagNameByLocale(tag, locale as string)}</span>
+                  <span className="truncate">{getLocalizedName(tag, currentLocale)}</span>
                 </Label>
               ))}
             </div>
@@ -211,7 +210,7 @@ export default function FilterSidebar({
                     onCheckedChange={() => handleCategoryChange(category.slug)}
                     className="data-[state=checked]:bg-cyan-600 data-[state=checked]:border-cyan-600"
                   />
-                  {getCategoryNameByLocale(category, locale as string)}
+                  {getLocalizedName(category, currentLocale)}
                 </Label>
               ))}
             </div>

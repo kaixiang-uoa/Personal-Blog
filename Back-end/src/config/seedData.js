@@ -2,14 +2,19 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import connectDB from './db';
+import { fileURLToPath } from 'url';
+import databaseConnect from './db.js';
+
+// 获取当前文件的目录路径（ES模块兼容方式）
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Import models
-import User from '../models/User';
-import Post from '../models/Post';
-import Category from '../models/Category';
-import Tag from '../models/Tag';
-import Setting from '../models/Setting';
+import User from '../models/User.js';
+import Post from '../models/Post.js';
+import Category from '../models/Category.js';
+import Tag from '../models/Tag.js';
+import Setting from '../models/Setting.js';
 
 // Load environment variables
 dotenv.config();
@@ -98,7 +103,7 @@ const processReferences = (data, refFields) => {
 
 const seedDatabase = async () => {
   try {
-    await connectDB();
+    await databaseConnect();
 
     await User.deleteMany({});
     await Category.deleteMany({});
@@ -150,16 +155,23 @@ const seedDatabase = async () => {
     if (settingData.length > 0) {
       settingData = processReferences(settingData, ['updatedBy']);
       settingData = settingData.map(item => {
-        if (item.updatedBy && typeof item.updatedBy === 'string' && !mongoose.Types.ObjectId.isValid(item.updatedBy)) {
-          const rest = { ...item };
-          delete rest.updatedBy;
+        const updatedItem = { ...item };
+         
+        if (!updatedItem.key) {
+          updatedItem.key = `default_key_${Math.random().toString(36).substring(2, 9)}`;
+        }
+        
+        if (updatedItem.value === undefined) {
+          updatedItem.value = '';
+        }
+        if (updatedItem.updatedBy && typeof updatedItem.updatedBy === 'string' && !mongoose.Types.ObjectId.isValid(updatedItem.updatedBy)) {
+          delete updatedItem.updatedBy;
           
           if (userData.length > 0) {
-            rest.updatedBy = userData[0]._id; // 使用第一个用户的ID
+            updatedItem.updatedBy = userData[0]._id; // 使用第一个用户的ID
           }
-          return rest;
         }
-        return item;
+        return updatedItem;
       });
 
       await Setting.insertMany(settingData);

@@ -43,6 +43,7 @@
     "sortBy": "排序方式",
     "newestFirst": "最新发布",
     "oldestFirst": "最早发布",
+    "mostPopular": "最受欢迎",
     "lastUpdated": "最近更新",
     "oldestUpdated": "最早更新",
     "selectSortOrder": "选择排序方式"

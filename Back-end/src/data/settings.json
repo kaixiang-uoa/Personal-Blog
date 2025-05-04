@@ -1,12 +1,23 @@
 [
   {
-    "_id": "general",
-    "siteName": "测试博客",
-    "siteUrl": "https://example.com",
-    "postsPerPage": 10,
-    "adminEmail": "test@gmail.com",
-    "timezone": "Asia/Shanghai",
-    "createdAt": "2025-04-19T09:10:31.040935Z",
-    "updatedBy": "d59a2e7a-f2aa-47b0-890e-ee774e4db1e4"
+    "_id": "setting1",
+    "key": "site_title",
+    "value": "Personal Blog",
+    "group": "general",
+    "description": "网站标题"
+  },
+  {
+    "_id": "setting2",
+    "key": "site_description",
+    "value": "A personal blog built with Next.js",
+    "group": "general",
+    "description": "网站描述"
+  },
+  {
+    "_id": "setting3",
+    "key": "posts_per_page",
+    "value": "10",
+    "group": "advanced",
+    "description": "每页显示的文章数量"
   }
 ]

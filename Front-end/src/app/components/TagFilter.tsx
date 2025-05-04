@@ -15,10 +15,10 @@ export interface TagProps {
 export interface TagFilterProps {
   tags: TagProps[];
   activeTags: string[];
-  onTagsChange: (tags: string[]) => void;
+  onTagsChangeAction: (tags: string[]) => void;
 }
 
-export default function TagFilter({ tags, activeTags, onTagsChange }: TagFilterProps) {
+export default function TagFilter({ tags, activeTags, onTagsChangeAction }: TagFilterProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>(activeTags || []);
 
   const handleTagClick = (tagSlug: string) => {
@@ -31,7 +31,7 @@ export default function TagFilter({ tags, activeTags, onTagsChange }: TagFilterP
     }
 
     setSelectedTags(newSelectedTags);
-    onTagsChange(newSelectedTags);
+    onTagsChangeAction(newSelectedTags);
   };
 
   return (

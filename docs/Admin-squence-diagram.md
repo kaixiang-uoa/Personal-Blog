@@ -90,3 +90,36 @@ sequenceDiagram
         Backend-->>AdminPanel: Return Success
         AdminPanel-->>Admin: Show Update Success
     end
+
+    %% API Service Layer Interaction Flow
+    note over AdminPanel: API Service Layer
+    sequenceDiagram
+        participant Component as UI Component
+        participant Service as Service Module
+        participant API as API Client
+        participant Backend as Backend API
+        
+        %% Request Flow
+        Component->>Service: Call service method
+        Service->>API: Make HTTP request
+        API->>API: Add auth token via interceptor
+        API->>Backend: Send HTTP request
+        Backend-->>API: Return response
+        API->>API: Process response via interceptor
+        API-->>Service: Return processed data
+        Service-->>Component: Return formatted data
+        Component->>Component: Update local state
+        
+        %% Error Flow
+        alt API Error
+            Backend-->>API: Return error response
+            API->>API: Handle error via interceptor
+            alt 401 Unauthorized
+                API->>API: Clear auth token
+                API->>Component: Redirect to login
+            else Other Error
+                API-->>Service: Propagate error
+                Service-->>Component: Return error details
+                Component->>Component: Display error message
+            end
+        end

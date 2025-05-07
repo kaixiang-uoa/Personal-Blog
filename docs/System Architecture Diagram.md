@@ -12,6 +12,28 @@ graph TB
         Dashboard[Dashboard]
         CMS[Content Management]
         MediaMgr[Media Management]
+        
+        subgraph ServiceLayer[API Service Layer]
+            APIClient[API Client]
+            AuthService[Auth Service]
+            PostService[Post Service]
+            CategoryService[Category Service]
+            TagService[Tag Service]
+            MediaService[Media Service]
+            SettingService[Setting Service]
+            
+            APIClient --> AuthService
+            APIClient --> PostService
+            APIClient --> CategoryService
+            APIClient --> TagService
+            APIClient --> MediaService
+            APIClient --> SettingService
+        end
+        
+        Dashboard --> ServiceLayer
+        CMS --> ServiceLayer
+        MediaMgr --> ServiceLayer
+        Auth --> AuthService
     end
 
     subgraph Backend

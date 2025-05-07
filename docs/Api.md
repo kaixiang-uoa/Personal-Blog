@@ -13,84 +13,121 @@ Authorization: Bearer <your_token>
 
 ## API Endpoints
 
-### Posts
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/posts` | Get all posts | No |
-| GET | `/posts/slug/:slug` | Get post by slug | No |
-| GET | `/posts/:id` | Get post by ID | No |
-| POST | `/posts` | Create new post | Yes (Admin) |
-| PUT | `/posts/:id` | Update post | Yes (Admin) |
-| DELETE | `/posts/:id` | Delete post | Yes (Admin) |
+### Posts ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| GET | `/posts` | Get all posts | No | ✅ 已实现 |
+| GET | `/posts/slug/:slug` | Get post by slug | No | ✅ 已实现 |
+| GET | `/posts/:id` | Get post by ID | No | ✅ 已实现 |
+| POST | `/posts` | Create new post | Yes (Admin) | ✅ 已实现 |
+| PUT | `/posts/:id` | Update post | Yes (Admin) | ✅ 已实现 |
+| DELETE | `/posts/:id` | Delete post | Yes (Admin) | ✅ 已实现 |
 
-### Users
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/users` | Get all users | Yes (Admin) |
-| GET | `/users/:id` | Get user by ID | Yes |
-| POST | `/users` | Create new user | Yes (Admin) |
-| PUT | `/users/:id` | Update user | Yes |
-| DELETE | `/users/:id` | Delete user | Yes (Admin) |
+### Users ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| GET | `/users` | Get all users | Yes (Admin) | ✅ 已实现 |
+| GET | `/users/:id` | Get user by ID | Yes (Admin) | ✅ 已实现 |
+| POST | `/users` | Create new user | Yes (Admin) | ✅ 已实现 |
+| PUT | `/users/:id` | Update user | Yes (Admin) | ✅ 已实现 |
+| PUT | `/users/profile` | Update current user profile | Yes | ✅ 已实现 |
+| DELETE | `/users/:id` | Delete user | Yes (Admin) | ✅ 已实现 |
 
-### Categories
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/categories` | Get all categories | No |
-| GET | `/categories/:id` | Get category by ID | No |
-| POST | `/categories` | Create new category | Yes (Admin) |
-| PUT | `/categories/:id` | Update category | Yes (Admin) |
-| DELETE | `/categories/:id` | Delete category | Yes (Admin) |
+### Categories ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| GET | `/categories` | Get all categories | No | ✅ 已实现 |
+| GET | `/categories/:id` | Get category by ID | No | ✅ 已实现 |
+| GET | `/categories/slug/:slug` | Get category by slug | No | ✅ 已实现 |
+| POST | `/categories` | Create new category | Yes (Admin) | ✅ 已实现 |
+| PUT | `/categories/:id` | Update category | Yes (Admin) | ✅ 已实现 |
+| DELETE | `/categories/:id` | Delete category | Yes (Admin) | ✅ 已实现 |
 
-### Tags
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/tags` | Get all tags | No |
-| GET | `/tags/:id` | Get tag by ID | No |
-| POST | `/tags` | Create new tag | Yes (Admin) |
-| PUT | `/tags/:id` | Update tag | Yes (Admin) |
-| DELETE | `/tags/:id` | Delete tag | Yes (Admin) |
+### Tags ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| GET | `/tags` | Get all tags | No | ✅ 已实现 |
+| GET | `/tags/:id` | Get tag by ID | No | ✅ 已实现 |
+| GET | `/tags/slug/:slug` | Get tag by slug | No | ✅ 已实现 |
+| POST | `/tags` | Create new tag | Yes (Admin) | ✅ 已实现 |
+| PUT | `/tags/:id` | Update tag | Yes (Admin) | ✅ 已实现 |
+| DELETE | `/tags/:id` | Delete tag | Yes (Admin) | ✅ 已实现 |
 
-### Comments
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/comments` | Get all comments | No |
-| GET | `/comments/:id` | Get comment by ID | No |
-| POST | `/comments` | Create new comment | Yes |
-| PUT | `/comments/:id` | Update comment | Yes |
-| DELETE | `/comments/:id` | Delete comment | Yes |
+### Comments ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| GET | `/comments/post/:postId` | Get comments by post | No | ✅ 已实现 |
+| POST | `/comments/post/:postId` | Create new comment | Yes | ✅ 已实现 |
+| PUT | `/comments/:commentId` | Update comment | Yes | ✅ 已实现 |
+| DELETE | `/comments/:commentId` | Delete comment | Yes | ✅ 已实现 |
 
-### Media
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/media` | Get all media files | Yes |
-| POST | `/media` | Upload media file | Yes (Admin) |
-| DELETE | `/media/:id` | Delete media file | Yes (Admin) |
+### Media ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| GET | `/media` | Get all media files | Yes | ✅ 已实现 |
+| GET | `/media/:id` | Get media file by ID | Yes | ✅ 已实现 |
+| POST | `/media` | Upload media file | Yes | ✅ 已实现 |
+| PUT | `/media/:id` | Update media info | Yes | ✅ 已实现 |
+| DELETE | `/media/:id` | Delete media file | Yes (Admin/Editor) | ✅ 已实现 |
 
-### Settings
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/settings` | Get all settings | Yes (Admin) |
-| PUT | `/settings` | Update settings | Yes (Admin) |
+### Settings ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| GET | `/settings` | Get all settings | No | ✅ 后端已实现 |
+| GET | `/settings/:key` | Get setting by key | No | ✅ 后端已实现 |
+| POST | `/settings` | Create/update setting | Yes (Admin) | ✅ 后端已实现 |
+| POST | `/settings/batch` | Batch update settings | Yes (Admin) | ✅ 后端已实现 |
+| PUT | `/settings/:key` | Update setting | Yes (Admin) | ✅ 后端已实现 |
+| DELETE | `/settings/:key` | Delete setting | Yes (Admin) | ✅ 后端已实现 |
 
-### Authentication
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/auth/login` | User login | No |
-| POST | `/auth/register` | User registration | No |
-| POST | `/auth/logout` | User logout | Yes |
-| GET | `/auth/me` | Get current user | Yes |
+### Authentication ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| POST | `/auth/login` | User login | No | ✅ 已实现 |
+| POST | `/auth/register` | User registration | No | ✅ 已实现 |
+| POST | `/auth/logout` | User logout | Yes | ✅ 已实现 |
+| GET | `/auth/me` | Get current user | Yes | ✅ 已实现 |
 
-### Internationalization
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/i18n/translations` | Get translations | No |
-| PUT | `/i18n/translations` | Update translations | Yes (Admin) |
+### Internationalization ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| GET | `/i18n/languages` | Get supported languages | No | ✅ 已实现 |
+| GET | `/i18n/translations/:lang` | Get translations by language | No | ✅ 已实现 |
 
-### Contact
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/contact` | Send contact message | No |
-| GET | `/contact` | Get contact messages | Yes (Admin) |
+### Contact ✅
+| Method | Endpoint | Description | Auth Required | Status |
+|--------|----------|-------------|---------------|--------|
+| POST | `/contact` | Send contact message | No | ✅ 已实现 |
+
+## 实现状态说明
+- ✅ 已实现：API 已在后端完成实现
+- ⏳ 前端待实现：后端 API 已完成，前端界面待实现
+- 📅 计划实现：计划在未来版本中开发
+
+## 当前版本开发计划
+
+### 系统设置功能（预计1天）
+- 基础UI实现
+- 设置管理实现
+- 数据持久化
+
+## 技术注意事项
+
+1. API基础URL配置
+   - 当前配置为 `http://localhost:3000/api/v1`
+   - 需要确保与后端API版本匹配
+
+2. 认证机制
+   - 已正确实现JWT token认证
+   - 需要在所有需要认证的请求中正确携带token
+
+3. 错误处理
+   - 已实现基本的错误处理机制
+   - 建议增加更详细的错误类型处理
+
+4. 文件上传
+   - 已实现基本的文件上传功能
+   - 已在后端实现文件类型验证和大小限制（10MB）
 
 ## Error Responses
 The API uses conventional HTTP response codes:

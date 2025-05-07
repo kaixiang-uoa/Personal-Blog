@@ -126,3 +126,33 @@ export const getMe = async (req, res) => {
         });
     }
 };
+
+// 用户登出
+export const logout = async (req, res) => {
+    try {
+        // JWT是无状态的，实际上不需要在服务器端"注销"
+        // 真正的注销发生在客户端删除token
+        // 但我们可以记录登出行为
+        
+        if (req.user) {
+            // 可选：记录用户退出时间
+            await User.findByIdAndUpdate(req.user.id, {
+                lastActivity: Date.now()
+            });
+            
+            // 可选：如果使用的是刷新令牌，可以将其加入黑名单
+            // await BlacklistedToken.create({ token: req.body.refreshToken });
+        }
+        
+        res.status(200).json({
+            success: true,
+            message: '已成功登出'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '登出失败',
+            error: error.message
+        });
+    }
+};

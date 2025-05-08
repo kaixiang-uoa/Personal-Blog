@@ -1,98 +1,36 @@
-# 博客系统管理面板
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-这是一个基于React和Vite构建的博客管理系统前端应用，用于管理博客内容、用户、媒体和设置。
+## Getting Started
 
-## 技术栈
-
-- **前端框架**: React (Vite)
-- **UI库**: 自定义组件 + Tailwind CSS
-- **HTTP客户端**: Axios
-- **状态管理**: React Context API
-
-## 功能模块
-
-- 📝 **内容管理** - 创建、编辑、删除和发布文章
-- 🏷️ **分类与标签** - 管理文章分类和标签
-- 🖼️ **媒体管理** - 上传和管理媒体文件
-- ⚙️ **系统设置** - 配置博客系统参数
-- 👤 **用户认证** - 登录、登出和权限控制
-
-## 项目架构
-
-### API服务层
-
-项目采用模块化的API服务层设计:
-
-1. **API客户端配置 (`src/lib/api.js`)**
-   - 使用Axios创建统一的API实例
-   - 实现请求拦截器自动添加认证令牌
-   - 实现响应拦截器处理常见错误
-
-2. **服务模块 (`src/services/`)**
-   - `authService.js` - 认证相关API
-   - `postService.js` - 文章管理API
-   - `categoryService.js` - 分类管理API
-   - `tagService.js` - 标签管理API
-   - `mediaService.js` - 媒体文件API
-   - `settingService.js` - 系统设置API
-
-### 状态管理
-
-使用React Context API实现状态管理:
-
-- **AppContext** - 管理应用全局状态
-  - 认证状态 (用户登录/登出)
-  - UI状态 (侧边栏、当前页面等)
-
-### UI组件
-
-- **核心组件**
-  - `Loading` - 加载状态指示器
-  - `ErrorMessage` - 错误提示组件
-  - 数据表格和表单组件
-
-## 开发指南
-
-### 安装依赖
-
-```bash
-npm install
-```
-
-### 运行开发服务器
+First, run the development server:
 
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-### 构建生产版本
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```bash
-npm run build
-```
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## 项目亮点
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-1. **模块化设计** - 采用关注点分离原则，每个资源类型有独立服务模块
-2. **完整认证流程** - 包含令牌管理和认证状态同步
-3. **错误处理** - 统一的错误处理和友好的错误提示
-4. **响应式设计** - 适配不同设备的界面布局
+## Learn More
 
-## 未来计划
+To learn more about Next.js, take a look at the following resources:
 
-1. **性能优化**
-   - 数据缓存和懒加载
-   - 使用React Query优化数据获取
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-2. **用户体验增强**
-   - 表单验证改进
-   - 拖拽功能和动画效果
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-3. **功能扩展**
-   - SEO设置功能
-   - 文章排期和草稿管理
-   - 数据分析和统计功能
+## Deploy on Vercel
 
----
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-如果需要更多信息，请参考项目的其他文档或联系项目维护者。
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

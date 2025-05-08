@@ -3,7 +3,7 @@
       "_id": "d59a2e7a-f2aa-47b0-890e-ee774e4db1e4",
       "username": "testuser",
       "email": "test@gmail.com",
-      "password": "$2b$12$u1B6uCD50y4W0HpmNUHlz.8pbrE/c9WjM/UtIfLJxb2/3YYZiyNgG",
+      "password": "$2b$10$8Zdl.Cg/PGnzMw6OHPZwvOOgB6IECTdmRQ87b9MXjnJ92ViFVUNiu", 
       "role": "admin",
       "displayName": "测试用户",
       "avatar": "https://example.com/avatar.jpg",
@@ -14,6 +14,14 @@
       "createdAt": "2025-04-19T09:10:31.040935Z",
       "updatedAt": "2025-04-19T09:10:31.040935Z",
       "lastLogin": "2025-04-19T09:10:31.040935Z"
+    },
+    {
+      "_id": "test-admin-account",
+      "username": "admin",
+      "email": "admin@test.com",
+      "password": "plaintext:admin123",
+      "role": "admin",
+      "isTestAccount": true
     }
   ]
   

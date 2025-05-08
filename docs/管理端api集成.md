@@ -420,3 +420,79 @@ export default function ContentManagementPage() {
 
 3. **用户体验测试**
    - 确保界面流畅可用
+
+
+## api通信测试计划：
+  - 把Admin-panel中的页面逐个检查。
+  - 已经有api支持的数据，删除模拟数据。
+  - 没有api支持的页面，继续使用模拟数据。
+  - 如果api支持的数据为空，显示当前没有数据。
+ ### 测试步骤
+  1. 仪表板页面
+  2. 内容管理页面
+  3. 分类管理页面
+  4. 标签管理页面
+  5. 媒体管理页面
+  6. 系统管理页面
+
+### 测试结果
+根据对Admin-panel所有页面的检查，当前API集成状态如下：
+
+| 页面 | 组件文件 | API集成状态 | 说明 |
+|------|---------|------------|------|
+| 仪表板 | DashboardPage.jsx | ❌ 未集成 | 使用硬编码模拟数据 |
+| 内容管理 | ContentManagementPage.jsx | ✅ 已集成 | 完整支持文章CRUD操作 |
+| 分类管理 | CategoriesPage.jsx | ❌ 未集成 | 使用硬编码模拟数据 |
+| 标签管理 | TagsPage.jsx | ❌ 未集成 | 使用硬编码模拟数据 |
+| 媒体管理 | MediaPage.jsx | ❌ 未集成 | 使用硬编码模拟数据 |
+| 系统设置 | SettingsPage.jsx | ❌ 未集成 | 使用硬编码模拟数据 |
+| 文章编辑 | ArticleEditorPage.jsx | ✅ 已集成 | 与ContentManagementPage集成 |
+
+#### 详细分析
+
+1. **仪表板页面 (DashboardPage.jsx)**
+   - 当前使用硬编码的chartData、recentArticles、performanceData等模拟数据
+   - 没有发现任何API调用
+
+2. **内容管理页面 (ContentManagementPage.jsx)**
+   - 已完全集成API，使用postService和categoryService获取数据
+   - 实现完整CRUD操作：获取、创建、更新、删除文章
+   - 包含错误处理和加载状态
+   - 有防御性编程（检查API返回数据是否为数组）
+
+3. **分类管理页面 (CategoriesPage.jsx)**
+   - 使用硬编码的initialCategories模拟数据
+   - 所有CRUD操作都在前端内存中进行，没有与后端交互
+
+4. **标签管理页面 (TagsPage.jsx)**
+   - 使用硬编码的initialTags模拟数据
+   - 所有操作在前端内存中进行，没有API调用
+
+5. **媒体管理页面 (MediaPage.jsx)**
+   - 使用硬编码的initialMedia模拟数据
+   - 所有操作在前端内存中进行，没有API调用
+
+6. **系统设置页面 (SettingsPage.jsx)**
+   - 使用硬编码的settings对象作为模拟数据
+   - handleSaveSettings函数中有注释："在实际应用中，这里会发送API请求保存设置"
+
+7. **文章编辑页面 (ArticleEditorPage.jsx)**
+   - 与内容管理页面集成，使用相同的API服务
+   - 支持文章的获取和保存操作
+
+#### 后续集成计划
+
+按优先级顺序，计划完成以下页面的API集成：
+
+1. 分类管理页面 - 集成categoryService
+2. 标签管理页面 - 集成tagService
+3. 媒体管理页面 - 集成mediaService
+4. 系统设置页面 - 集成settingService
+5. 仪表板页面 - 集成多个服务获取统计数据
+
+每个页面的集成应包括：
+- 导入相应服务模块
+- 添加数据获取逻辑
+- 实现CRUD操作
+- 添加错误处理和加载状态
+- 处理API返回空数据的情况

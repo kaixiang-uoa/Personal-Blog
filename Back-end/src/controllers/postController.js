@@ -18,13 +18,15 @@ export const getAllPosts = asyncHandler(async (req, res) => {
     page = 1,
     limit = 10,
     status = 'published',
+    allStatus = false,
     categorySlug,
     tagSlug,
     search,
     sort: sortKey = 'publishedAt-desc',
     lang,
   } = req.query;
-  const query = { status };
+  
+  const query = allStatus === 'true' ? {} : { status };
 
   // Category filter
   if (categorySlug) {

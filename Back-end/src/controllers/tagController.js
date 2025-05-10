@@ -128,7 +128,8 @@ export const deleteTag = asyncHandler(async (req, res) => {
     { $pull: { tags: tag._id } }
   );
   
-  await tag.remove();
+  // 使用现代的Mongoose删除方法替换过时的remove()
+  await Tag.deleteOne({ _id: tag._id });
   
   return success(res, null, 200, '标签删除成功');
 });

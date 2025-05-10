@@ -16,8 +16,9 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Loader2 } from "lucide-react"
+import ApiService from "@/lib/api-service"
 
-// 设置数据类型
+// Settings data type
 interface Settings {
   general: {
     siteName: string
@@ -49,11 +50,11 @@ interface Settings {
   }
 }
 
-// 表单验证模式
+// Form validation schemas
 const generalFormSchema = z.object({
-  siteName: z.string().min(1, { message: "网站名称不能为空" }),
+  siteName: z.string().min(1, { message: "Site name cannot be empty" }),
   siteDescription: z.string(),
-  siteUrl: z.string().url({ message: "请输入有效的URL" }),
+  siteUrl: z.string().url({ message: "Please enter a valid URL" }),
   logo: z.string(),
   favicon: z.string(),
   metaKeywords: z.string(),
@@ -89,7 +90,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
-  // 创建表单实例
+  // Create form instances
   const generalForm = useForm<z.infer<typeof generalFormSchema>>({
     resolver: zodResolver(generalFormSchema),
     defaultValues: {
@@ -137,56 +138,26 @@ export default function SettingsPage() {
   useEffect(() => {
     async function fetchSettings() {
       try {
-        // 模拟API调用
-        await new Promise((resolve) => setTimeout(resolve, 1500))
+        setLoading(true)
+        
+        // Fetch settings from API
+        const response = await ApiService.settings.getAll()
+        const data = response.data
+        
+        if (data) {
+          setSettings(data)
 
-        // 这里应该替换为真实的API调用
-        // const response = await axios.get('/api/v1/settings')
-
-        // 模拟数据
-        const mockSettings: Settings = {
-          general: {
-            siteName: "我的技术博客",
-            siteDescription: "分享前端开发、Web技术和编程经验的个人博客",
-            siteUrl: "https://example.com",
-            logo: "/logo.png",
-            favicon: "/favicon.ico",
-            metaKeywords: "前端开发, React, Next.js, Web开发, 编程",
-          },
-          posts: {
-            postsPerPage: 10,
-            defaultCategory: "未分类",
-            showAuthor: true,
-            enableComments: true,
-            moderateComments: true,
-            excerptLength: 200,
-          },
-          appearance: {
-            theme: "system",
-            accentColor: "#0070f3",
-            fontFamily: "Inter",
-            enableRTL: false,
-            showSidebar: true,
-          },
-          advanced: {
-            cacheTimeout: 3600,
-            apiKey: "sk_test_example_key",
-            debugMode: false,
-          },
+          // Update form default values
+          if (data.general) generalForm.reset(data.general)
+          if (data.posts) postsForm.reset(data.posts)
+          if (data.appearance) appearanceForm.reset(data.appearance)
+          if (data.advanced) advancedForm.reset(data.advanced)
         }
-
-        setSettings(mockSettings)
-
-        // 更新表单默认值
-        generalForm.reset(mockSettings.general)
-        postsForm.reset(mockSettings.posts)
-        appearanceForm.reset(mockSettings.appearance)
-        advancedForm.reset(mockSettings.advanced)
       } catch (error) {
         console.error("Failed to fetch settings", error)
         toast({
-          title: "获取设置失败",
-          description: "请检查网络连接后重试",
+          title: "Failed to load settings",
+          description: "Please check your network connection and try again",
           variant: "destructive",
         })
       } finally {
@@ -197,38 +168,35 @@ export default function SettingsPage() {
     fetchSettings()
   }, [toast, generalForm, postsForm, appearanceForm, advancedForm])
 
-  // 提交常规设置
+  // Submit general settings
   const onGeneralSubmit = async (values: z.infer<typeof generalFormSchema>) => {
     await saveSettings("general", values)
   }
 
-  // 提交文章设置
+  // Submit posts settings
   const onPostsSubmit = async (values: z.infer<typeof postsFormSchema>) => {
     await saveSettings("posts", values)
   }
 
-  // 提交外观设置
+  // Submit appearance settings
   const onAppearanceSubmit = async (values: z.infer<typeof appearanceFormSchema>) => {
     await saveSettings("appearance", values)
   }
 
-  // 提交高级设置
+  // Submit advanced settings
   const onAdvancedSubmit = async (values: z.infer<typeof advancedFormSchema>) => {
     await saveSettings("advanced", values)
   }
 
-  // 保存设置通用方法
+  // General method to save settings
   const saveSettings = async (section: keyof Settings, values: any) => {
     try {
       setIsSaving(true)
 
-      // 模拟API调用
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Save settings using API
+      await ApiService.settings.update(section, values)
 
-      // 这里应该替换为真实的API调用
-      // await axios.patch(`/api/v1/settings/${section}`, values)
-
-      // 更新本地状态
+      // Update local state
       if (settings) {
         setSettings({
           ...settings,
@@ -237,14 +205,14 @@ export default function SettingsPage() {
       }
 
       toast({
-        title: "保存成功",
-        description: "设置已成功更新",
+        title: "Saved Successfully",
+        description: "Settings have been updated",
       })
     } catch (error) {
       console.error("Failed to save settings", error)
       toast({
-        title: "保存失败",
-        description: "无法保存设置，请重试",
+        title: "Save Failed",
+        description: "Unable to save settings, please try again",
         variant: "destructive",
       })
     } finally {
@@ -255,24 +223,24 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">系统设置</h2>
-        <p className="text-muted-foreground">管理系统的全局配置和偏好设置</p>
+        <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
+        <p className="text-muted-foreground">Manage global configurations and preferences</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="general">常规</TabsTrigger>
-          <TabsTrigger value="posts">文章</TabsTrigger>
-          <TabsTrigger value="appearance">外观</TabsTrigger>
-          <TabsTrigger value="advanced">高级</TabsTrigger>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="posts">Posts</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
-        {/* 常规设置 */}
+        {/* General Settings */}
         <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>站点信息</CardTitle>
-              <CardDescription>配置您的博客站点的基本信息</CardDescription>
+              <CardTitle>Site Information</CardTitle>
+              <CardDescription>Configure your blog's basic information</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -292,9 +260,9 @@ export default function SettingsPage() {
                       name="siteName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>站点名称</FormLabel>
+                          <FormLabel>Site Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="我的博客" {...field} />
+                            <Input placeholder="My Blog" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -305,11 +273,11 @@ export default function SettingsPage() {
                       name="siteDescription"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>站点描述</FormLabel>
+                          <FormLabel>Site Description</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="描述您的博客..." {...field} />
+                            <Textarea placeholder="Describe your blog..." {...field} />
                           </FormControl>
-                          <FormDescription>这将显示在站点的首页和元描述中</FormDescription>
+                          <FormDescription>This will be displayed on your homepage and meta description</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -319,7 +287,7 @@ export default function SettingsPage() {
                       name="siteUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>站点URL</FormLabel>
+                          <FormLabel>Site URL</FormLabel>
                           <FormControl>
                             <Input placeholder="https://example.com" {...field} />
                           </FormControl>
@@ -361,11 +329,11 @@ export default function SettingsPage() {
                       name="metaKeywords"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Meta 关键词</FormLabel>
+                          <FormLabel>Meta Keywords</FormLabel>
                           <FormControl>
-                            <Input placeholder="关键词1, 关键词2, 关键词3" {...field} />
+                            <Input placeholder="keyword1, keyword2, keyword3" {...field} />
                           </FormControl>
-                          <FormDescription>用逗号分隔的关键词列表，用于SEO优化</FormDescription>
+                          <FormDescription>Comma-separated list of keywords for SEO</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -379,22 +347,22 @@ export default function SettingsPage() {
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    保存中...
+                    Saving...
                   </>
                 ) : (
-                  "保存更改"
+                  "Save Changes"
                 )}
               </Button>
             </CardFooter>
           </Card>
         </TabsContent>
 
-        {/* 文章设置 */}
+        {/* Posts Settings */}
         <TabsContent value="posts" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>文章设置</CardTitle>
-              <CardDescription>配置博客文章的显示和交互方式</CardDescription>
+              <CardTitle>Post Settings</CardTitle>
+              <CardDescription>Configure how your blog posts are displayed and interacted with</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -415,7 +383,7 @@ export default function SettingsPage() {
                         name="postsPerPage"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>每页文章数</FormLabel>
+                            <FormLabel>Posts Per Page</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -434,11 +402,11 @@ export default function SettingsPage() {
                         name="defaultCategory"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>默认分类</FormLabel>
+                            <FormLabel>Default Category</FormLabel>
                             <FormControl>
                               <Input {...field} />
                             </FormControl>
-                            <FormDescription>新文章的默认分类</FormDescription>
+                            <FormDescription>Default category for new posts</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -449,7 +417,7 @@ export default function SettingsPage() {
                       name="excerptLength"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>摘要长度 (字符数)</FormLabel>
+                          <FormLabel>Excerpt Length (characters)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -459,7 +427,7 @@ export default function SettingsPage() {
                               onChange={(e) => field.onChange(Number.parseInt(e.target.value))}
                             />
                           </FormControl>
-                          <FormDescription>自动生成摘要的最大字符数</FormDescription>
+                          <FormDescription>Maximum characters for automatically generated excerpts</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -471,8 +439,8 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                           <div className="space-y-0.5">
-                            <FormLabel>显示作者信息</FormLabel>
-                            <FormDescription>在文章页面显示作者的姓名和头像</FormDescription>
+                            <FormLabel>Show Author Information</FormLabel>
+                            <FormDescription>Display author name and avatar on post pages</FormDescription>
                           </div>
                           <FormControl>
                             <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -486,8 +454,8 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                           <div className="space-y-0.5">
-                            <FormLabel>启用评论</FormLabel>
-                            <FormDescription>允许访问者在文章下方发表评论</FormDescription>
+                            <FormLabel>Enable Comments</FormLabel>
+                            <FormDescription>Allow visitors to comment on posts</FormDescription>
                           </div>
                           <FormControl>
                             <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -501,8 +469,8 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                           <div className="space-y-0.5">
-                            <FormLabel>评论需要审核</FormLabel>
-                            <FormDescription>新评论需要管理员审核后才会显示</FormDescription>
+                            <FormLabel>Moderate Comments</FormLabel>
+                            <FormDescription>Comments require approval before being displayed</FormDescription>
                           </div>
                           <FormControl>
                             <Switch
@@ -523,22 +491,22 @@ export default function SettingsPage() {
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    保存中...
+                    Saving...
                   </>
                 ) : (
-                  "保存更改"
+                  "Save Changes"
                 )}
               </Button>
             </CardFooter>
           </Card>
         </TabsContent>
 
-        {/* 外观设置 */}
+        {/* Appearance Settings */}
         <TabsContent value="appearance" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>外观设置</CardTitle>
-              <CardDescription>自定义博客的外观和显示方式</CardDescription>
+              <CardTitle>Appearance Settings</CardTitle>
+              <CardDescription>Customize the look and feel of your blog</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -562,20 +530,20 @@ export default function SettingsPage() {
                       name="theme"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>主题模式</FormLabel>
+                          <FormLabel>Theme Mode</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="选择主题模式" />
+                                <SelectValue placeholder="Select theme mode" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="light">浅色</SelectItem>
-                              <SelectItem value="dark">深色</SelectItem>
-                              <SelectItem value="system">跟随系统</SelectItem>
+                              <SelectItem value="light">Light</SelectItem>
+                              <SelectItem value="dark">Dark</SelectItem>
+                              <SelectItem value="system">System</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormDescription>为您的博客选择默认的主题模式</FormDescription>
+                          <FormDescription>Choose the default theme mode for your blog</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -585,14 +553,14 @@ export default function SettingsPage() {
                       name="accentColor"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>强调色</FormLabel>
+                          <FormLabel>Accent Color</FormLabel>
                           <div className="flex items-center gap-2">
                             <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: field.value }} />
                             <FormControl>
                               <Input {...field} type="text" />
                             </FormControl>
                           </div>
-                          <FormDescription>输入HEX颜色值，如 #0070f3</FormDescription>
+                          <FormDescription>Enter a HEX color value, e.g., #0070f3</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -602,11 +570,11 @@ export default function SettingsPage() {
                       name="fontFamily"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>字体</FormLabel>
+                          <FormLabel>Font Family</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="选择字体" />
+                                <SelectValue placeholder="Select font" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -627,8 +595,8 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                           <div className="space-y-0.5">
-                            <FormLabel>启用RTL模式</FormLabel>
-                            <FormDescription>从右至左的文本布局，适用于阿拉伯语等语言</FormDescription>
+                            <FormLabel>Enable RTL Mode</FormLabel>
+                            <FormDescription>Right-to-left text layout for languages like Arabic</FormDescription>
                           </div>
                           <FormControl>
                             <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -642,8 +610,8 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                           <div className="space-y-0.5">
-                            <FormLabel>显示侧边栏</FormLabel>
-                            <FormDescription>在博客前台显示分类、标签和最近文章的侧边栏</FormDescription>
+                            <FormLabel>Show Sidebar</FormLabel>
+                            <FormDescription>Display a sidebar with categories, tags, and recent posts</FormDescription>
                           </div>
                           <FormControl>
                             <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -660,22 +628,22 @@ export default function SettingsPage() {
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    保存中...
+                    Saving...
                   </>
                 ) : (
-                  "保存更改"
+                  "Save Changes"
                 )}
               </Button>
             </CardFooter>
           </Card>
         </TabsContent>
 
-        {/* 高级设置 */}
+        {/* Advanced Settings */}
         <TabsContent value="advanced" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>高级设置</CardTitle>
-              <CardDescription>配置系统的高级选项，仅限于有经验的用户</CardDescription>
+              <CardTitle>Advanced Settings</CardTitle>
+              <CardDescription>Configure advanced system options for experienced users only</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -695,7 +663,7 @@ export default function SettingsPage() {
                       name="cacheTimeout"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>缓存超时 (秒)</FormLabel>
+                          <FormLabel>Cache Timeout (seconds)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -704,7 +672,7 @@ export default function SettingsPage() {
                               onChange={(e) => field.onChange(Number.parseInt(e.target.value))}
                             />
                           </FormControl>
-                          <FormDescription>设置为0禁用缓存</FormDescription>
+                          <FormDescription>Set to 0 to disable caching</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -714,11 +682,11 @@ export default function SettingsPage() {
                       name="apiKey"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>API 密钥</FormLabel>
+                          <FormLabel>API Key</FormLabel>
                           <FormControl>
                             <Input type="password" {...field} />
                           </FormControl>
-                          <FormDescription>用于外部服务认证的API密钥</FormDescription>
+                          <FormDescription>API key for external service authentication</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -729,8 +697,8 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                           <div className="space-y-0.5">
-                            <FormLabel>调试模式</FormLabel>
-                            <FormDescription>启用详细的错误信息和日志记录</FormDescription>
+                            <FormLabel>Debug Mode</FormLabel>
+                            <FormDescription>Enable detailed error messages and logging</FormDescription>
                           </div>
                           <FormControl>
                             <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -747,10 +715,10 @@ export default function SettingsPage() {
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    保存中...
+                    Saving...
                   </>
                 ) : (
-                  "保存更改"
+                  "Save Changes"
                 )}
               </Button>
             </CardFooter>

@@ -188,7 +188,8 @@ export const deleteCategory = asyncHandler(async (req, res) => {
     { $set: { category: null } }
   );
   
-  await category.remove();
+  // 使用现代的Mongoose删除方法替换过时的remove()
+  await Category.deleteOne({ _id: category._id });
   
   return success(res, null, 200, 'Category deleted successfully');
 });

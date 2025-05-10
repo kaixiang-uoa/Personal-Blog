@@ -16,7 +16,7 @@ import { useTypedForm } from "@/types/form"
 
 // Login form validation schema - keep UI field names unchanged
 const formSchema = z.object({
-  username: z.string().min(3, { message: "Username must be at least 3 characters" }),
+  email: z.string().min(3, { message: "Username must be at least 3 characters" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   rememberMe: z.boolean().default(false),
 })
@@ -28,7 +28,7 @@ export default function LoginPage() {
 
   // Use custom form hook to simplify type handling
   const form = useTypedForm(formSchema, {
-      username: "",
+      email: "",
       password: "",
       rememberMe: false,
   })
@@ -37,10 +37,9 @@ export default function LoginPage() {
   const onSubmit = form.handleSubmit(async (values) => {
     try {
       setIsLoading(true)
-
       // Use AuthService for login
       await AuthService.login({
-        username: values.username, 
+        email: values.email, 
         password: values.password,
         rememberMe: values.rememberMe
       })
@@ -54,12 +53,23 @@ export default function LoginPage() {
       // Redirect to dashboard - use correct route path
       router.push("/dashboard") // Next.js will handle route groups automatically
     } catch (error: any) {
-      console.error("Login failed", error)
-      // Extract error message
-      const errorMessage = error.response?.data?.message || "Username or password incorrect, please try again"
+      // 不再打印错误到控制台
+      // console.error("Login failed", error)
+      
+      // 更详细的错误信息提取
+      let errorMessage = "用户名或密码不正确，请重试"
+      
+      // 对于登录页面的401错误优先使用我们增强的错误信息
+      if (error.loginError && error.originalMessage) {
+        errorMessage = error.originalMessage
+      } 
+      // 尝试从不同路径获取错误信息，但限制详细程度
+      else if (error.response && error.response.data?.message) {
+        errorMessage = error.response.data.message
+      }
       
       toast({
-        title: "Login Failed",
+        title: "登录失败",
         description: errorMessage,
         variant: "destructive",
       })
@@ -83,12 +93,12 @@ export default function LoginPage() {
             <form onSubmit={onSubmit} className="space-y-4">
               <FormField
                 control={form.control}
-                name="username"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your username" {...field} disabled={isLoading} />
+                      <Input placeholder="Enter your email" {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Bell, Menu, Search, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import AuthService from "@/lib/auth-service"
+import { useToast } from "@/hooks/use-toast"
 
 interface HeaderProps {
   sidebarOpen: boolean
@@ -23,6 +25,8 @@ interface HeaderProps {
 export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const pathname = usePathname()
   const [pageTitle, setPageTitle] = useState("")
+  const router = useRouter()
+  const { toast } = useToast()
 
   // Set page title based on path
   useEffect(() => {
@@ -39,6 +43,24 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
+  }
+
+  const handleLogout = async () => {
+    try {
+      await AuthService.logout()
+      toast({
+        title: "登出成功",
+        description: "您已成功退出登录",
+      })
+      router.push("/login")
+    } catch (error) {
+      console.error("登出失败:", error)
+      toast({
+        title: "登出失败",
+        description: "退出登录时发生错误，请重试",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -75,7 +97,7 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem>Account Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Log Out</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>Log Out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

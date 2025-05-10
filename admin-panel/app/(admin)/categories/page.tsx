@@ -20,25 +20,10 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { BookmarkPlus, Edit, PlusCircle, Tag, Trash2 } from "lucide-react"
+import { BookmarkPlus, Edit, PlusCircle, Search, Tag, Trash2 } from "lucide-react"
 import ApiService from "@/lib/api-service"
-
-// Category data type
-interface Category {
-  id: string
-  name: string
-  slug: string
-  description: string
-  postCount: number
-}
-
-// Tag data type
-interface TagType {
-  id: string
-  name: string
-  slug: string
-  postCount: number
-}
+import { Category } from "@/types/category"
+import { TagType } from "@/types/tags"
 
 // Form validation schema
 const categoryFormSchema = z.object({
@@ -155,9 +140,9 @@ export default function CategoriesPage() {
     try {
       if (editingCategory) {
         // Edit existing category
-        await ApiService.categories.update(editingCategory.id, values)
+        await ApiService.categories.update(editingCategory._id, values)
 
-        setCategories(categories.map((cat) => (cat.id === editingCategory.id ? { ...cat, ...values } : cat)))
+        setCategories(categories.map((cat) => (cat._id === editingCategory._id ? { ...cat, ...values } : cat)))
 
         toast({
           title: "Updated successfully",
@@ -210,10 +195,23 @@ export default function CategoriesPage() {
   const onTagSubmit = async (values: z.infer<typeof tagFormSchema>) => {
     try {
       if (editingTag) {
+        // 修正：使用_id而不是id
+        const tagId = editingTag._id || editingTag.id; // 兼容两种可能的ID属性名
+        
+        if (!tagId) {
+          throw new Error("Tag ID is missing");
+        }
+        
         // Edit existing tag
-        await ApiService.tags.update(editingTag.id, values)
+        await ApiService.tags.update(tagId, values)
 
-        setTags(tags.map((tag) => (tag.id === editingTag.id ? { ...tag, ...values } : tag)))
+        // 更新本地数据
+        setTags(tags.map((tag) => {
+          if ((tag._id && tag._id === tagId) || (tag.id && tag.id === tagId)) {
+            return { ...tag, ...values };
+          }
+          return tag;
+        }));
 
         toast({
           title: "Updated successfully",
@@ -246,9 +244,16 @@ export default function CategoriesPage() {
   const handleDeleteCategory = async (category: Category) => {
     if (confirm(`Are you sure you want to delete the category "${category.name}"? If posts belong to this category, they will be moved to the default category.`)) {
       try {
-        await ApiService.categories.delete(category.id)
+        // 确保使用正确的ID
+        const categoryId = category._id;
+        
+        if (!categoryId) {
+          throw new Error("Category ID is missing");
+        }
+        
+        await ApiService.categories.delete(categoryId)
 
-        setCategories(categories.filter((cat) => cat.id !== category.id))
+        setCategories(categories.filter((cat) => cat._id !== categoryId))
 
         toast({
           title: "Deleted successfully",
@@ -269,9 +274,21 @@ export default function CategoriesPage() {
   const handleDeleteTag = async (tag: TagType) => {
     if (confirm(`Are you sure you want to delete the tag "${tag.name}"?`)) {
       try {
-        await ApiService.tags.delete(tag.id)
+        // 修正：使用_id而不是id
+        const tagId = tag._id || tag.id; // 兼容两种可能的ID属性名
+        
+        if (!tagId) {
+          throw new Error("Tag ID is missing");
+        }
+        
+        await ApiService.tags.delete(tagId)
 
-        setTags(tags.filter((t) => t.id !== tag.id))
+        // 更新本地数据
+        setTags(tags.filter((t) => {
+          // 如果t有_id属性则用_id比较，否则用id比较
+          if (t._id) return t._id !== tagId;
+          return t.id !== tagId;
+        }));
 
         toast({
           title: "Deleted successfully",
@@ -304,17 +321,21 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-4">
+        {/* 搜索框独立一行 */}
+        <div className="w-full relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search categories or tags..."
-            className="w-full"
+            className="w-full pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+        
+        {/* 标签页独立一行 */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
             <TabsTrigger value="categories">Categories</TabsTrigger>
             <TabsTrigger value="tags">Tags</TabsTrigger>
@@ -322,7 +343,7 @@ export default function CategoriesPage() {
 
           {/* Categories Tab Content */}
           <TabsContent value="categories" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {loading ? (
                 // Loading state
                 Array.from({ length: 6 }).map((_, i) => (
@@ -338,8 +359,8 @@ export default function CategoriesPage() {
                 ))
               ) : filteredCategories.length > 0 ? (
                 filteredCategories.map((category) => (
-                  <Card key={category.id || `category-fallback-${Math.random().toString(36).substr(2, 9)}`}>
-                    <CardHeader className="pb-2">
+                  <Card key={category._id || `category-fallback-${Math.random().toString(36).substr(2, 9)}`} className="flex flex-col">
+                    <CardHeader className="pb-2 flex-shrink-0">
                       <CardTitle className="text-xl flex items-center justify-between">
                         {category.name}
                         <div className="flex items-center gap-1">
@@ -360,8 +381,8 @@ export default function CategoriesPage() {
                         </div>
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">{category.description || "No description"}</p>
+                    <CardContent className="flex-grow">
+                      <p className="text-sm text-muted-foreground line-clamp-3">{category.description || "No description"}</p>
                     </CardContent>
                   </Card>
                 ))
@@ -381,7 +402,7 @@ export default function CategoriesPage() {
 
           {/* Tags Tab Content */}
           <TabsContent value="tags" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {loading ? (
                 // Loading state
                 Array.from({ length: 12 }).map((_, i) => (
@@ -394,7 +415,7 @@ export default function CategoriesPage() {
                 ))
               ) : filteredTags.length > 0 ? (
                 filteredTags.map((tag) => (
-                  <Card key={tag.id || `tag-fallback-${Math.random().toString(36).substr(2, 9)}`}>
+                  <Card key={tag._id || tag.id || `tag-fallback-${Math.random().toString(36).substr(2, 9)}`} className="h-[120px]">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-lg flex items-center justify-between">
                         {tag.name}

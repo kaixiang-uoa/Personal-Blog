@@ -32,7 +32,7 @@ import ApiService from "@/lib/api-service"
 
 // Post data type
 interface Post {
-  id: string
+  _id: string
   title: string
   excerpt: string
   category: string
@@ -59,26 +59,42 @@ export default function PostsPage() {
   useEffect(() => {
     async function fetchPosts() {
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-
-        // This should be replaced with a real API call
-        const postsResponse = await ApiService.posts.getAll({ limit: 5, sort: 'createdAt:desc' })
-        setPosts(postsResponse.data.posts)
+        setLoading(true)
+        
+        // 构建查询参数
+        const params: any = { 
+          limit: 20, 
+          sort: 'createdAt:desc',
+          lang: 'en' // 指定请求英文内容
+        };
+        
+        // 对于 All Statuses，使用 allStatus=true 参数
+        if (statusFilter === "all") {
+          params.allStatus = 'true'; // 后端接收字符串 'true'
+        } else {
+          // 明确指定状态
+          params.status = statusFilter;
+        }
+        
+        console.log("Fetching posts with params:", params);
+        
+        // 调用 API 获取帖子，传递过滤参数
+        const postsResponse = await ApiService.posts.getAll(params);
+        setPosts(postsResponse.data.posts || []);
       } catch (error) {
-        console.error("Failed to fetch posts", error)
+        console.error("Failed to fetch posts", error);
         toast({
           title: "Failed to fetch posts",
           description: "Please check your network connection and try again",
           variant: "destructive",
-        })
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchPosts()
-  }, [toast])
+    fetchPosts();
+  }, [toast, statusFilter]); // 添加 statusFilter 作为依赖项
 
   // Handle sorting
   const handleSort = (field: keyof Post) => {
@@ -141,7 +157,7 @@ export default function PostsPage() {
       // await axios.delete(`/api/v1/posts/${postToDelete}`)
 
       // Update local state
-      setPosts(posts.filter((post) => post.id !== postToDelete))
+      setPosts(posts.filter((post) => post._id !== postToDelete))
 
       toast({
         title: "Deleted successfully",
@@ -161,8 +177,8 @@ export default function PostsPage() {
   }
 
   // Trigger delete dialog
-  const handleDeleteClick = (postId: string) => {
-    setPostToDelete(postId)
+  const handleDeleteClick = (post_id: string) => {
+    setPostToDelete(post_id)
     setDeleteDialogOpen(true)
   }
 
@@ -217,7 +233,7 @@ export default function PostsPage() {
                     (sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
                 </div>
               </TableHead>
-              <TableHead className="hidden md:table-cell">Category/Tags</TableHead>
+              <TableHead className="h_idden md:table-cell">Category/Tags</TableHead>
               <TableHead onClick={() => handleSort("status")} role="button">
                 <div className="flex items-center gap-1">
                   Status
@@ -272,10 +288,10 @@ export default function PostsPage() {
             ) : filteredAndSortedPosts.length > 0 ? (
               // Posts list
               filteredAndSortedPosts.map((post, postIndex) => (
-                <TableRow key={post.id || `post-row-${postIndex}`}>
+                <TableRow key={post._id || `post-row-${postIndex}`}>
                   <TableCell>
                     <div className="font-medium hover:underline">
-                      <Link href={`/posts/${post.id}`}>{post.title}</Link>
+                      <Link href={`/posts/${post._id}`}>{post.title}</Link>
                     </div>
                     <div className="text-sm text-muted-foreground line-clamp-1">{post.excerpt}</div>
                   </TableCell>
@@ -286,7 +302,7 @@ export default function PostsPage() {
                         <div className="flex flex-wrap gap-1 mb-1">
                           {post.categories.map((category, catIndex) => {
                             const catName = typeof category === 'object' && category !== null
-                              ? (category as any).name || (category as any).title || (category as any).slug || JSON.stringify(category)
+                              ? (category as any).name_en || (category as any).name || (category as any).title || (category as any).slug || JSON.stringify(category)
                               : String(category);
                               
                             const catId = typeof category === 'object' && category !== null
@@ -295,7 +311,7 @@ export default function PostsPage() {
                               
                             return (
                               <Badge 
-                                key={`${post.id || `post-${postIndex}`}-cat-${catId}`}
+                                key={`${post._id || `post-${postIndex}`}-cat-${catId}`}
                                 variant="outline"
                               >
                                 {catName}
@@ -307,7 +323,7 @@ export default function PostsPage() {
                         // 处理可能的单个category字段
                         <Badge variant="outline">
                           {typeof post.category === 'object' && post.category !== null
-                            ? (post.category as any).name || (post.category as any).title || (post.category as any).slug
+                            ? (post.category as any).name_en || (post.category as any).name || (post.category as any).title || (post.category as any).slug
                             : post.category}
                         </Badge>
                       ) : (
@@ -320,7 +336,7 @@ export default function PostsPage() {
                           post.tags.map((tag, tagIndex) => {
                             // 处理tag可能是对象或字符串的情况
                             const tagName = typeof tag === 'object' && tag !== null 
-                              ? (tag as any).name || (tag as any).slug || JSON.stringify(tag) 
+                              ? (tag as any).name_en || (tag as any).name || (tag as any).slug || JSON.stringify(tag) 
                               : String(tag);
                             
                             const tagId = typeof tag === 'object' && tag !== null
@@ -329,7 +345,7 @@ export default function PostsPage() {
                               
                             return (
                               <Badge 
-                                key={`${post.id || `post-${postIndex}`}-tag-${tagId || tagIndex}`} 
+                                key={`${post._id || `post-${postIndex}`}-tag-${tagId || tagIndex}`} 
                                 variant="secondary" 
                                 className="text-xs"
                               >
@@ -366,15 +382,15 @@ export default function PostsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/posts/${post.id}`}>View/Edit</Link>
+                          <Link href={`/posts/${post._id}/edit`}>View/Edit</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/posts/${post.id}/preview`}>Preview</Link>
+                          <Link href={`/posts/${post._id}/preview`}>Preview</Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => handleDeleteClick(post.id)}
+                          onClick={() => handleDeleteClick(post._id)}
                         >
                           Delete
                         </DropdownMenuItem>

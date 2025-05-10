@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { X, LayoutDashboard, FileText, BookmarkPlus, ImageIcon, Settings, LogOut } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
+import AuthService from "@/lib/auth-service"
+import { useToast } from "@/hooks/use-toast"
 
 interface SidebarProps {
   open: boolean
@@ -16,6 +18,8 @@ interface SidebarProps {
 export default function Sidebar({ open, setOpen }: SidebarProps) {
   const pathname = usePathname()
   const isMobile = useMobile()
+  const router = useRouter()
+  const { toast } = useToast()
 
   const items = [
     {
@@ -45,9 +49,22 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
     },
   ]
 
-  const handleLogout = () => {
-    // Handle logout logic
-    console.log("Logging out...")
+  const handleLogout = async () => {
+    try {
+      await AuthService.logout()
+      toast({
+        title: "登出成功",
+        description: "您已成功退出登录",
+      })
+      router.push("/login")
+    } catch (error) {
+      console.error("登出失败:", error)
+      toast({
+        title: "登出失败",
+        description: "退出登录时发生错误，请重试",
+        variant: "destructive",
+      })
+    }
   }
 
   return (

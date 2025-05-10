@@ -10,10 +10,9 @@ export const AuthService = {
   },
 
   // Login
-  login: async (credentials: { username: string; password: string; rememberMe: boolean }): Promise<UserInfo> => {
+  login: async (credentials: { email: string; password: string; rememberMe: boolean }): Promise<UserInfo> => {
     try {
       const response = await ApiService.auth.login(credentials) as LoginResponse
-
       // Save authentication token
       localStorage.setItem("authToken", response.token)
 

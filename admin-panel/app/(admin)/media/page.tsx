@@ -33,25 +33,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Download, Eye, Filter, MoreHorizontal, Search, Trash2, Upload } from "lucide-react"
+import { Clipboard, Download, Eye, Filter, MoreHorizontal, Search, Trash2, Upload } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
+import ApiService from "@/lib/api-service"
 
-// 媒体项类型
+// Media item type definition
 interface MediaItem {
   id: string
   filename: string
   url: string
   type: "image" | "document" | "video" | "other"
-  size: number // 单位：bytes
+  size: number // in bytes
   dimensions?: { width: number; height: number }
   uploadDate: string
   mimeType: string
 }
 
-// 文件大小格式化
+// Format file size helper
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 B"
   const k = 1024
@@ -80,33 +81,18 @@ export default function MediaPage() {
   useEffect(() => {
     async function fetchMediaItems() {
       try {
-        // 模拟API调用
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-
-        // 这里应该替换为真实的API调用
-        // const response = await axios.get('/api/v1/media')
-
-        // 模拟数据
-        const mockMediaItems: MediaItem[] = Array.from({ length: 16 }).map((_, i) => ({
-          id: `media-${i + 1}`,
-          filename: `image-${i + 1}.jpg`,
-          url: `/placeholder.svg?height=400&width=400`,
-          type: ["image", "document", "video", "image"][i % 4] as any,
-          mimeType: ["image/jpeg", "application/pdf", "video/mp4", "image/png"][i % 4],
-          size: Math.floor(Math.random() * 10000000),
-          dimensions: {
-            width: 1200,
-            height: 800,
-          },
-          uploadDate: new Date(Date.now() - i * 86400000).toISOString(),
-        }))
-
-        setMediaItems(mockMediaItems)
+        setLoading(true)
+        
+        // Fetch media items from API
+        const response = await ApiService.media.getAll()
+        if (response.data && response.data.media) {
+          setMediaItems(response.data.media)
+        }
       } catch (error) {
         console.error("Failed to fetch media items", error)
         toast({
-          title: "获取媒体资源失败",
-          description: "请检查网络连接后重试",
+          title: "Failed to fetch media",
+          description: "Please check your network connection and try again",
           variant: "destructive",
         })
       } finally {
@@ -117,19 +103,19 @@ export default function MediaPage() {
     fetchMediaItems()
   }, [toast])
 
-  // 根据类型和搜索过滤媒体项
+  // Filter media items by type and search query
   const filteredItems = mediaItems.filter((item) => {
     const matchesType = typeFilter === "all" || item.type === typeFilter
     const matchesSearch = item.filename.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesType && matchesSearch
   })
 
-  // 处理多选
+  // Toggle item selection
   const toggleSelectItem = (id: string) => {
     setSelectedItems((prev) => (prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]))
   }
 
-  // 全选/取消全选
+  // Toggle select all items
   const toggleSelectAll = () => {
     if (selectedItems.length === filteredItems.length) {
       setSelectedItems([])
@@ -138,20 +124,20 @@ export default function MediaPage() {
     }
   }
 
-  // 打开详情对话框
+  // Open media detail dialog
   const openDetailDialog = (item: MediaItem) => {
     setSelectedItem(item)
     setDetailDialogOpen(true)
   }
 
-  // 处理文件选择
+  // Handle file input change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFiles(Array.from(e.target.files))
     }
   }
 
-  // 处理文件拖放
+  // Handle file drop
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     if (e.dataTransfer.files) {
@@ -160,60 +146,36 @@ export default function MediaPage() {
     }
   }, [])
 
-  // 处理拖放区域事件
+  // Handle drag over
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
   }, [])
 
-  // 处理上传
+  // Handle file upload
   const handleUpload = async () => {
     if (files.length === 0) return
 
     try {
       setIsUploading(true)
 
-      // 模拟上传进度
-      for (let i = 0; i <= 100; i += 10) {
-        setUploadProgress(i)
-        await new Promise((resolve) => setTimeout(resolve, 300))
+      // Create FormData
+      const formData = new FormData()
+      files.forEach(file => formData.append('files', file))
+      
+      // Upload files
+      const response = await ApiService.media.upload(formData, (progressEvent: any) => {
+        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        setUploadProgress(progress)
+      })
+
+      // Update media items list
+      if (response.data && response.data.media) {
+        setMediaItems(prevItems => [...response.data.media, ...prevItems])
       }
 
-      // 这里应该替换为真实的API调用
-      // const formData = new FormData()
-      // files.forEach(file => formData.append('files', file))
-      // await axios.post('/api/v1/media/upload', formData, {
-      //   onUploadProgress: (progressEvent) => {
-      //     const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-      //     setUploadProgress(progress)
-      //   }
-      // })
-
-      // 模拟新的媒体项
-      const newItems: MediaItem[] = files.map((file, i) => ({
-        id: `new-media-${Date.now()}-${i}`,
-        filename: file.name,
-        url: `/placeholder.svg?height=400&width=400`,
-        type: file.type.startsWith("image/")
-          ? "image"
-          : file.type.startsWith("video/")
-            ? "video"
-            : file.type.startsWith("application/pdf")
-              ? "document"
-              : "other",
-        mimeType: file.type,
-        size: file.size,
-        dimensions: {
-          width: 1200,
-          height: 800,
-        },
-        uploadDate: new Date().toISOString(),
-      }))
-
-      setMediaItems([...newItems, ...mediaItems])
-
       toast({
-        title: "上传成功",
-        description: `已成功上传 ${files.length} 个文件`,
+        title: "Upload Successful",
+        description: `Successfully uploaded ${files.length} file(s)`,
       })
 
       setFiles([])
@@ -221,8 +183,8 @@ export default function MediaPage() {
     } catch (error) {
       console.error("Failed to upload files", error)
       toast({
-        title: "上传失败",
-        description: "无法上传文件，请重试",
+        title: "Upload Failed",
+        description: "Unable to upload files, please try again",
         variant: "destructive",
       })
     } finally {
@@ -231,22 +193,19 @@ export default function MediaPage() {
     }
   }
 
-  // 处理删除
+  // Handle media deletion
   const handleDelete = async () => {
     if (selectedItems.length === 0) return
 
     try {
-      // 模拟API调用
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // 这里应该替换为真实的API调用
-      // await Promise.all(selectedItems.map(id => axios.delete(`/api/v1/media/${id}`)))
+      // Delete selected media items
+      await Promise.all(selectedItems.map(id => ApiService.media.delete(id)))
 
       setMediaItems(mediaItems.filter((item) => !selectedItems.includes(item.id)))
 
       toast({
-        title: "删除成功",
-        description: `已成功删除 ${selectedItems.length} 个文件`,
+        title: "Delete Successful",
+        description: `Successfully deleted ${selectedItems.length} file(s)`,
       })
 
       setSelectedItems([])
@@ -254,29 +213,29 @@ export default function MediaPage() {
     } catch (error) {
       console.error("Failed to delete files", error)
       toast({
-        title: "删除失败",
-        description: "无法删除文件，请重试",
+        title: "Delete Failed",
+        description: "Unable to delete files, please try again",
         variant: "destructive",
       })
     }
   }
 
-  // 处理复制URL
+  // Copy URL to clipboard
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     toast({
-      title: "已复制",
-      description: "URL已复制到剪贴板",
+      title: "Copied",
+      description: "URL copied to clipboard",
     })
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-2xl font-bold tracking-tight">媒体库</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Media Library</h2>
         <Button onClick={() => setUploadDialogOpen(true)} className="flex items-center gap-1">
           <Upload className="h-4 w-4" />
-          上传文件
+          Upload Files
         </Button>
       </div>
 
@@ -285,7 +244,7 @@ export default function MediaPage() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="搜索媒体文件..."
+            placeholder="Search media files..."
             className="w-full pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -295,34 +254,34 @@ export default function MediaPage() {
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="文件类型" />
+              <SelectValue placeholder="File Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">所有类型</SelectItem>
-              <SelectItem value="image">图片</SelectItem>
-              <SelectItem value="document">文档</SelectItem>
-              <SelectItem value="video">视频</SelectItem>
-              <SelectItem value="other">其他</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="image">Images</SelectItem>
+              <SelectItem value="document">Documents</SelectItem>
+              <SelectItem value="video">Videos</SelectItem>
+              <SelectItem value="other">Others</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "grid" | "list")}>
           <TabsList>
-            <TabsTrigger value="grid">网格</TabsTrigger>
-            <TabsTrigger value="list">列表</TabsTrigger>
+            <TabsTrigger value="grid">Grid</TabsTrigger>
+            <TabsTrigger value="list">List</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {selectedItems.length > 0 && (
         <div className="flex items-center justify-between bg-muted p-2 rounded-md">
-          <span className="text-sm">已选择 {selectedItems.length} 项</span>
+          <span className="text-sm">{selectedItems.length} item(s) selected</span>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setSelectedItems([])}>
-              取消选择
+              Cancel Selection
             </Button>
             <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
-              删除所选
+              Delete Selected
             </Button>
           </div>
         </div>
@@ -396,7 +355,7 @@ export default function MediaPage() {
                             openDetailDialog(item)
                           }}
                         >
-                          <Eye className="h-4 w-4 mr-1" /> 查看
+                          <Eye className="h-4 w-4 mr-1" /> View
                         </Button>
                       </div>
                     </div>
@@ -409,7 +368,7 @@ export default function MediaPage() {
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">操作菜单</span>
+                            <span className="sr-only">Actions</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -419,7 +378,7 @@ export default function MediaPage() {
                               openDetailDialog(item)
                             }}
                           >
-                            查看详情
+                            View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => {
@@ -427,11 +386,11 @@ export default function MediaPage() {
                               copyToClipboard(item.url)
                             }}
                           >
-                            复制URL
+                            Copy URL
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <a href={item.url} download={item.filename} onClick={(e) => e.stopPropagation()}>
-                              下载
+                              Download
                             </a>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
@@ -443,7 +402,7 @@ export default function MediaPage() {
                               setDeleteDialogOpen(true)
                             }}
                           >
-                            删除
+                            Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -463,11 +422,11 @@ export default function MediaPage() {
                     className="rounded"
                   />
                 </div>
-                <span className="flex-1 ml-3">文件名</span>
-                <span className="w-24 text-center">类型</span>
-                <span className="w-24 text-center">大小</span>
-                <span className="w-32 text-center">上传日期</span>
-                <span className="w-24 text-center">操作</span>
+                <span className="flex-1 ml-3">Filename</span>
+                <span className="w-24 text-center">Type</span>
+                <span className="w-24 text-center">Size</span>
+                <span className="w-32 text-center">Upload Date</span>
+                <span className="w-24 text-center">Actions</span>
               </div>
               {filteredItems.map((item) => (
                 <div
@@ -508,12 +467,12 @@ export default function MediaPage() {
                   <span className="w-24 text-center">
                     <Badge variant="outline">
                       {item.type === "image"
-                        ? "图片"
+                        ? "Image"
                         : item.type === "document"
-                          ? "文档"
+                          ? "Document"
                           : item.type === "video"
-                            ? "视频"
-                            : "其他"}
+                            ? "Video"
+                            : "Other"}
                     </Badge>
                   </span>
                   <span className="w-24 text-center text-sm">{formatFileSize(item.size)}</span>
@@ -523,15 +482,15 @@ export default function MediaPage() {
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">操作菜单</span>
+                          <span className="sr-only">Actions</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openDetailDialog(item)}>查看详情</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => copyToClipboard(item.url)}>复制URL</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openDetailDialog(item)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => copyToClipboard(item.url)}>Copy URL</DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <a href={item.url} download={item.filename}>
-                            下载
+                            Download
                           </a>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -542,7 +501,7 @@ export default function MediaPage() {
                             setDeleteDialogOpen(true)
                           }}
                         >
-                          删除
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -553,42 +512,42 @@ export default function MediaPage() {
           )
         ) : (
           <div className="flex flex-col items-center justify-center h-64">
-            <p className="text-muted-foreground mb-4">没有找到符合条件的媒体文件</p>
+            <p className="text-muted-foreground mb-4">No media files found</p>
             <Button onClick={() => setUploadDialogOpen(true)} className="flex items-center gap-1">
               <Upload className="h-4 w-4" />
-              上传文件
+              Upload Files
             </Button>
           </div>
         )}
       </div>
 
-      {/* 删除确认对话框 */}
+      {/* Delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
             <AlertDialogDescription>
-              此操作将永久删除所选的 {selectedItems.length} 个文件，且无法恢复。是否确认删除？
+              This action will permanently delete {selectedItems.length} file(s) and cannot be undone. Are you sure?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              确认删除
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 上传对话框 */}
+      {/* Upload dialog */}
       <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>上传文件</DialogTitle>
-            <DialogDescription>支持上传图片、文档和视频文件。单个文件大小不超过10MB。</DialogDescription>
+            <DialogTitle>Upload Files</DialogTitle>
+            <DialogDescription>Supports images, documents, and videos. Maximum file size is 10MB.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div
@@ -597,11 +556,11 @@ export default function MediaPage() {
               onDragOver={handleDragOver}
             >
               <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground mb-1">拖放文件至此处，或</p>
+              <p className="text-sm text-muted-foreground mb-1">Drag and drop files here, or</p>
               <div className="flex justify-center">
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <span className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 rounded-md text-sm">
-                    选择文件
+                    Select Files
                   </span>
                   <input id="file-upload" type="file" multiple onChange={handleFileChange} className="sr-only" />
                 </label>
@@ -610,7 +569,7 @@ export default function MediaPage() {
 
             {files.length > 0 && (
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                <p className="text-sm font-medium">已选择 {files.length} 个文件：</p>
+                <p className="text-sm font-medium">{files.length} file(s) selected:</p>
                 {files.map((file, i) => (
                   <div key={i} className="flex items-center justify-between text-sm">
                     <span className="truncate max-w-[250px]">{file.name}</span>
@@ -631,21 +590,21 @@ export default function MediaPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
-              取消
+              Cancel
             </Button>
             <Button onClick={handleUpload} disabled={files.length === 0 || isUploading}>
-              上传
+              Upload
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* 详情对话框 */}
+      {/* Detail dialog */}
       {selectedItem && (
         <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>媒体详情</DialogTitle>
+              <DialogTitle>Media Details</DialogTitle>
             </DialogHeader>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-muted rounded-md overflow-hidden flex items-center justify-center">
@@ -662,28 +621,28 @@ export default function MediaPage() {
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center">
                       <span className="text-4xl block mb-2">PDF</span>
-                      <p className="text-sm text-muted-foreground">预览不可用</p>
+                      <p className="text-sm text-muted-foreground">Preview not available</p>
                     </div>
                   </div>
                 ) : selectedItem.type === "video" ? (
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center">
                       <span className="text-4xl block mb-2">Video</span>
-                      <p className="text-sm text-muted-foreground">预览不可用</p>
+                      <p className="text-sm text-muted-foreground">Preview not available</p>
                     </div>
                   </div>
                 ) : (
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center">
                       <span className="text-4xl block mb-2">File</span>
-                      <p className="text-sm text-muted-foreground">预览不可用</p>
+                      <p className="text-sm text-muted-foreground">Preview not available</p>
                     </div>
                   </div>
                 )}
               </div>
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">文件名</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Filename</h3>
                   <p>{selectedItem.filename}</p>
                 </div>
                 <div>
@@ -697,34 +656,34 @@ export default function MediaPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">类型</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Type</h3>
                     <p>{selectedItem.mimeType}</p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">大小</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Size</h3>
                     <p>{formatFileSize(selectedItem.size)}</p>
                   </div>
                 </div>
                 {selectedItem.dimensions && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">宽度</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Width</h3>
                       <p>{selectedItem.dimensions.width}px</p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">高度</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Height</h3>
                       <p>{selectedItem.dimensions.height}px</p>
                     </div>
                   </div>
                 )}
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">上传日期</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Upload Date</h3>
                   <p>{new Date(selectedItem.uploadDate).toLocaleString()}</p>
                 </div>
                 <div className="flex gap-2 pt-2">
                   <Button variant="secondary" asChild className="flex-1 gap-1">
                     <a href={selectedItem.url} download={selectedItem.filename}>
-                      <Download className="h-4 w-4" /> 下载
+                      <Download className="h-4 w-4" /> Download
                     </a>
                   </Button>
                   <Button
@@ -736,7 +695,7 @@ export default function MediaPage() {
                       setDetailDialogOpen(false)
                     }}
                   >
-                    <Trash2 className="h-4 w-4" /> 删除
+                    <Trash2 className="h-4 w-4" /> Delete
                   </Button>
                 </div>
               </div>

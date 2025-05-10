@@ -1,7 +1,16 @@
 // API service module encapsulation
 
 import axios from "axios"
-import type { ApiResponse, LoginRequest, LoginResponse, UserInfo } from "@/types/api"
+import type { LoginRequest, LoginResponse, UserInfo } from "@/types/auth"
+import type { ApiResponse } from "@/types/api"
+// 扩展Error类型以支持自定义属性
+declare global {
+  interface Error {
+    loginError?: boolean;
+    originalMessage?: string;
+    isLoginError?: boolean;
+  }
+}
 
 // Create axios instance
 const apiClient = axios.create({
@@ -36,10 +45,33 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle 401 unauthorized error
     if (error.response && error.response.status === 401) {
-      // Clear local authentication information
+      // 检查当前路径是否为登录页面
+      const isLoginPage = window.location.pathname.includes('/login')
+      
+      // 如果不是登录页面才进行重定向
+      if (!isLoginPage) {
+        // Clear local authentication information
       localStorage.removeItem("authToken")
-      // Redirect to login page
+        // Redirect to login page
       window.location.href = "/login"
+      } else {
+        // 在登录页面，保留错误信息和响应内容以便显示给用户
+        if (error.response.data) {
+          error.loginError = true
+          // 添加原始错误信息以便前端显示，只保留必要信息
+          error.originalMessage = error.response.data.message || "用户名或密码不正确"
+          
+          // 防止错误显示在控制台
+          error.isLoginError = true
+          
+          // 清理不必要的错误信息，避免控制台信息过多
+          const cleanError = new Error(error.originalMessage)
+          cleanError.loginError = true
+          cleanError.originalMessage = error.originalMessage
+          cleanError.isLoginError = true
+          return Promise.reject(cleanError)
+        }
+      }
     }
     return Promise.reject(error)
   },
@@ -49,13 +81,12 @@ apiClient.interceptors.response.use(
 export const ApiService = {
   // Authentication related
   auth: {
-    login: async (credentials: { username: string; password: string; rememberMe: boolean }): Promise<LoginResponse> => {
+    login: async (credentials: { email: string; password: string; rememberMe: boolean }): Promise<LoginResponse> => {
       // Convert to format expected by backend: map username to email
       const loginData: LoginRequest = {
-        email: credentials.username, // Field mapping
+        email: credentials.email, // Field mapping
         password: credentials.password
       };
-      
       // Since the response interceptor already returns the data part, the return value is already of LoginResponse type
       return apiClient.post("/auth/login", loginData) as unknown as LoginResponse
     },
@@ -75,11 +106,23 @@ export const ApiService = {
     getAll: async (params?: any) => {
       return apiClient.get("/posts", { params })
     },
-    getById: async (id: string) => {
-      return apiClient.get(`/posts/${id}`)
+    getById: async (id: string, lang: string = 'en') => {
+      try {
+        const response = await apiClient.get(`/posts/${id}`, { params: { lang } });
+        return response;
+      } catch (error: any) {
+        console.error('Error fetching post:', {
+          id,
+          lang,
+          error: error.response?.data || error.message,
+          status: error.response?.status,
+          url: error.config?.url
+        });
+        throw error;
+      }
     },
-    getBySlug: async (slug: string) => {
-      return apiClient.get(`/posts/slug/${slug}`)
+    getBySlug: async (slug: string, lang: string = 'en') => {
+      return apiClient.get(`/posts/slug/${slug}`, { params: { lang } })
     },
     create: async (data: any) => {
       return apiClient.post("/posts", data)
@@ -95,7 +138,7 @@ export const ApiService = {
         const response = await Promise.all([
           apiClient.get("/posts?limit=1&count=true"),
           apiClient.get("/categories?limit=1&count=true"),
-          apiClient.get("/comments?limit=1&count=true")
+          // apiClient.get("/comments?limit=1&count=true")
         ]);
         
         return {
@@ -103,7 +146,7 @@ export const ApiService = {
           data: {
             postCount: response[0].data?.total || 0,
             categoryCount: response[1].data?.total || 0,
-            commentCount: response[2].data?.total || 0,
+            // commentCount: response[2].data?.total || 0,
             viewCount: 0
           }
         };
@@ -124,11 +167,11 @@ export const ApiService = {
 
   // Categories related
   categories: {
-    getAll: async () => {
-      return apiClient.get("/categories")
+    getAll: async (lang: string = 'en') => {
+      return apiClient.get("/categories", { params: { lang } })
     },
-    getById: async (id: string) => {
-      return apiClient.get(`/categories/${id}`)
+    getById: async (id: string, lang: string = 'en') => {
+      return apiClient.get(`/categories/${id}`, { params: { lang } })
     },
     create: async (data: any) => {
       return apiClient.post("/categories", data)
@@ -143,8 +186,8 @@ export const ApiService = {
 
   // Tags related
   tags: {
-    getAll: async () => {
-      return apiClient.get("/tags")
+    getAll: async (lang: string = 'en') => {
+      return apiClient.get("/tags", { params: { lang } })
     },
     create: async (data: any) => {
       return apiClient.post("/tags", data)

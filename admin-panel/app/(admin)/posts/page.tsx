@@ -76,8 +76,6 @@ export default function PostsPage() {
           params.status = statusFilter;
         }
         
-        console.log("Fetching posts with params:", params);
-        
         // 调用 API 获取帖子，传递过滤参数
         const postsResponse = await ApiService.posts.getAll(params);
         setPosts(postsResponse.data.posts || []);

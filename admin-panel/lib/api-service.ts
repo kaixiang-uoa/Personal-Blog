@@ -14,7 +14,8 @@ declare global {
 
 // Create axios instance
 const apiClient = axios.create({
-  baseURL: "http://localhost:3001/api/v1",
+  // baseURL: "http://localhost:3001/api/v1",
+  baseURL: "https://personal-blog-w2y9.onrender.com/api/v1",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

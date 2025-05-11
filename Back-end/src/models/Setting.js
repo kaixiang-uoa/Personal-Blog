@@ -10,11 +10,12 @@ const SettingSchema = new Schema({
     },
     value: {
         type: Schema.Types.Mixed,
-        required: true
+        required: false,
+        default: ''
     },
     group: {
         type: String,
-        enum: ['general', 'appearance', 'seo', 'social', 'advanced'],
+        enum: ['general', 'appearance', 'seo', 'social', 'advanced', 'about'],
         default: 'general'
     },
     description: {

@@ -65,6 +65,29 @@ export default function AboutMe() {
       });
   }, [locale]);
 
+  // 检查对象是否有有效的非空值
+  const hasValidContent = (obj: unknown): boolean => {
+    if (!obj) return false;
+    
+    // 检查是否为数组且有元素
+    if (Array.isArray(obj)) {
+      return obj.length > 0;
+    }
+    
+    // 检查是否为对象且有有效属性值
+    if (typeof obj === 'object' && obj !== null) {
+      return Object.values(obj).some(val => 
+        val !== null && 
+        val !== undefined && 
+        val !== '' && 
+        (typeof val !== 'object' || hasValidContent(val))
+      );
+    }
+    
+    // 检查普通值是否有效
+    return obj !== null && obj !== undefined && obj !== '';
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-900 text-gray-200">
@@ -82,16 +105,18 @@ export default function AboutMe() {
 
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {/* Introduction Section */}
-        <section className="mb-12">
-          <h1 className="text-4xl font-extrabold mb-4">About Me</h1>
-          <div 
-            className="text-lg"
-            dangerouslySetInnerHTML={{ __html: aboutData.intro }}
-          />
-        </section>
+        {aboutData.intro && (
+          <section className="mb-12">
+            <h1 className="text-4xl font-extrabold mb-4">About Me</h1>
+            <div 
+              className="text-lg"
+              dangerouslySetInnerHTML={{ __html: aboutData.intro }}
+            />
+          </section>
+        )}
 
         {/* Contact Info */}
-        {aboutData.contact && Object.keys(aboutData.contact).length > 0 && (
+        {hasValidContent(aboutData.contact) && (
           <section className="mb-12">
             <h2 className="text-3xl font-bold mb-4">Contact Information</h2>
             <ul className="list-disc list-inside">
@@ -114,7 +139,7 @@ export default function AboutMe() {
         )}
 
         {/* Skills */}
-        {aboutData.skills && aboutData.skills.length > 0 && (
+        {hasValidContent(aboutData.skills) && (
           <section className="mb-12">
             <h2 className="text-3xl font-bold mb-4">Professional Skills</h2>
             <ul className="list-disc list-inside">
@@ -126,13 +151,16 @@ export default function AboutMe() {
         )}
 
         {/* Education */}
-        {aboutData.education && aboutData.education.length > 0 && (
+        {hasValidContent(aboutData.education) && (
           <section className="mb-12">
             <h2 className="text-3xl font-bold mb-4">Education</h2>
             <ul className="list-disc list-inside">
               {aboutData.education.map((edu, index) => (
                 <li key={index}>
-                  {edu.degree}, {edu.institution} ({edu.year})
+                  {edu.degree && edu.institution ? 
+                    `${edu.degree}, ${edu.institution} ${edu.year ? `(${edu.year})` : ''}` : 
+                    edu.degree || edu.institution
+                  }
                   {edu.description && <p className="text-sm text-gray-400 ml-6">{edu.description}</p>}
                 </li>
               ))}
@@ -141,13 +169,16 @@ export default function AboutMe() {
         )}
 
         {/* Experience */}
-        {aboutData.experience && aboutData.experience.length > 0 && (
+        {hasValidContent(aboutData.experience) && (
           <section className="mb-12">
             <h2 className="text-3xl font-bold mb-4">Experience</h2>
             <ul className="list-disc list-inside">
               {aboutData.experience.map((exp, index) => (
                 <li key={index}>
-                  {exp.position} at {exp.company} ({exp.period})
+                  {exp.position && exp.company ? 
+                    `${exp.position} at ${exp.company} ${exp.period ? `(${exp.period})` : ''}` : 
+                    exp.position || exp.company
+                  }
                   {exp.description && <p className="text-sm text-gray-400 ml-6">{exp.description}</p>}
                 </li>
               ))}
@@ -156,17 +187,27 @@ export default function AboutMe() {
         )}
 
         {/* Projects */}
-        {aboutData.projects && aboutData.projects.length > 0 && (
+        {hasValidContent(aboutData.projects) && (
           <section className="mb-12">
             <h2 className="text-3xl font-bold mb-4">Projects</h2>
             <ul className="list-disc list-inside">
               {aboutData.projects.map((project, index) => (
                 <li key={index}>
-                  {project.name}: {project.description}{' '}
-                  {project.link && (
-                    <a href={project.link} className="text-cyan-600 hover:text-cyan-400" target="_blank" rel="noopener noreferrer">
-                      GitHub Link
-                    </a>
+                  {project.name && (
+                    <>
+                      {project.name}
+                      {project.description && `: ${project.description}`}
+                      {project.link && (
+                        <a 
+                          href={project.link} 
+                          className="text-cyan-600 hover:text-cyan-400 ml-2" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          GitHub Link
+                        </a>
+                      )}
+                    </>
                   )}
                 </li>
               ))}
@@ -174,10 +215,10 @@ export default function AboutMe() {
           </section>
         )}
 
-        {/* Social */}
-        {aboutData.social && Object.keys(aboutData.social).length > 0 && (
+        {/* Social Links */}
+        {hasValidContent(aboutData.social) && (
           <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">Connect with Me</h2>
+            <h2 className="text-3xl font-bold mb-4">Social Links</h2>
             <ul className="list-disc list-inside">
               {aboutData.social.github && (
                 <li>

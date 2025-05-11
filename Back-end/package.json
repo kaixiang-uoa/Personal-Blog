@@ -9,7 +9,9 @@
     "seed": "node src/config/seedData.js",
     "build": "node src/server.js",
     "start": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "init-about": "node src/scripts/init-about-settings.js",
+    "update-about-group": "node src/scripts/update-about-group.js"
   },
   "author": "kaixiang",
   "license": "ISC",

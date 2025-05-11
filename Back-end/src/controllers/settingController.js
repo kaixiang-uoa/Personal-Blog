@@ -4,7 +4,11 @@ import { success, error } from '../utils/responseHandler.js';
 // 获取所有设置
 export const getAllSettings = async (req, res) => {
   try {
-    const settings = await Setting.find();
+    const { group } = req.query;
+    
+    // 如果提供了group参数，按group过滤
+    const filter = group ? { group } : {};
+    const settings = await Setting.find(filter);
     
     // 转换为键值对格式
     const settingsMap = {};
@@ -38,12 +42,21 @@ export const getSettingByKey = async (req, res) => {
 export const updateSetting = async (req, res) => {
   try {
     const { key } = req.params;
-    const { value, description } = req.body;
+    const { value, description, group } = req.body;
+    
+    // 准备更新的数据，处理可能为undefined的值
+    const updateData = {
+      value: value === undefined ? '' : value,
+    };
+    
+    // 只在提供时添加可选字段
+    if (description !== undefined) updateData.description = description;
+    if (group !== undefined) updateData.group = group;
     
     // 使用upsert选项，如果不存在则创建
     const setting = await Setting.findOneAndUpdate(
       { key },
-      { value, description },
+      updateData,
       { new: true, upsert: true }
     );
     
@@ -62,10 +75,19 @@ export const updateSettings = async (req, res) => {
       return error(res, 'setting.invalidFormat', 400);
     }
     
-    const updatePromises = settings.map(({ key, value, description }) => {
+    const updatePromises = settings.map(({ key, value, description, group }) => {
+      // 准备更新的数据，处理可能为undefined的值
+      const updateData = {
+        value: value === undefined ? '' : value,
+      };
+      
+      // 只在提供时添加可选字段
+      if (description !== undefined) updateData.description = description;
+      if (group !== undefined) updateData.group = group;
+      
       return Setting.findOneAndUpdate(
         { key },
-        { value, description },
+        updateData,
         { new: true, upsert: true }
       );
     });

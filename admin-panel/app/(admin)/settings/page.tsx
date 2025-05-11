@@ -48,6 +48,16 @@ interface Settings {
     apiKey: string
     debugMode: boolean
   }
+  about: {
+    intro: string
+    intro_zh: string
+    contact: string
+    skills: string
+    education: string
+    experience: string
+    projects: string
+    social: string
+  }
 }
 
 // Form validation schemas
@@ -81,6 +91,42 @@ const advancedFormSchema = z.object({
   cacheTimeout: z.number().int().min(0),
   apiKey: z.string(),
   debugMode: z.boolean(),
+})
+
+// About form schema
+const aboutFormSchema = z.object({
+  intro: z.string().optional(),
+  intro_zh: z.string().optional(),
+  contact: z.object({
+    email: z.string().email("请输入有效的邮箱地址").optional().or(z.literal('')),
+    phone: z.string().optional().or(z.literal('')),
+    location: z.string().optional().or(z.literal(''))
+  }).optional().nullable(),
+  skills: z.array(z.string().optional().or(z.literal(''))).optional().nullable(),
+  education: z.array(z.object({
+    degree: z.string().optional().or(z.literal('')),
+    institution: z.string().optional().or(z.literal('')),
+    year: z.string().optional().or(z.literal('')),
+    description: z.string().optional().or(z.literal(''))
+  })).optional().nullable(),
+  experience: z.array(z.object({
+    position: z.string().optional().or(z.literal('')),
+    company: z.string().optional().or(z.literal('')),
+    period: z.string().optional().or(z.literal('')),
+    description: z.string().optional().or(z.literal(''))
+  })).optional().nullable(),
+  projects: z.array(z.object({
+    name: z.string().optional().or(z.literal('')),
+    description: z.string().optional().or(z.literal('')),
+    link: z.string().optional().or(z.literal('')),
+    tech: z.array(z.string().optional().or(z.literal(''))).optional().nullable()
+  })).optional().nullable(),
+  social: z.object({
+    github: z.string().optional().or(z.literal('')),
+    linkedin: z.string().optional().or(z.literal('')),
+    twitter: z.string().optional().or(z.literal('')),
+    website: z.string().optional().or(z.literal(''))
+  }).optional().nullable()
 })
 
 export default function SettingsPage() {
@@ -135,6 +181,30 @@ export default function SettingsPage() {
     },
   })
 
+  // About form
+  const aboutForm = useForm<z.infer<typeof aboutFormSchema>>({
+    resolver: zodResolver(aboutFormSchema),
+    defaultValues: {
+      intro: "",
+      intro_zh: "",
+      contact: {
+        email: "",
+        phone: "",
+        location: ""
+      },
+      skills: [],
+      education: [],
+      experience: [],
+      projects: [],
+      social: {
+        github: "",
+        linkedin: "",
+        twitter: "",
+        website: ""
+      }
+    },
+  })
+
   useEffect(() => {
     async function fetchSettings() {
       try {
@@ -152,6 +222,28 @@ export default function SettingsPage() {
           if (data.posts) postsForm.reset(data.posts)
           if (data.appearance) appearanceForm.reset(data.appearance)
           if (data.advanced) advancedForm.reset(data.advanced)
+
+          // Update about form values from response - parse JSON strings
+          const aboutData = {
+            intro: data["about.intro"] || "",
+            intro_zh: data["about.intro_zh"] || "",
+            contact: data["about.contact"] ? JSON.parse(data["about.contact"]) : {
+              email: "",
+              phone: "",
+              location: ""
+            },
+            skills: data["about.skills"] ? JSON.parse(data["about.skills"]) : [],
+            education: data["about.education"] ? JSON.parse(data["about.education"]) : [],
+            experience: data["about.experience"] ? JSON.parse(data["about.experience"]) : [],
+            projects: data["about.projects"] ? JSON.parse(data["about.projects"]) : [],
+            social: data["about.social"] ? JSON.parse(data["about.social"]) : {
+              github: "",
+              linkedin: "",
+              twitter: "",
+              website: ""
+            }
+          }
+          aboutForm.reset(aboutData)
         }
       } catch (error) {
         console.error("Failed to fetch settings", error)
@@ -166,7 +258,7 @@ export default function SettingsPage() {
     }
 
     fetchSettings()
-  }, [toast, generalForm, postsForm, appearanceForm, advancedForm])
+  }, [toast, generalForm, postsForm, appearanceForm, advancedForm, aboutForm])
 
   // Submit general settings
   const onGeneralSubmit = async (values: z.infer<typeof generalFormSchema>) => {
@@ -186,6 +278,84 @@ export default function SettingsPage() {
   // Submit advanced settings
   const onAdvancedSubmit = async (values: z.infer<typeof advancedFormSchema>) => {
     await saveSettings("advanced", values)
+  }
+
+  // Submit about settings
+  const onAboutSubmit = async (values: z.infer<typeof aboutFormSchema>) => {
+    try {
+      setIsSaving(true)
+
+      // 处理可能为null或undefined的嵌套对象
+      const processedValues = {
+        ...values,
+        contact: values.contact || { email: '', phone: '', location: '' },
+        skills: values.skills || [],
+        education: values.education || [],
+        experience: values.experience || [],
+        projects: values.projects || [],
+        social: values.social || { github: '', linkedin: '', twitter: '', website: '' }
+      };
+
+      // 过滤掉空的skills条目
+      if (processedValues.skills.length > 0) {
+        processedValues.skills = processedValues.skills.filter(skill => skill && skill.trim() !== '');
+      }
+
+      // 过滤掉空的数组项
+      interface FieldItem {
+        [key: string]: any;
+      }
+      
+      // 类型安全的过滤函数
+      const filterNonEmptyItems = (items: FieldItem[] | undefined | null): FieldItem[] => {
+        if (!items) return [];
+        return items.filter(item => {
+          return Object.values(item).some(val => val && String(val).trim() !== '');
+        });
+      };
+      
+      // 应用过滤
+      processedValues.education = filterNonEmptyItems(processedValues.education);
+      processedValues.experience = filterNonEmptyItems(processedValues.experience);
+      processedValues.projects = filterNonEmptyItems(processedValues.projects);
+
+      // 处理每个项目的tech数组
+      if (processedValues.projects?.length > 0) {
+        processedValues.projects = processedValues.projects.map(project => ({
+          ...project,
+          tech: project.tech ? project.tech.filter(t => t && t.trim() !== '') : []
+        }));
+      }
+
+      // Create an array of settings to update with JSON stringified values
+      const settings = [
+        { key: "about.intro", value: values.intro || '' },
+        { key: "about.intro_zh", value: values.intro_zh || '' },
+        { key: "about.contact", value: JSON.stringify(processedValues.contact) },
+        { key: "about.skills", value: JSON.stringify(processedValues.skills) },
+        { key: "about.education", value: JSON.stringify(processedValues.education) },
+        { key: "about.experience", value: JSON.stringify(processedValues.experience) },
+        { key: "about.projects", value: JSON.stringify(processedValues.projects) },
+        { key: "about.social", value: JSON.stringify(processedValues.social) },
+      ]
+
+      // Use batch update for about settings
+      await ApiService.settings.batchUpdate({ settings })
+
+      toast({
+        title: "设置已保存",
+        description: "您的关于页面设置已成功保存",
+      })
+    } catch (error) {
+      console.error("Failed to save about settings", error)
+      toast({
+        title: "保存失败",
+        description: "请检查您的网络连接并重试",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   // General method to save settings
@@ -233,6 +403,7 @@ export default function SettingsPage() {
           <TabsTrigger value="posts">Posts</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
+          <TabsTrigger value="about">About</TabsTrigger>
         </TabsList>
 
         {/* General Settings */}
@@ -712,6 +883,567 @@ export default function SettingsPage() {
             </CardContent>
             <CardFooter className="flex justify-end">
               <Button type="submit" form="advanced-form" disabled={loading || isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        {/* About Settings */}
+        <TabsContent value="about" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>About Page Settings</CardTitle>
+              <CardDescription>Configure the content of your about page</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : (
+                <Form {...aboutForm}>
+                  <form id="about-form" onSubmit={aboutForm.handleSubmit(onAboutSubmit)} className="space-y-6">
+                    {/* Introduction Fields */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Introduction</h3>
+                      <FormField
+                        control={aboutForm.control}
+                        name="intro"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>English Introduction (可选)</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} rows={4} placeholder="Hello! I'm a passionate developer..." />
+                            </FormControl>
+                            <FormDescription>支持HTML标签 (例如 &lt;p&gt;, &lt;br&gt;)</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={aboutForm.control}
+                        name="intro_zh"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Chinese Introduction (可选)</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} rows={4} placeholder="你好！我是一名热爱技术..." />
+                            </FormControl>
+                            <FormDescription>中文介绍文本</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    {/* Contact Information */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Contact Information</h3>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={aboutForm.control}
+                          name="contact.email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input placeholder="your.email@example.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={aboutForm.control}
+                          name="contact.phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone</FormLabel>
+                              <FormControl>
+                                <Input placeholder="(Optional) Your phone number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={aboutForm.control}
+                        name="contact.location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Location</FormLabel>
+                            <FormControl>
+                              <Input placeholder="City, Country" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    {/* Skills */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Skills</h3>
+                      <div className="grid gap-4">
+                        {aboutForm.watch("skills")?.map((_, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <FormField
+                              control={aboutForm.control}
+                              name={`skills.${index}`}
+                              render={({ field }) => (
+                                <FormItem className="flex-1">
+                                  <FormControl>
+                                    <Input placeholder="e.g., JavaScript" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              type="button"
+                              onClick={() => {
+                                const currentSkills = aboutForm.getValues("skills") || [];
+                                aboutForm.setValue(
+                                  "skills",
+                                  currentSkills.filter((_, i) => i !== index)
+                                );
+                              }}
+                            >
+                              <span className="sr-only">Remove</span>
+                              &times;
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const currentSkills = aboutForm.getValues("skills") || [];
+                            aboutForm.setValue("skills", [...currentSkills, ""]);
+                          }}
+                        >
+                          Add Skill
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Education */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Education</h3>
+                      {aboutForm.watch("education")?.map((_, index) => (
+                        <Card key={index} className="p-4">
+                          <div className="grid gap-4">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-medium">Education #{index + 1}</h4>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                type="button"
+                                onClick={() => {
+                                  const currentEducation = aboutForm.getValues("education") || [];
+                                  aboutForm.setValue(
+                                    "education",
+                                    currentEducation.filter((_, i) => i !== index)
+                                  );
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <FormField
+                                control={aboutForm.control}
+                                name={`education.${index}.degree`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Degree</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Bachelor of Science" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={aboutForm.control}
+                                name={`education.${index}.institution`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Institution</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="University name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <FormField
+                                control={aboutForm.control}
+                                name={`education.${index}.year`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Year</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="20XX-20XX" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={aboutForm.control}
+                                name={`education.${index}.description`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder="Additional details" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const currentEducation = aboutForm.getValues("education") || [];
+                          aboutForm.setValue("education", [
+                            ...currentEducation,
+                            { degree: "", institution: "", year: "", description: "" },
+                          ]);
+                        }}
+                      >
+                        Add Education
+                      </Button>
+                    </div>
+
+                    <Separator />
+
+                    {/* Experience */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Experience</h3>
+                      {aboutForm.watch("experience")?.map((_, index) => (
+                        <Card key={index} className="p-4">
+                          <div className="grid gap-4">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-medium">Experience #{index + 1}</h4>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                type="button"
+                                onClick={() => {
+                                  const currentExperience = aboutForm.getValues("experience") || [];
+                                  aboutForm.setValue(
+                                    "experience",
+                                    currentExperience.filter((_, i) => i !== index)
+                                  );
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <FormField
+                                control={aboutForm.control}
+                                name={`experience.${index}.position`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Position</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Software Developer" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={aboutForm.control}
+                                name={`experience.${index}.company`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Company</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Company name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <FormField
+                                control={aboutForm.control}
+                                name={`experience.${index}.period`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Period</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="20XX-Present" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={aboutForm.control}
+                                name={`experience.${index}.description`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                      <Textarea placeholder="Job responsibilities" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const currentExperience = aboutForm.getValues("experience") || [];
+                          aboutForm.setValue("experience", [
+                            ...currentExperience,
+                            { position: "", company: "", period: "", description: "" },
+                          ]);
+                        }}
+                      >
+                        Add Experience
+                      </Button>
+                    </div>
+
+                    <Separator />
+
+                    {/* Projects */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Projects</h3>
+                      {aboutForm.watch("projects")?.map((project, index) => (
+                        <Card key={index} className="p-4">
+                          <div className="grid gap-4">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-medium">Project #{index + 1}</h4>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                type="button"
+                                onClick={() => {
+                                  const currentProjects = aboutForm.getValues("projects") || [];
+                                  aboutForm.setValue(
+                                    "projects",
+                                    currentProjects.filter((_, i) => i !== index)
+                                  );
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <FormField
+                                control={aboutForm.control}
+                                name={`projects.${index}.name`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Project Name</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Project name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={aboutForm.control}
+                                name={`projects.${index}.link`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Project Link</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="https://github.com/..." {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <FormField
+                              control={aboutForm.control}
+                              name={`projects.${index}.description`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Description</FormLabel>
+                                  <FormControl>
+                                    <Textarea placeholder="Project description" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <div>
+                              <FormLabel>Technologies</FormLabel>
+                              <div className="grid gap-2 mt-2">
+                                {(aboutForm.watch(`projects.${index}.tech`) || []).map((_, techIndex) => (
+                                  <div key={techIndex} className="flex items-center gap-2">
+                                    <FormField
+                                      control={aboutForm.control}
+                                      name={`projects.${index}.tech.${techIndex}`}
+                                      render={({ field }) => (
+                                        <FormItem className="flex-1">
+                                          <FormControl>
+                                            <Input placeholder="e.g., React" {...field} />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                    <Button
+                                      variant="destructive"
+                                      size="icon"
+                                      type="button"
+                                      onClick={() => {
+                                        const currentTech = aboutForm.getValues(`projects.${index}.tech`) || [];
+                                        aboutForm.setValue(
+                                          `projects.${index}.tech`,
+                                          currentTech.filter((_, i) => i !== techIndex)
+                                        );
+                                      }}
+                                    >
+                                      <span className="sr-only">Remove</span>
+                                      &times;
+                                    </Button>
+                                  </div>
+                                ))}
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const currentTech = aboutForm.getValues(`projects.${index}.tech`) || [];
+                                    aboutForm.setValue(`projects.${index}.tech`, [...currentTech, ""]);
+                                  }}
+                                >
+                                  Add Technology
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const currentProjects = aboutForm.getValues("projects") || [];
+                          aboutForm.setValue("projects", [
+                            ...currentProjects,
+                            { name: "", description: "", link: "", tech: [] },
+                          ]);
+                        }}
+                      >
+                        Add Project
+                      </Button>
+                    </div>
+
+                    <Separator />
+
+                    {/* Social Links */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Social Links</h3>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={aboutForm.control}
+                          name="social.github"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>GitHub</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://github.com/yourusername" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={aboutForm.control}
+                          name="social.linkedin"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>LinkedIn</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://linkedin.com/in/yourusername" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={aboutForm.control}
+                          name="social.twitter"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Twitter</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://twitter.com/yourusername" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={aboutForm.control}
+                          name="social.website"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Website</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://yourwebsite.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </form>
+                </Form>
+              )}
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button type="submit" form="about-form" disabled={loading || isSaving}>
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

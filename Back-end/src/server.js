@@ -12,6 +12,7 @@ import mediaRouter from './routers/mediaRouters.js';
 import settingRouter from './routers/settingRouters.js';
 // Add authentication router
 import authRouter from './routers/authRouters.js';
+import contactRouter from './routers/contactRouters.js';
 // Add error handling middleware
 import {  errorHandler, notFound  } from './middleware/errorMiddleware.js';
 
@@ -48,6 +49,7 @@ app.use(`${API_PREFIX}/comments`, commentRouter);
 app.use(`${API_PREFIX}/media`, mediaRouter);
 app.use(`${API_PREFIX}/settings`, settingRouter);
 app.use(`${API_PREFIX}/auth`, authRouter);
+app.use(`${API_PREFIX}/contact`, contactRouter);
 
 // 404 handler
 app.use(notFound);

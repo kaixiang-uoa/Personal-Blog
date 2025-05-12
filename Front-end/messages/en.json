@@ -48,6 +48,21 @@
     "oldestUpdated": "Oldest Updated",
     "selectSortOrder": "Select Sort Order"
   },
+  "about": {
+    "title": "About Me",
+    "contactTitle": "Contact Information",
+    "skillsTitle": "Professional Skills",
+    "educationTitle": "Education",
+    "experienceTitle": "Experience",
+    "projectsTitle": "Projects",
+    "socialTitle": "Social Links",
+    "email": "Email",
+    "phone": "Phone",
+    "location": "Location",
+    "at": "at",
+    "githubLink": "GitHub Link",
+    "website": "Website"
+  },
   "contact": {
     "title": "Contact Me",
     "description": "Have any questions or suggestions? Feel free to contact me and I'll get back to you as soon as possible.",

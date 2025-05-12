@@ -1,18 +1,18 @@
 import { Inter } from 'next/font/google';
 import { notFound } from 'next/navigation';
-import { NextIntlClientProvider, useMessages } from 'next-intl';
+import { NextIntlClientProvider } from 'next-intl';
 import { locales } from '@/i18n/config';
+import { getMessages } from 'next-intl/server';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export default function LocaleLayout({
-  children,
-  params: { locale },
-}: {
-  children: React.ReactNode;
-  params: { locale: string };
-}) {
-  const messages = useMessages();
+export default async function LocaleLayout(props: {
+  children: React.ReactNode,
+  params: { locale: string },
+}){
+  const messages = await getMessages();
+  const { children, params } = props;
+  const locale = params.locale;
   type LocaleType = (typeof locales)[number];
   if (!locales.includes(locale as LocaleType)) notFound();
   return (

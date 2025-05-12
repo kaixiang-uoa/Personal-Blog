@@ -48,6 +48,21 @@
     "oldestUpdated": "最早更新",
     "selectSortOrder": "选择排序方式"
   },
+  "about": {
+    "title": "关于我",
+    "contactTitle": "联系方式",
+    "skillsTitle": "专业技能",
+    "educationTitle": "教育背景",
+    "experienceTitle": "工作经历",
+    "projectsTitle": "项目经验",
+    "socialTitle": "社交媒体",
+    "email": "邮箱",
+    "phone": "电话",
+    "location": "地点",
+    "at": "在",
+    "githubLink": "GitHub链接",
+    "website": "个人网站"
+  },
   "contact": {
     "title": "联系我",
     "description": "有任何问题或建议？请随时联系我，我会尽快回复您。",

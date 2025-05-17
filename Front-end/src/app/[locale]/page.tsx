@@ -28,7 +28,7 @@ const getArrayParam = (param: string | string[] | null | undefined): string[] =>
   return str.split(',').map(s => s.trim()).filter(Boolean);
 };
 
-export default function Home() {  // 移除 searchParams 参数
+export default function Home() {  
   const t = useTranslations('common');
   const params = useParams();
   const locale = params.locale as string;
@@ -66,12 +66,24 @@ export default function Home() {  // 移除 searchParams 参数
       setArticles(response.posts);
       setTotalPages(Math.ceil(response.total / 10));
       setTotalArticles(response.total);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '获取文章失败';
-      setError(errorMessage);
-      setArticles([]);
-    } finally {
+      setError(null);
       setLoading(false);
+    } catch (err: unknown) {
+      // 检查是否为网络错误（后端未启动）
+      const isNetworkError = err instanceof Error && 
+        (err.message.includes('network') || 
+         err.message.includes('fetch') || 
+         err.message.includes('connection') ||
+         err.message.includes('Network Error'));
+      
+      if (!isNetworkError) {
+        // 对于非网络错误，显示错误信息并停止加载状态
+        const errorMessage = err instanceof Error ? err.message : '获取文章失败';
+        setError(errorMessage);
+        setArticles([]);
+        setLoading(false);
+      }
+      // 对于网络错误，保持loading状态为true，继续显示骨架屏
     }
   }, [currentPage, sort, tagsKey, category, search]);
 
@@ -161,8 +173,8 @@ export default function Home() {  // 移除 searchParams 参数
   };
 
   const hasActiveFilters = useMemo(() => {
-    return tagsParam.length > 0 || !!category || !!search || sort !== 'latest';
-  }, [tagsParam, category, search, sort]);
+    return !!search || sort !== 'latest';
+  }, [search, sort]);
 
   const handlePageChange = (page: number) => {
     router.push(`/${locale}?page=${page}`);
@@ -175,13 +187,13 @@ export default function Home() {  // 移除 searchParams 参数
       <Navbar />
 
       <section className="bg-gradient-to-r from-gray-800 to-gray-700 text-white py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[95%] mx-auto">
           <h1 className="text-4xl font-extrabold sm:text-6xl">{t('latestArticles')}</h1>
           <p className="mt-6 text-xl max-w-3xl">{t('heroSubtitle')}</p>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[95%] mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center flex-wrap gap-4">
           <Link
             href="/"
@@ -205,7 +217,7 @@ export default function Home() {  // 移除 searchParams 参数
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[95%] mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <form
           onSubmit={e => {
             e.preventDefault();
@@ -220,19 +232,19 @@ export default function Home() {  // 移除 searchParams 参数
             onChange={e => router.push(`/${locale}?search=${e.target.value}`)}
             className="w-full px-4 py-2 border border-gray-700 rounded-l-md bg-gray-800 text-white"
           />
-          <button type="submit" className="bg-cyan-600 px-4 py-2 rounded-r-md">
+          <button type="submit" className="bg-cyan-600 px-4 py-2 rounded-r-md ml-2">
             {t('search')}
           </button>
         </form>
       </section>
 
-      <div className="md:hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="md:hidden max-w-[95%] mx-auto px-4 sm:px-6 lg:px-8">
         {tags.length > 0 && (
           <TagFilter tags={tags} activeTags={tagsParam} onTagsChangeAction={handleTagsChange} />
         )}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid md:grid-cols-[280px_1fr] gap-8">
           <div className="hidden md:block">
             <FilterSidebar
@@ -252,20 +264,9 @@ export default function Home() {  // 移除 searchParams 参数
               <div className="bg-gray-800 rounded-lg p-4 flex justify-between items-center mb-6">
                 <div className="flex flex-wrap gap-2 items-center">
                   <span className="text-gray-400">{t('filterConditions')}:</span>
-                  {tagsParam && (
-                    <span className="bg-cyan-600 text-white px-2 py-1 rounded text-sm">
-                      {t('tag')}:{''}
-                      {tagsParam.map(slug => tags.find(t=>t.slug === slug)?.name).join(', ')}
-                    </span>
-                  )}
-                  {category && (
-                    <span className="bg-cyan-600 text-white px-2 py-1 rounded text-sm">
-                      {t('category')}: {getCategoryName(categories.find(c => c.slug === category))}
-                    </span>
-                  )}
                   {search && (
                     <span className="bg-cyan-600 text-white px-2 py-1 rounded text-sm">
-                      {t('search')}: {search}
+                      {search}
                     </span>
                   )}
                 </div>
@@ -287,11 +288,7 @@ export default function Home() {  // 移除 searchParams 参数
             </div>
 
             <h2 className="text-3xl font-extrabold text-white mb-8">
-              {category
-                ? `${t('category')}: ${getCategoryName(categories.find(c => c.slug === category))}`
-                : hasActiveFilters
-                  ? t('filterResults')
-                  : t('latestArticles')}
+              {}
             </h2>
 
             {loading ? (

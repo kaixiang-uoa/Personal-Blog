@@ -16,7 +16,7 @@
     "clearFilters": "清除筛选",
     "category": "分类",
     "filterResults": "筛选结果",
-    "latestArticles": "最新文章",
+    "latestArticles": "关于代码、生活与不那么确定的未来",
     "allCategories": "所有分类",
     "searchPlaceholder": "搜索文章...",
     "noArticlesFound": "没有找到相关文章",
@@ -39,7 +39,7 @@
     "footer": {
       "copyright": "© {year} 我的个人博客. 保留所有权利."
     },
-    "heroSubtitle": "探索技术、创意和思考的世界",
+    "heroSubtitle": "记录一个开发者在生活与工作的路上所思所写.",
     "sortBy": "排序方式",
     "newestFirst": "最新发布",
     "oldestFirst": "最早发布",

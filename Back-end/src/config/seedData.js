@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import databaseConnect from './db.js';
+import logger from './logger.js';
+import { importInitialData } from './importData.js';
 
 // 获取当前文件的目录路径（ES模块兼容方式）
 const __filename = fileURLToPath(import.meta.url);
@@ -101,90 +103,69 @@ const processReferences = (data, refFields) => {
   });
 };
 
-const seedDatabase = async () => {
-  try {
-    await databaseConnect();
-
-    await User.deleteMany({});
-    await Category.deleteMany({});
-    await Tag.deleteMany({});
-    await Post.deleteMany({});
-    await Setting.deleteMany({});
-
-    console.log('✅ Database cleared');
-
-    const userData = loadJsonData('users');
-    const categoryData = loadJsonData('categories');
-    const tagData = loadJsonData('tags');
-
-    if (userData.length > 0) {
-      await User.insertMany(userData);
-      console.log(`✅ Imported ${userData.length} users`);
-    }
-
-    if (categoryData.length > 0) {
-      await Category.insertMany(categoryData);
-      console.log(`✅ Imported ${categoryData.length} categories`);
-    }
-
-    if (tagData.length > 0) {
-      await Tag.insertMany(tagData);
-      console.log(`✅ Imported ${tagData.length} tags`);
-    }
-
-    let postData = loadJsonData('posts');
-    postData = processReferences(postData, ['author', 'categories', 'tags']);
-
-    // ✅ 👇 转换 publishedAt 和 updatedAt 为 Date 类型
-    postData = postData.map(post => {
-      if (typeof post.publishedAt === 'string') {
-        post.publishedAt = new Date(post.publishedAt);
-      }
-      if (typeof post.updatedAt === 'string') {
-        post.updatedAt = new Date(post.updatedAt);
-      }
-      return post;
-    });
-
-    if (postData.length > 0) {
-      await Post.insertMany(postData);
-      console.log(`✅ Imported ${postData.length} posts`);
-    }
-
-    let settingData = loadJsonData('settings');
-    if (settingData.length > 0) {
-      settingData = processReferences(settingData, ['updatedBy']);
-      settingData = settingData.map(item => {
-        const updatedItem = { ...item };
-         
-        if (!updatedItem.key) {
-          updatedItem.key = `default_key_${Math.random().toString(36).substring(2, 9)}`;
-        }
+const createAdminUser = async () => {
+    try {
+        // 检查是否已存在管理员账号
+        const adminExists = await User.findOne({ role: 'admin' });
         
-        if (updatedItem.value === undefined) {
-          updatedItem.value = '';
+        if (adminExists) {
+            logger.info('Admin user already exists, skipping creation');
+            return;
         }
-        if (updatedItem.updatedBy && typeof updatedItem.updatedBy === 'string' && !mongoose.Types.ObjectId.isValid(updatedItem.updatedBy)) {
-          delete updatedItem.updatedBy;
-          
-          if (userData.length > 0) {
-            updatedItem.updatedBy = userData[0]._id; // 使用第一个用户的ID
-          }
-        }
-        return updatedItem;
-      });
 
-      await Setting.insertMany(settingData);
-      console.log(`✅ Imported ${settingData.length} settings`);
+        // 创建管理员账号
+        const adminUser = await User.create({
+            username: process.env.ADMIN_USERNAME || 'admin',
+            email: process.env.ADMIN_EMAIL || 'admin@example.com',
+            password: process.env.ADMIN_PASSWORD || 'Admin@123',
+            role: 'admin',
+            displayName: 'System Administrator',
+            isActive: true
+        });
+
+        logger.info('Admin user created successfully:', {
+            username: adminUser.username,
+            email: adminUser.email
+        });
+    } catch (error) {
+        logger.error('Error creating admin user:', error);
+        throw error;
     }
-
-    console.log('🎉 Database seeding complete!');
-    process.exit(0);
-  } catch (error) {
-    console.error('❌ Database seeding failed:', error);
-    console.error('Error details:', error.stack);
-    process.exit(1);
-  }
 };
 
-seedDatabase();
+const seedDatabase = async () => {
+    try {
+        await databaseConnect();
+
+        logger.info('🔄 Starting database seeding...');
+        
+        // 清空所有数据
+        await User.deleteMany({});
+        await Category.deleteMany({});
+        await Tag.deleteMany({});
+        await Post.deleteMany({});
+        await Setting.deleteMany({});
+
+        logger.info('✅ Database cleared successfully');
+
+        // 创建管理员账号
+        await createAdminUser();
+
+        // 如果需要导入初始数据，取消下面的注释
+        // await importInitialData({ Category, Tag, Post, Setting });
+
+        logger.info('🎉 Database seeding completed successfully!');
+        process.exit(0);
+    } catch (error) {
+        logger.error('❌ Database seeding failed:', error);
+        logger.error('Error details:', error.stack);
+        process.exit(1);
+    }
+};
+
+// 如果直接运行此文件，则执行种子脚本
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    seedDatabase();
+}
+
+export default seedDatabase;

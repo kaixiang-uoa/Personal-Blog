@@ -26,12 +26,12 @@ export const register = async (req, res) => {
             });
         }
         
-        // 创建用户
+        // 创建用户 - 密码将由模型中间件自动加密
         const user = await User.create({
             username,
             email,
             password,
-            role: 'user' // 默认角色
+            role: 'author' // 修改默认角色为 author
         });
         
         // 生成令牌
@@ -61,10 +61,10 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log(email, password)
+        
         // 查找用户
         const user = await User.findOne({ email });
-        console.log(user)
+        
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -72,19 +72,8 @@ export const login = async (req, res) => {
             });
         }
         
-        // 验证密码 - 添加对明文密码的支持
-        let isMatch = false;
-        
-        // 检查是否是明文密码格式 (plaintext:开头)
-        if (user.password.startsWith('plaintext:')) {
-            // 明文密码比较
-            const plainTextPassword = user.password.substring(10); // 移除"plaintext:"前缀
-            isMatch = (password === plainTextPassword);
-            console.log('使用明文密码验证:', { input: password, stored: plainTextPassword, isMatch });
-        } else {
-            // 使用bcrypt进行常规密码验证
-            isMatch = await bcrypt.compare(password, user.password);
-        }
+        // 验证密码 - 只使用 bcrypt 加密方式
+        const isMatch = await bcrypt.compare(password, user.password);
         
         if (!isMatch) {
             return res.status(401).json({

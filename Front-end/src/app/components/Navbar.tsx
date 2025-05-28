@@ -3,16 +3,29 @@ import { useState } from 'react';
 import { Link } from '@/i18n/navigation'; // 使用国际化 Link
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from './LanguageSwitcher';
+import { useSetting } from '@/contexts/SettingsContext';
+import Image from 'next/image';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const t = useTranslations('nav');
+  const siteName = useSetting('general.siteName', "KaiXiang's Blog");
+  const logo = useSetting('general.logo', '');
 
   return (
     <nav className="bg-white shadow-md">
       <div className="flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="text-2xl font-bold text-cyan-600">
-            KaiXiang's Blog
+          <Link href="/" className="text-2xl font-bold text-cyan-600 flex items-center">
+            {logo ? (
+              <Image
+                src={logo}
+                alt={siteName}
+                width={40}
+                height={40}
+                className="mr-2"
+              />
+            ) : null}
+            <span>{siteName}</span>
           </Link>
           <div className="flex justify-between items-center h-16">
             <div className="hidden md:flex md:space-x-8">

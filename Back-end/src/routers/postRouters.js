@@ -19,8 +19,8 @@ router.get('/slug/:slug', getPostBySlug);
 // Get post by ID
 router.get('/:id', getPostById);
 
-// Create post (requires admin privileges)
-router.post('/', protect, restrictTo('admin'), createPost);
+// Create post (requires admin or author privileges)
+router.post('/', protect, restrictTo('admin', 'author'), createPost);
 
 // Update post (requires admin privileges)
 router.put('/:id', protect, restrictTo('admin'), updatePost);

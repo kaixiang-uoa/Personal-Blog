@@ -68,7 +68,7 @@ router.get('/', protect, getAllMedia);
 router.get('/:id', protect, getMediaById);
 
 // 上传媒体文件
-router.post('/', protect, upload.single('file'), uploadMedia);
+router.post('/', protect, upload.array('files', 10), uploadMedia);
 
 // 更新媒体文件信息
 router.put('/:id', protect, updateMedia);

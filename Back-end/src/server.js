@@ -1,63 +1,62 @@
-import express from 'express';
 import dotenv from 'dotenv';
-import cors from 'cors';
-import path from 'path';
-import connectDB from './config/db.js';
-import postRouter from './routers/postRouters.js';
-import userRouter from './routers/userRouters.js';
-import categoryRouter from './routers/categoryRouters.js';
-import tagRouter from './routers/tagRouters.js';
-import commentRouter from './routers/commentRouters.js';
-import mediaRouter from './routers/mediaRouters.js';
-import settingRouter from './routers/settingRouters.js';
-// Add authentication router
-import authRouter from './routers/authRouters.js';
-import contactRouter from './routers/contactRouters.js';
-// Add error handling middleware
-import {  errorHandler, notFound  } from './middleware/errorMiddleware.js';
 
-// loading .env configuration.
+// Load environment variables FIRST - before any other imports
 dotenv.config();
 
-// connect to database
-connectDB();
+import connectDB from './config/db.js';
+import app from './app.js';
+import { logger } from './utils/logger.js';
+import { validateSettings } from './scripts/initSettings.js';
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+// Async function to start the server
+const startServer = async () => {
+  try {
+    // Connect to database
+    await connectDB();
+    
+    // Validate settings, ensure all default settings exist (silent mode)
+    await validateSettings(true);
+    
+    // 获取预期端口
+    let PORT = parseInt(process.env.PORT || '3002', 10);
+    let maxRetries = 5;
+    let retries = 0;
+    
+    const startAppWithRetry = () => {
+      // 创建服务器但不立即监听
+      const server = app.listen(PORT)
+        .on('listening', () => {
+          logger.info(`服务器成功运行在端口 ${PORT}`);
+          console.log(`
+====================================
+🚀 服务器已启动!
+📡 本地: http://localhost:${PORT}
+====================================
+          `);
+        })
+        .on('error', (err) => {
+          if (err.code === 'EADDRINUSE' && retries < maxRetries) {
+            PORT++;
+            retries++;
+            logger.warn(`端口 ${PORT-1} 已被占用，尝试端口 ${PORT}...`);
+            // 关闭当前服务器并重试
+            server.close();
+            startAppWithRetry();
+          } else {
+            logger.error(`无法启动服务器: ${err.message}`);
+            process.exit(1);
+          }
+        });
+    };
+    
+    // 开始尝试启动服务器
+    console.log(`尝试启动服务器，初始端口: ${PORT}`);
+    startAppWithRetry();
+  } catch (error) {
+    logger.error(`服务器启动失败: ${error.message}`);
+    process.exit(1);
+  }
+};
 
-
-// Configure static file directory for accessing public files
-app.use(express.static(path.join(path.resolve(), 'public')));
-
-// Configure static file directory for accessing uploaded media files
-app.use('/uploads', express.static(path.join('../uploads')));
-
-app.get('/',(req,res) =>{
-    res.send('Back-end is running');
-})
-
-// Add API version prefix
-const API_PREFIX = '/api/v1';
-
-// Register routes
-app.use(`${API_PREFIX}/posts`, postRouter);
-app.use(`${API_PREFIX}/users`, userRouter);
-app.use(`${API_PREFIX}/categories`, categoryRouter);
-app.use(`${API_PREFIX}/tags`, tagRouter);
-app.use(`${API_PREFIX}/comments`, commentRouter);
-app.use(`${API_PREFIX}/media`, mediaRouter);
-app.use(`${API_PREFIX}/settings`, settingRouter);
-app.use(`${API_PREFIX}/auth`, authRouter);
-app.use(`${API_PREFIX}/contact`, contactRouter);
-
-// 404 handler
-app.use(notFound);
-
-// Error handling middleware
-app.use(errorHandler);
-
-const PORT = process.env.PORT || 3002;
-app.listen(PORT,()=>{
-    console.log(`🚀 Server is running on http://localhost:${PORT}`);
-})
+// Start the server
+startServer(); 

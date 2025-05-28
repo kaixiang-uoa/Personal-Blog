@@ -137,6 +137,39 @@ export const getPostBySlug = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Check if a slug is available
+ * @param   {string} slug - The slug to check
+ * @param   {string} [excludeId] - Optional post ID to exclude from check
+ * @returns {Promise<boolean>} - True if slug is available
+ */
+const isSlugAvailable = async (slug, excludeId = null) => {
+  const query = { slug };
+  if (excludeId) {
+    query._id = { $ne: excludeId };
+  }
+  const existingPost = await Post.findOne(query);
+  return !existingPost;
+};
+
+/**
+ * @desc    Generate a unique slug
+ * @param   {string} baseSlug - The base slug to use
+ * @param   {string} [excludeId] - Optional post ID to exclude from check
+ * @returns {Promise<string>} - A unique slug
+ */
+const generateUniqueSlug = async (baseSlug, excludeId = null) => {
+  let slug = baseSlug;
+  let counter = 1;
+  
+  while (!(await isSlugAvailable(slug, excludeId))) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  
+  return slug;
+};
+
+/**
  * @desc    Create a post
  * @route   POST /api/posts
  * @access  Private/Admin
@@ -144,7 +177,7 @@ export const getPostBySlug = asyncHandler(async (req, res) => {
 export const createPost = asyncHandler(async (req, res) => {
   const {
     title,
-    slug,
+    slug: providedSlug,
     excerpt,
     content,
     categories,
@@ -154,8 +187,30 @@ export const createPost = asyncHandler(async (req, res) => {
     seo,
   } = req.body;
 
-  const slugExists = await Post.findOne({ slug });
-  if (slugExists) throw createError('This slug is already in use, please use another slug', 400);
+  // 生成唯一的 slug
+  let baseSlug = providedSlug;
+  if (!baseSlug) {
+    baseSlug = title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
+  }
+
+  // 确保 slug 唯一
+  const slug = await generateUniqueSlug(baseSlug);
+
+  // 处理标签
+  let tagIds = [];
+  if (tags && tags.length > 0) {
+    const tagPromises = tags.map(async (tagName) => {
+      let tag = await Tag.findOne({ name: tagName });
+      if (!tag) {
+        tag = await Tag.create({
+          name: tagName,
+          slug: tagName.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-'),
+        });
+      }
+      return tag._id;
+    });
+    tagIds = await Promise.all(tagPromises);
+  }
 
   const post = await Post.create({
     title,
@@ -164,7 +219,7 @@ export const createPost = asyncHandler(async (req, res) => {
     content,
     author: req.user._id,
     categories,
-    tags,
+    tags: tagIds,
     status: status || 'draft',
     featuredImage,
     seo,
@@ -210,6 +265,9 @@ export const updatePost = asyncHandler(async (req, res) => {
 export const deletePost = asyncHandler(async (req, res) => {
   const post = await getPopulatedPostById(req.params.id);
   if (!post) throw createError('Post not found', 404);
+
+  // 只删除文章本身，不动分类和标签
   await post.deleteOne();
+
   return success(res, { message: 'Post deleted successfully' });
 });

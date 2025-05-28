@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
@@ -42,5 +43,22 @@ const UserSchema = new Schema({
 { timestamps: true }
 );
 
+// 密码加密中间件
+UserSchema.pre('save', async function(next) {
+    // 只有在密码被修改时才重新加密
+    if (!this.isModified('password')) {
+        return next();
+    }
+    
+    try {
+        // 生成盐值
+        const salt = await bcrypt.genSalt(10);
+        // 哈希密码
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
 
 export default mongoose.model('User', UserSchema);

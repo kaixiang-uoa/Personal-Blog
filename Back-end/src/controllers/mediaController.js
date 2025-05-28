@@ -67,25 +67,34 @@ export const getMediaById = async (req, res) => {
 // 上传媒体文件
 export const uploadMedia = async (req, res) => {
   try {
-    if (!req.file) {
+    // 检查是否有文件上传
+    if (!req.files || req.files.length === 0) {
       return error(res, 'media.noFile', 400);
     }
     
-    const { originalname, filename, path: filePath, size, mimetype } = req.file;
-    const fileType = mimetype.split('/')[0];
+    // 处理多个文件上传
+    const mediaFiles = [];
     
-    // 创建媒体记录
-    const media = await Media.create({
-      filename,
-      originalName: originalname,
-      filePath: `/uploads/${filename}`,
-      fileSize: size,
-      fileType,
-      mimeType: mimetype,
-      uploadedBy: req.user.id
-    });
+    // 为每个文件创建媒体记录
+    for (const file of req.files) {
+      const { originalname, filename, path: filePath, size, mimetype } = file;
+      const fileType = mimetype.split('/')[0];
+      
+      // 创建媒体记录
+      const media = await Media.create({
+        filename,
+        originalName: originalname,
+        filePath: `/uploads/${filename}`,
+        fileSize: size,
+        fileType,
+        mimeType: mimetype,
+        uploadedBy: req.user.id
+      });
+      
+      mediaFiles.push(media);
+    }
     
-    return success(res, media, 201, 'media.uploaded');
+    return success(res, { media: mediaFiles }, 201, 'media.uploaded');
   } catch (err) {
     return error(res, 'media.uploadFailed', 500, err.message);
   }

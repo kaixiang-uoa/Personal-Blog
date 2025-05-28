@@ -10,6 +10,7 @@ import TagFilter from '../components/TagFilter';
 import FilterSidebar from '../components/FilterSidebar';
 import SortSelector from '@/app/components/SortSelector';
 import ArticleSkeleton from '../components/ArticleSkeleton';
+import { useSetting } from '@/contexts/SettingsContext';
 
 import { Article, Category, Tag, SortOrder } from '@/types';
 import { postApi } from '@/services/postApi';
@@ -51,12 +52,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 从设置中获取侧边栏位置
+  const sidebarPosition = useSetting<'left' | 'right'>('appearance.sidebarPosition', 'right'); 
+  const postsPerPage = useSetting('posts.perPage', 10); 
+
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
       const response = await postApi.getAllPosts({
         page: currentPage,
-        limit: 10,
+        limit: Number(postsPerPage), // 使用设置中的每页文章数
         tag: tagsParam.length > 0 ? tagsParam.join(',') : undefined,
         category: category || undefined,
         search: search || undefined,
@@ -64,7 +69,7 @@ export default function Home() {
         lang: locale
       });
       setArticles(response.posts);
-      setTotalPages(Math.ceil(response.total / 10));
+      setTotalPages(Math.ceil(response.total / Number(postsPerPage)));
       setTotalArticles(response.total);
       setError(null);
       setLoading(false);
@@ -85,7 +90,7 @@ export default function Home() {
       }
       // 对于网络错误，保持loading状态为true，继续显示骨架屏
     }
-  }, [currentPage, sort, tagsKey, category, search]);
+  }, [currentPage, sort, tagsKey, category, search, postsPerPage]);
 
   useEffect(() => {
     fetchArticles();
@@ -245,7 +250,9 @@ export default function Home() {
       </div>
 
       <div className="max-w-[95%] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 始终使用固定布局，筛选区域在左侧，文章区域在右侧 */}
         <div className="grid md:grid-cols-[280px_1fr] gap-8">
+          {/* 筛选区域 - 始终在左侧 */}
           <div className="hidden md:block">
             <FilterSidebar
               tags={tags}
@@ -259,6 +266,7 @@ export default function Home() {
             />
           </div>
 
+          {/* 文章内容区域 - 始终在右侧 */}
           <div>
             {hasActiveFilters && (
               <div className="bg-gray-800 rounded-lg p-4 flex justify-between items-center mb-6">

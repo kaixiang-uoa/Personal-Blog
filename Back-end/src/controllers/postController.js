@@ -96,7 +96,10 @@ export const getAllPosts = asyncHandler(async (req, res) => {
  */
 export const getPostById = asyncHandler(async (req, res) => {
   const lang = req.query.lang || 'zh';
+  console.log('post', req.params.id);
+
   const post = await getPopulatedPostById(req.params.id);
+ 
   if (!post) throw createError('Post not found', 404);
   post.viewCount += 1;
   await post.save();

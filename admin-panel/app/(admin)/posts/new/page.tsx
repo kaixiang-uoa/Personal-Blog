@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Save } from "lucide-react"
 import Link from "next/link"
@@ -51,6 +51,36 @@ export default function NewPostPage() {
     featuredImage: "",
   })
 
+  // Add state to store categories
+  const [categories, setCategories] = useState<Array<{_id: string, name: string}>>([])
+  const [categoryInput, setCategoryInput] = useState("")
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+
+  // Default suggested categories
+  const suggestedCategories = [
+    "Technology",
+    "Lifestyle",
+    "Travel",
+    "Food",
+    "Other"
+  ]
+
+  // Fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await ApiService.categories.getAll()
+        setCategories(response.data.categories || [])
+      } catch (error) {
+        console.error("Failed to fetch categories:", error)
+      } finally {
+        setIsLoadingCategories(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
+
   // Handle input changes
   const handleInputChange = (field: string, value: any) => {
     setPostData((prev) => ({
@@ -95,6 +125,20 @@ export default function NewPostPage() {
     }))
   }
 
+  // Handle category selection or creation
+  const handleCategoryChange = (value: string) => {
+    // If selected from suggested categories
+    if (suggestedCategories.includes(value)) {
+      setPostData(prev => ({
+        ...prev,
+        category: value
+      }))
+    } else {
+      // If input is a new category
+      setCategoryInput(value)
+    }
+  }
+
   // Submit form
   const handleSubmit = async () => {
     if (!postData.title) {
@@ -109,15 +153,29 @@ export default function NewPostPage() {
     setIsLoading(true)
 
     try {
-      // Call API to create post
-      await ApiService.posts.create(postData)
+      // If a new category is selected, create it first
+      let categoryId = postData.category
+      if (suggestedCategories.includes(postData.category)) {
+        const categoryResponse = await ApiService.categories.create({
+          name: postData.category,
+          slug: postData.category.toLowerCase().replace(/\s+/g, '-')
+        })
+        categoryId = categoryResponse.data.category._id
+      }
+
+      // Create post with the new categoryId
+      const postDataWithCategory = {
+        ...postData,
+        category: categoryId
+      }
+
+      await ApiService.posts.create(postDataWithCategory)
 
       toast({
         title: "Success",
         description: "Post created successfully",
       })
 
-      // Redirect to posts list
       router.push("/posts")
     } catch (error) {
       console.error("Failed to create post", error)
@@ -253,23 +311,56 @@ export default function NewPostPage() {
           <Card>
             <CardContent className="pt-6">
               <h3 className="text-lg font-medium mb-4">Categories</h3>
-              <div className="space-y-2">
-                <Label htmlFor="category">Select Category</Label>
-                <Select
-                  value={postData.category}
-                  onValueChange={(value) => handleInputChange("category", value)}
-                >
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="technology">Technology</SelectItem>
-                    <SelectItem value="lifestyle">Lifestyle</SelectItem>
-                    <SelectItem value="travel">Travel</SelectItem>
-                    <SelectItem value="food">Food</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Select or Create Category</Label>
+                  <Select
+                    value={postData.category}
+                    onValueChange={handleCategoryChange}
+                  >
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {isLoadingCategories ? (
+                        <SelectItem value="loading" disabled>Loading categories...</SelectItem>
+                      ) : categories.length > 0 ? (
+                        // Display existing categories
+                        categories.map(category => (
+                          <SelectItem key={category._id} value={category._id}>
+                            {category.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        // Display suggested categories
+                        suggestedCategories.map(category => (
+                          <SelectItem key={category} value={category}>
+                            {category} (New)
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Display suggested categories */}
+                {categories.length === 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    <p className="mb-2">Suggested categories:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestedCategories.map(category => (
+                        <Badge 
+                          key={category}
+                          variant="outline"
+                          className="cursor-pointer hover:bg-accent"
+                          onClick={() => handleCategoryChange(category)}
+                        >
+                          {category}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

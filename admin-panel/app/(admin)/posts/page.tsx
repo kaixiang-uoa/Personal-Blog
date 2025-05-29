@@ -28,21 +28,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
-import ApiService from "@/lib/api-service"
-
-// Post data type
-interface Post {
-  _id: string
-  title: string
-  excerpt: string
-  category: string
-  tags: string[]
-  status: "published" | "draft"
-  publishDate: string
-  updatedDate: string
-  viewCount: number
-  categories: string[]
-}
+import { postService } from "@/lib/services/post-service"
+import type { Post } from "@/types/post"
 
 export default function PostsPage() {
   const router = useRouter()
@@ -51,7 +38,7 @@ export default function PostsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [sortField, setSortField] = useState<keyof Post>("publishDate")
+  const [sortField, setSortField] = useState<keyof Post>("createdAt")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [postToDelete, setPostToDelete] = useState<string | null>(null)
@@ -77,8 +64,8 @@ export default function PostsPage() {
         }
         
         // 调用 API 获取帖子，传递过滤参数
-        const postsResponse = await ApiService.posts.getAll(params);
-        setPosts(postsResponse.data.posts || []);
+        const response = await postService.getAll(params);
+        setPosts(response.data || []);
       } catch (error) {
         console.error("Failed to fetch posts", error);
         toast({
@@ -148,11 +135,7 @@ export default function PostsPage() {
     if (!postToDelete) return
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // This should be replaced with a real API call
-      // await axios.delete(`/api/v1/posts/${postToDelete}`)
+      await postService.delete(postToDelete)
 
       // Update local state
       setPosts(posts.filter((post) => post._id !== postToDelete))

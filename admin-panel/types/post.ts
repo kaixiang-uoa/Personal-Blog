@@ -1,29 +1,44 @@
-// Define post data type
-export interface PostData {
-    title: string;
-    slug: string;
-    excerpt: string;
-    content: string;
-    category: string;
-    tags: string[];
-    status: string;
-    featured: boolean;
-    featuredImage: string;
-    author?: {
-      name: string;
-      avatar?: string;
-    };
-    createdAt?: string;
-    categoryData: any[];
-    displayTags: string[];   // 显示用的标签数组
-    originalTags: any[];     // 原始标签数据
-    tempTags?: string[];     // 临时添加的标签
-    tagsToRemove?: any[];    // 标记为需要删除的标签
-  }
+import { BaseEntity, PostStatus, Author } from './common';
+import { Category } from './category';
+import { TagType } from './tags';
 
-  
-  // 使用具体的类型而不是 any
-export  interface PostParams {
-    id: string;
-  }
+export interface Post extends BaseEntity {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  categories?: Category[];
+  tags: string[];
+  status: PostStatus;
+  featured: boolean;
+  featuredImage: string;
+  author?: Author;
+  publishDate?: string;
+  viewCount?: number;
+}
+
+export interface PostData extends Omit<Post, 'category' | 'tags'> {
+  categoryData: Category[];
+  displayTags: string[];
+  originalTags: TagType[];
+  tempTags?: string[];
+  tagsToRemove?: TagType[];
+}
+
+export interface PostParams {
+  id: string;
+}
+
+export interface PostFormData {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  tags: string[];
+  status: PostStatus;
+  featured: boolean;
+  featuredImage: string;
+}
   

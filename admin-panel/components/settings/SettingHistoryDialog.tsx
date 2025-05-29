@@ -4,38 +4,11 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Loader2, Clock, RotateCcw, Eye, Check } from "lucide-react"
+import { Loader2, Clock, RotateCcw, Eye } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import ApiService from "@/lib/api-service"
+import { settingsService } from "@/lib/services"
 import { formatDistanceToNow } from 'date-fns'
-import type { ApiResponse } from "@/types/api"
-
-interface SettingHistoryItem {
-  _id: string
-  key: string
-  oldValue: any
-  newValue: any
-  action: 'create' | 'update' | 'delete'
-  description: string
-  createdAt: string
-  changedBy?: {
-    _id: string
-    name: string
-    email: string
-  }
-}
-
-interface SettingHistoryResponse extends ApiResponse {
-  data: {
-    history: SettingHistoryItem[]
-    pagination: {
-      total: number
-      page: number
-      limit: number
-      pages: number
-    }
-  }
-}
+import type { SettingHistory } from "@/lib/services/settings-service"
 
 interface SettingHistoryDialogProps {
   open: boolean
@@ -52,11 +25,16 @@ export default function SettingHistoryDialog({
 }: SettingHistoryDialogProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
-  const [history, setHistory] = useState<SettingHistoryItem[]>([])
+  const [history, setHistory] = useState<SettingHistory[]>([])
   const [isRollingBack, setIsRollingBack] = useState(false)
-  const [selectedVersion, setSelectedVersion] = useState<SettingHistoryItem | null>(null)
+  const [selectedVersion, setSelectedVersion] = useState<SettingHistory | null>(null)
   const [activeTab, setActiveTab] = useState<'history' | 'compare'>('history')
-  const isSpecificKey = !!settingKey
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 20,
+    pages: 0
+  })
   
   // 加载历史记录
   useEffect(() => {
@@ -66,7 +44,7 @@ export default function SettingHistoryDialog({
   }, [open, settingKey])
   
   // 根据是否有设置键确定标题
-  const title = isSpecificKey 
+  const title = settingKey 
     ? `History for "${settingKey}"` 
     : "Settings History"
   
@@ -76,26 +54,14 @@ export default function SettingHistoryDialog({
       setLoading(true)
       
       const params = settingKey 
-        ? { key: settingKey, limit: 20 }
-        : { limit: 20 }
+        ? { key: settingKey, limit: pagination.limit, page: pagination.page }
+        : { limit: pagination.limit, page: pagination.page }
         
-      // 由于API客户端已返回处理过的响应数据，需要指明类型
-      const response = await ApiService.settings.getHistory(params) as unknown as {
-        success: boolean;
-        data: {
-          history: SettingHistoryItem[];
-          pagination: {
-            total: number;
-            page: number;
-            limit: number;
-            pages: number;
-          };
-        };
-        message?: string;
-      }
+      const response = await settingsService.getHistory(params)
       
-      if (response.success) {
-        setHistory(response.data?.history || [])
+      if (response.success && response.data) {
+        setHistory(response.data)
+        setPagination(response.pagination)
       } else {
         toast({
           title: "Failed to load history",
@@ -120,8 +86,7 @@ export default function SettingHistoryDialog({
     try {
       setIsRollingBack(true)
       
-      // 由于API客户端已返回处理过的响应数据，需要指明类型
-      const response = await ApiService.settings.rollback(historyId) as unknown as ApiResponse
+      const response = await settingsService.rollback(historyId)
       
       if (response.success) {
         toast({
@@ -156,7 +121,7 @@ export default function SettingHistoryDialog({
   }
   
   // 选择版本进行比较
-  const handleSelectVersion = (item: SettingHistoryItem) => {
+  const handleSelectVersion = (item: SettingHistory) => {
     setSelectedVersion(item)
     setActiveTab('compare')
   }
@@ -172,16 +137,6 @@ export default function SettingHistoryDialog({
     }
     
     return String(value)
-  }
-  
-  // 获取操作的颜色样式
-  const getActionColor = (action: string): string => {
-    switch (action) {
-      case 'create': return 'text-green-500'
-      case 'update': return 'text-blue-500'
-      case 'delete': return 'text-red-500'
-      default: return 'text-gray-500'
-    }
   }
   
   // 格式化时间
@@ -225,12 +180,12 @@ export default function SettingHistoryDialog({
                     <div key={item._id} className="border rounded-md p-4">
                       <div className="flex justify-between items-center mb-2">
                         <div className="flex items-center">
-                          <span className={`font-medium ${getActionColor(item.action)} capitalize`}>
-                            {item.action}
+                          <span className="font-medium text-blue-500 capitalize">
+                            {item.key}
                           </span>
                           <span className="mx-2 text-muted-foreground">•</span>
                           <span className="text-sm text-muted-foreground">
-                            {item.key}
+                            {formatTime(item.createdAt)}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -242,21 +197,19 @@ export default function SettingHistoryDialog({
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </Button>
-                          {item.action !== 'create' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleRollback(item._id)}
-                              disabled={isRollingBack}
-                            >
-                              {isRollingBack ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                              ) : (
-                                <RotateCcw className="h-4 w-4 mr-1" />
-                              )}
-                              Rollback
-                            </Button>
-                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleRollback(item._id)}
+                            disabled={isRollingBack}
+                          >
+                            {isRollingBack ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                            ) : (
+                              <RotateCcw className="h-4 w-4 mr-1" />
+                            )}
+                            Rollback
+                          </Button>
                         </div>
                       </div>
                       
@@ -266,14 +219,10 @@ export default function SettingHistoryDialog({
                         {item.changedBy && (
                           <>
                             <span className="mx-1">•</span>
-                            <span>By {item.changedBy.name || item.changedBy.email}</span>
+                            <span>By {item.changedBy}</span>
                           </>
                         )}
                       </div>
-                      
-                      {item.description && (
-                        <p className="text-sm mt-2 italic">{item.description}</p>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -288,8 +237,8 @@ export default function SettingHistoryDialog({
                   <h3 className="text-lg font-medium">
                     {selectedVersion.key}
                   </h3>
-                  <span className={`px-2 py-1 rounded-full text-xs ${getActionColor(selectedVersion.action)} bg-opacity-10 border border-current`}>
-                    {selectedVersion.action.toUpperCase()}
+                  <span className="px-2 py-1 rounded-full text-xs text-blue-500 bg-opacity-10 border border-current">
+                    {formatTime(selectedVersion.createdAt)}
                   </span>
                 </div>
                 
@@ -317,31 +266,26 @@ export default function SettingHistoryDialog({
                 
                 <div className="mt-2 text-sm text-muted-foreground">
                   <p>Changed {formatTime(selectedVersion.createdAt)}</p>
-                  {selectedVersion.description && (
-                    <p className="mt-1 italic">{selectedVersion.description}</p>
-                  )}
                 </div>
                 
-                {selectedVersion.action !== 'create' && (
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={() => handleRollback(selectedVersion._id)}
-                      disabled={isRollingBack}
-                    >
-                      {isRollingBack ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Rolling Back...
-                        </>
-                      ) : (
-                        <>
-                          <RotateCcw className="h-4 w-4 mr-2" />
-                          Rollback to This Version
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleRollback(selectedVersion._id)}
+                    disabled={isRollingBack}
+                  >
+                    {isRollingBack ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Rolling Back...
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Rollback to This Version
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             )}
           </TabsContent>

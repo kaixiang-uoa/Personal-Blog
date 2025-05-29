@@ -1,11 +1,19 @@
+import { ApiResponse } from "./common";
 import { UserInfo } from "./auth";
 
-// Base API response type
-export interface ApiResponse<T = any> {
-    success: boolean;
-    message?: string;
-    data?: T;
-    token?: string;
-    user?: UserInfo;
-    error?: string;
-  }
+// API specific response types
+export interface AuthResponse extends ApiResponse<UserInfo> {
+  token?: string;
+}
+
+export interface ApiError {
+  message: string;
+  code?: string;
+  details?: any;
+}
+
+export interface ApiConfig {
+  baseURL: string;
+  timeout?: number;
+  headers?: Record<string, string>;
+}

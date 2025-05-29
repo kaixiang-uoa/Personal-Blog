@@ -1,29 +1,35 @@
-// Date utility functions
+/**
+ * Date utility functions for handling date formatting and manipulation
+ */
 
 /**
  * Format date to YYYY-MM-DD format
+ * @param date - Date string or Date object
+ * @returns Formatted date string
  */
 export function formatDate(date: string | Date): string {
   if (!date) return ""
 
   const d = typeof date === "string" ? new Date(date) : date
-
   return d.toISOString().split("T")[0]
 }
 
 /**
  * Format datetime to YYYY-MM-DD HH:MM format
+ * @param date - Date string or Date object
+ * @returns Formatted datetime string
  */
 export function formatDateTime(date: string | Date): string {
   if (!date) return ""
 
   const d = typeof date === "string" ? new Date(date) : date
-
   return `${formatDate(d)} ${d.toTimeString().slice(0, 5)}`
 }
 
 /**
  * Format to relative time (e.g., 3 hours ago, 1 day ago, etc.)
+ * @param date - Date string or Date object
+ * @returns Relative time string
  */
 export function formatRelativeTime(date: string | Date): string {
   if (!date) return ""
@@ -56,6 +62,8 @@ export function formatRelativeTime(date: string | Date): string {
 
 /**
  * Get date range (e.g., this week, this month, last month, etc.)
+ * @param range - Date range type
+ * @returns Object containing start and end dates
  */
 export function getDateRange(range: "today" | "yesterday" | "thisWeek" | "lastWeek" | "thisMonth" | "lastMonth"): {
   start: Date
@@ -97,4 +105,4 @@ export function getDateRange(range: "today" | "yesterday" | "thisWeek" | "lastWe
   }
 
   return { start, end }
-}
+} 

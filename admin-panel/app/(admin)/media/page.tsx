@@ -1,11 +1,9 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,24 +31,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Clipboard, Download, Eye, Filter, MoreHorizontal, Search, Trash2, Upload } from "lucide-react"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+import { Clipboard, Download, Eye, MoreHorizontal, Search, Trash2, Upload } from "lucide-react"
 import Image from "next/image"
-import ApiService from "@/lib/api-service"
-
-// Media item type definition
-interface MediaItem {
-  id: string
-  filename: string
-  url: string
-  type: "image" | "document" | "video" | "other"
-  size: number // in bytes
-  dimensions?: { width: number; height: number }
-  uploadDate: string
-  mimeType: string
-}
+import { mediaService } from "@/lib/services/media-service"
+import type { Media } from "@/types/media"
 
 // Format file size helper
 function formatFileSize(bytes: number): string {
@@ -63,20 +47,15 @@ function formatFileSize(bytes: number): string {
 
 export default function MediaPage() {
   const { toast } = useToast()
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
+  const [mediaItems, setMediaItems] = useState<Media[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeTab, setActiveTab] = useState("all")
-  const [typeFilter, setTypeFilter] = useState<string>("all")
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null)
-  const [files, setFiles] = useState<File[]>([])
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [isUploading, setIsUploading] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<Media | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     async function fetchMediaItems() {
@@ -84,9 +63,9 @@ export default function MediaPage() {
         setLoading(true)
         
         // Fetch media items from API
-        const response = await ApiService.media.getAll()
-        if (response.data && response.data.media) {
-          setMediaItems(response.data.media)
+        const response = await mediaService.getAll()
+        if (response.data) {
+          setMediaItems(response.data)
         }
       } catch (error) {
         console.error("Failed to fetch media items", error)
@@ -103,12 +82,10 @@ export default function MediaPage() {
     fetchMediaItems()
   }, [toast])
 
-  // Filter media items by type and search query
-  const filteredItems = mediaItems.filter((item) => {
-    const matchesType = typeFilter === "all" || item.type === typeFilter
-    const matchesSearch = item.filename.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesType && matchesSearch
-  })
+  // Filter media items by search query
+  const filteredItems = mediaItems.filter((item) => 
+    item.filename.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   // Toggle item selection
   const toggleSelectItem = (id: string) => {
@@ -120,20 +97,47 @@ export default function MediaPage() {
     if (selectedItems.length === filteredItems.length) {
       setSelectedItems([])
     } else {
-      setSelectedItems(filteredItems.map((item) => item.id))
+      setSelectedItems(filteredItems.map((item) => item._id))
     }
   }
 
   // Open media detail dialog
-  const openDetailDialog = (item: MediaItem) => {
+  const openDetailDialog = (item: Media) => {
     setSelectedItem(item)
     setDetailDialogOpen(true)
   }
 
   // Handle file input change
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files))
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    try {
+      setUploading(true)
+      const formData = new FormData()
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i])
+      }
+
+      const response = await mediaService.upload(formData)
+      if (response.data) {
+        const newMedia = response.data as Media
+        setMediaItems(prevItems => [newMedia, ...prevItems])
+        toast({
+          title: "Upload successful",
+          description: `${files.length} file(s) have been uploaded`,
+        })
+      }
+    } catch (error) {
+      console.error("Failed to upload files", error)
+      toast({
+        title: "Upload failed",
+        description: "Unable to upload files, please try again",
+        variant: "destructive",
+      })
+    } finally {
+      setUploading(false)
+      setUploadDialogOpen(false)
     }
   }
 
@@ -141,8 +145,10 @@ export default function MediaPage() {
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     if (e.dataTransfer.files) {
-      setFiles(Array.from(e.dataTransfer.files))
-      setUploadDialogOpen(true)
+      const files = Array.from(e.dataTransfer.files)
+      const formData = new FormData()
+      files.forEach(file => formData.append("files", file))
+      handleFileChange({ target: { files: e.dataTransfer.files } } as React.ChangeEvent<HTMLInputElement>)
     }
   }, [])
 
@@ -151,70 +157,23 @@ export default function MediaPage() {
     e.preventDefault()
   }, [])
 
-  // Handle file upload
-  const handleUpload = async () => {
-    if (files.length === 0) return
-
-    try {
-      setIsUploading(true)
-
-      // Create FormData
-      const formData = new FormData()
-      files.forEach(file => formData.append('files', file))
-      
-      // Upload files
-      const response = await ApiService.media.upload(formData, (progressEvent: any) => {
-        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        setUploadProgress(progress)
-      })
-
-      // Update media items list
-      if (response.data && response.data.media) {
-        setMediaItems(prevItems => [...response.data.media, ...prevItems])
-      }
-
-      toast({
-        title: "Upload Successful",
-        description: `Successfully uploaded ${files.length} file(s)`,
-      })
-
-      setFiles([])
-      setUploadDialogOpen(false)
-    } catch (error) {
-      console.error("Failed to upload files", error)
-      toast({
-        title: "Upload Failed",
-        description: "Unable to upload files, please try again",
-        variant: "destructive",
-      })
-    } finally {
-      setIsUploading(false)
-      setUploadProgress(0)
-    }
-  }
-
   // Handle media deletion
-  const handleDelete = async () => {
+  const handleDeleteMedia = async () => {
     if (selectedItems.length === 0) return
 
     try {
-      // Delete selected media items
-      await Promise.all(selectedItems.map(id => ApiService.media.delete(id)))
-
-      setMediaItems(mediaItems.filter((item) => !selectedItems.includes(item.id)))
-
-      toast({
-        title: "Delete Successful",
-        description: `Successfully deleted ${selectedItems.length} file(s)`,
-      })
-
+      await mediaService.delete(selectedItems)
+      setMediaItems(mediaItems.filter((item) => !selectedItems.includes(item._id)))
       setSelectedItems([])
-      setDeleteDialogOpen(false)
-    } catch (error) {
-      console.error("Failed to delete files", error)
       toast({
-        title: "Delete Failed",
-        description: "Unable to delete files, please try again",
+        title: "Deleted successfully",
+        description: `${selectedItems.length} item(s) have been deleted`,
+      })
+    } catch (error) {
+      console.error("Failed to delete media", error)
+      toast({
+        title: "Delete failed",
+        description: "Unable to delete items, please try again",
         variant: "destructive",
       })
     }
@@ -233,14 +192,27 @@ export default function MediaPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-2xl font-bold tracking-tight">Media Library</h2>
-        <Button onClick={() => setUploadDialogOpen(true)} className="flex items-center gap-1">
-          <Upload className="h-4 w-4" />
-          Upload Files
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setUploadDialogOpen(true)} className="flex items-center gap-1">
+            <Upload className="h-4 w-4" />
+            Upload Media
+          </Button>
+          {selectedItems.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleDeleteMedia}
+              className="flex items-center gap-1"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Selected
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-4">
+        {/* Search bar */}
+        <div className="w-full relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
@@ -250,254 +222,100 @@ export default function MediaPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="File Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="image">Images</SelectItem>
-              <SelectItem value="document">Documents</SelectItem>
-              <SelectItem value="video">Videos</SelectItem>
-              <SelectItem value="other">Others</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "grid" | "list")}>
-          <TabsList>
-            <TabsTrigger value="grid">Grid</TabsTrigger>
-            <TabsTrigger value="list">List</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
 
-      {selectedItems.length > 0 && (
-        <div className="flex items-center justify-between bg-muted p-2 rounded-md">
-          <span className="text-sm">{selectedItems.length} item(s) selected</span>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setSelectedItems([])}>
-              Cancel Selection
-            </Button>
-            <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
-              Delete Selected
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div
-        className="min-h-[400px] rounded-md border border-dashed p-4"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-      >
-        {loading ? (
-          viewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-2">
-                    <Skeleton className="aspect-square w-full rounded-sm" />
-                    <Skeleton className="h-4 w-full mt-2" />
-                    <Skeleton className="h-3 w-20 mt-1" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} className="flex items-center p-2 border rounded-md">
-                  <Skeleton className="h-10 w-10 rounded-sm" />
-                  <div className="ml-3 flex-1">
-                    <Skeleton className="h-4 w-40" />
-                    <Skeleton className="h-3 w-20 mt-1" />
-                  </div>
-                  <Skeleton className="h-8 w-8" />
-                </div>
-              ))}
-            </div>
-          )
-        ) : filteredItems.length > 0 ? (
-          viewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {filteredItems.map((item) => (
-                <Card
-                  key={item.id}
-                  className={`relative group cursor-pointer ${selectedItems.includes(item.id) ? "ring-2 ring-primary" : ""}`}
-                  onClick={() => toggleSelectItem(item.id)}
-                >
-                  <CardContent className="p-2 space-y-1">
-                    <div className="relative aspect-square bg-muted rounded-md overflow-hidden">
-                      {item.type === "image" ? (
-                        <Image src={item.url || "/placeholder.svg"} alt={item.filename} fill className="object-cover" />
-                      ) : item.type === "document" ? (
-                        <div className="flex items-center justify-center h-full bg-muted">
-                          <span className="text-2xl text-muted-foreground">PDF</span>
-                        </div>
-                      ) : item.type === "video" ? (
-                        <div className="flex items-center justify-center h-full bg-muted">
-                          <span className="text-2xl text-muted-foreground">Video</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center h-full bg-muted">
-                          <span className="text-2xl text-muted-foreground">File</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="absolute"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openDetailDialog(item)
-                          }}
-                        >
-                          <Eye className="h-4 w-4 mr-1" /> View
-                        </Button>
+        {/* Media grid */}
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {loading ? (
+            // Loading state
+            Array.from({ length: 12 }).map((_, i) => (
+              <Card key={`media-skeleton-${i}`}>
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-4 w-16" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-32 w-full" />
+                </CardContent>
+              </Card>
+            ))
+          ) : filteredItems.length > 0 ? (
+            filteredItems.map((item) => (
+              <Card
+                key={item._id}
+                className={`relative group cursor-pointer ${selectedItems.includes(item._id) ? "ring-2 ring-primary" : ""}`}
+                onClick={() => toggleSelectItem(item._id)}
+              >
+                <CardContent className="p-2 space-y-1">
+                  <div className="relative aspect-square bg-muted rounded-md overflow-hidden">
+                    {item.type === "image" ? (
+                      <Image src={item.url || "/placeholder.svg"} alt={item.filename} fill className="object-cover" />
+                    ) : item.type === "document" ? (
+                      <div className="flex items-center justify-center h-full bg-muted">
+                        <span className="text-2xl text-muted-foreground">PDF</span>
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium truncate">{item.filename}</p>
-                      <p className="text-xs text-muted-foreground">{formatFileSize(item.size)}</p>
-                    </div>
-                    <div className="absolute top-1 right-1">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              openDetailDialog(item)
-                            }}
-                          >
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              copyToClipboard(item.url)
-                            }}
-                          >
-                            Copy URL
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <a href={item.url} download={item.filename} onClick={(e) => e.stopPropagation()}>
-                              Download
-                            </a>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setSelectedItems([item.id])
-                              setDeleteDialogOpen(true)
-                            }}
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="flex items-center p-2 border-b text-sm font-medium">
-                <div className="w-10 flex justify-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.length === filteredItems.length}
-                    onChange={toggleSelectAll}
-                    className="rounded"
-                  />
-                </div>
-                <span className="flex-1 ml-3">Filename</span>
-                <span className="w-24 text-center">Type</span>
-                <span className="w-24 text-center">Size</span>
-                <span className="w-32 text-center">Upload Date</span>
-                <span className="w-24 text-center">Actions</span>
-              </div>
-              {filteredItems.map((item) => (
-                <div
-                  key={item.id}
-                  className={`flex items-center p-2 border rounded-md hover:bg-muted/50 ${selectedItems.includes(item.id) ? "bg-muted" : ""}`}
-                >
-                  <div className="w-10 flex justify-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.includes(item.id)}
-                      onChange={() => toggleSelectItem(item.id)}
-                      className="rounded"
-                    />
-                  </div>
-                  <div className="flex items-center flex-1 ml-3">
-                    <div className="h-10 w-10 bg-muted rounded flex items-center justify-center mr-3">
-                      {item.type === "image" ? (
-                        <Image
-                          src={item.url || "/placeholder.svg"}
-                          alt={item.filename}
-                          width={40}
-                          height={40}
-                          className="object-cover rounded"
-                        />
-                      ) : item.type === "document" ? (
-                        <span className="text-xs text-muted-foreground">PDF</span>
-                      ) : item.type === "video" ? (
-                        <span className="text-xs text-muted-foreground">Video</span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">File</span>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium truncate">{item.filename}</p>
-                      <p className="text-xs text-muted-foreground">{formatFileSize(item.size)}</p>
+                    ) : item.type === "video" ? (
+                      <div className="flex items-center justify-center h-full bg-muted">
+                        <span className="text-2xl text-muted-foreground">Video</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-full bg-muted">
+                        <span className="text-2xl text-muted-foreground">File</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="absolute"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openDetailDialog(item)
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-1" /> View
+                      </Button>
                     </div>
                   </div>
-                  <span className="w-24 text-center">
-                    <Badge variant="outline">
-                      {item.type === "image"
-                        ? "Image"
-                        : item.type === "document"
-                          ? "Document"
-                          : item.type === "video"
-                            ? "Video"
-                            : "Other"}
-                    </Badge>
-                  </span>
-                  <span className="w-24 text-center text-sm">{formatFileSize(item.size)}</span>
-                  <span className="w-32 text-center text-sm">{new Date(item.uploadDate).toLocaleDateString()}</span>
-                  <div className="w-24 text-center">
+                  <div>
+                    <p className="text-sm font-medium truncate">{item.filename}</p>
+                    <p className="text-xs text-muted-foreground">{formatFileSize(item.size)}</p>
+                  </div>
+                  <div className="absolute top-1 right-1">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Actions</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openDetailDialog(item)}>View Details</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => copyToClipboard(item.url)}>Copy URL</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openDetailDialog(item)
+                          }}
+                        >
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            copyToClipboard(item.url)
+                          }}
+                        >
+                          Copy URL
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <a href={item.url} download={item.filename}>
+                          <a href={item.url} download={item.filename} onClick={(e) => e.stopPropagation()}>
                             Download
                           </a>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => {
-                            setSelectedItems([item.id])
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedItems([item._id])
                             setDeleteDialogOpen(true)
                           }}
                         >
@@ -506,19 +324,21 @@ export default function MediaPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                </div>
-              ))}
-            </div>
-          )
-        ) : (
-          <div className="flex flex-col items-center justify-center h-64">
-            <p className="text-muted-foreground mb-4">No media files found</p>
-            <Button onClick={() => setUploadDialogOpen(true)} className="flex items-center gap-1">
-              <Upload className="h-4 w-4" />
-              Upload Files
-            </Button>
-          </div>
-        )}
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card className="md:col-span-3 lg:col-span-4">
+              <CardContent className="flex flex-col items-center justify-center h-32">
+                <p className="text-muted-foreground mb-4">No media files found</p>
+                <Button onClick={() => setUploadDialogOpen(true)} className="flex items-center gap-1">
+                  <Upload className="h-4 w-4" />
+                  Upload Media
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Delete confirmation dialog */}
@@ -533,7 +353,7 @@ export default function MediaPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={handleDeleteMedia}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
@@ -546,54 +366,43 @@ export default function MediaPage() {
       <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Files</DialogTitle>
-            <DialogDescription>Supports images, documents, and videos. Maximum file size is 10MB.</DialogDescription>
+            <DialogTitle>Upload Media</DialogTitle>
+            <DialogDescription>
+              Upload images, documents, or other media files. Maximum file size is 10MB.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div
-              className="border-2 border-dashed rounded-md p-6 text-center"
+              className="border-2 border-dashed rounded-lg p-8 text-center"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
-              <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground mb-1">Drag and drop files here, or</p>
-              <div className="flex justify-center">
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <span className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 rounded-md text-sm">
-                    Select Files
-                  </span>
-                  <input id="file-upload" type="file" multiple onChange={handleFileChange} className="sr-only" />
-                </label>
-              </div>
+              <input
+                type="file"
+                multiple
+                accept="image/*,video/*,application/pdf"
+                onChange={handleFileChange}
+                className="hidden"
+                id="file-upload"
+              />
+              <label
+                htmlFor="file-upload"
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
+                <Upload className="h-8 w-8 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Click to upload or drag and drop
+                </span>
+              </label>
             </div>
-
-            {files.length > 0 && (
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                <p className="text-sm font-medium">{files.length} file(s) selected:</p>
-                {files.map((file, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="truncate max-w-[250px]">{file.name}</span>
-                    <span className="text-muted-foreground">{formatFileSize(file.size)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {isUploading && (
-              <div className="space-y-2">
-                <div className="relative h-2 bg-muted rounded overflow-hidden">
-                  <div className="absolute inset-0 bg-primary" style={{ width: `${uploadProgress}%` }} />
-                </div>
-                <p className="text-xs text-right text-muted-foreground">{uploadProgress}%</p>
-              </div>
-            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setUploadDialogOpen(false)}
+              disabled={uploading}
+            >
               Cancel
-            </Button>
-            <Button onClick={handleUpload} disabled={files.length === 0 || isUploading}>
-              Upload
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -657,7 +466,7 @@ export default function MediaPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Type</h3>
-                    <p>{selectedItem.mimeType}</p>
+                    <p>{selectedItem.mimetype}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Size</h3>
@@ -690,7 +499,7 @@ export default function MediaPage() {
                     variant="destructive"
                     className="flex-1 gap-1"
                     onClick={() => {
-                      setSelectedItems([selectedItem.id])
+                      setSelectedItems([selectedItem._id])
                       setDeleteDialogOpen(true)
                       setDetailDialogOpen(false)
                     }}

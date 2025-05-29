@@ -20,10 +20,11 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { BookmarkPlus, Edit, PlusCircle, Search, Tag, Trash2 } from "lucide-react"
-import ApiService from "@/lib/api-service"
+import { BookmarkPlus, Edit, PlusCircle, Search, Tag as TagIcon, Trash2 } from "lucide-react"
+import { categoryService } from "@/lib/services/category-service"
+import { tagService } from "@/lib/services/tag-service"
 import { Category } from "@/types/category"
-import { TagType } from "@/types/tags"
+import type { Tag } from "@/types/tags"
 
 // Form validation schema
 const categoryFormSchema = z.object({
@@ -51,13 +52,13 @@ export default function CategoriesPage() {
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("categories")
   const [categories, setCategories] = useState<Category[]>([])
-  const [tags, setTags] = useState<TagType[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [tagDialogOpen, setTagDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  const [editingTag, setEditingTag] = useState<TagType | null>(null)
+  const [editingTag, setEditingTag] = useState<Tag | null>(null)
 
   // Category form
   const categoryForm = useForm<z.infer<typeof categoryFormSchema>>({
@@ -84,11 +85,11 @@ export default function CategoriesPage() {
         setLoading(true)
         
         // Fetch categories and tags from API
-        const categoriesResponse = await ApiService.categories.getAll()
-        const tagsResponse = await ApiService.tags.getAll()
+        const categoriesResponse = await categoryService.getAll()
+        const tagsResponse = await tagService.getAll()
 
-        setCategories(categoriesResponse.data.categories)
-        setTags(tagsResponse.data.tags)
+        setCategories(categoriesResponse.data || [])
+        setTags(tagsResponse.data || [])
       } catch (error) {
         console.error("Failed to fetch data", error)
         toast({
@@ -140,9 +141,17 @@ export default function CategoriesPage() {
     try {
       if (editingCategory) {
         // Edit existing category
-        await ApiService.categories.update(editingCategory._id, values)
+        const response = await categoryService.update(editingCategory._id, {
+          name: values.name,
+          slug: values.slug,
+          description: values.description || "",
+        })
 
-        setCategories(categories.map((cat) => (cat._id === editingCategory._id ? { ...cat, ...values } : cat)))
+        if (response.data) {
+          setCategories(categories.map((cat) => 
+            cat._id === editingCategory._id ? response.data as Category : cat
+          ))
+        }
 
         toast({
           title: "Updated successfully",
@@ -150,9 +159,15 @@ export default function CategoriesPage() {
         })
       } else {
         // Create new category
-        const response = await ApiService.categories.create(values)
+        const response = await categoryService.create({
+          name: values.name,
+          slug: values.slug,
+          description: values.description || "",
+        })
 
-        setCategories([...categories, response.data.category])
+        if (response.data) {
+          setCategories([...categories, response.data as Category])
+        }
 
         toast({
           title: "Created successfully",
@@ -182,7 +197,7 @@ export default function CategoriesPage() {
   }
 
   // Open edit tag dialog
-  const openEditTagDialog = (tag: TagType) => {
+  const openEditTagDialog = (tag: Tag) => {
     setEditingTag(tag)
     tagForm.reset({
       name: tag.name,
@@ -195,33 +210,26 @@ export default function CategoriesPage() {
   const onTagSubmit = async (values: z.infer<typeof tagFormSchema>) => {
     try {
       if (editingTag) {
-        // 修正：使用_id而不是id
-        const tagId = editingTag._id || editingTag.id; // 兼容两种可能的ID属性名
-        
-        if (!tagId) {
-          throw new Error("Tag ID is missing");
-        }
-        
-        // Edit existing tag
-        await ApiService.tags.update(tagId, values)
+        const response = await tagService.update(editingTag._id, values)
 
-        // 更新本地数据
-        setTags(tags.map((tag) => {
-          if ((tag._id && tag._id === tagId) || (tag.id && tag.id === tagId)) {
-            return { ...tag, ...values };
-          }
-          return tag;
-        }));
+        if (response.data) {
+          const updatedTag = response.data as Tag
+          setTags(tags.map((t) => 
+            t._id === editingTag._id ? updatedTag : t
+          ))
+        }
 
         toast({
           title: "Updated successfully",
           description: `Tag "${values.name}" has been updated`,
         })
       } else {
-        // Create new tag
-        const response = await ApiService.tags.create(values)
+        const response = await tagService.create(values)
 
-        setTags([...tags, response.data.tag])
+        if (response.data) {
+          const newTag = response.data as Tag
+          setTags([...tags, newTag])
+        }
 
         toast({
           title: "Created successfully",
@@ -242,66 +250,39 @@ export default function CategoriesPage() {
 
   // Handle category deletion
   const handleDeleteCategory = async (category: Category) => {
-    if (confirm(`Are you sure you want to delete the category "${category.name}"? If posts belong to this category, they will be moved to the default category.`)) {
-      try {
-        // 确保使用正确的ID
-        const categoryId = category._id;
-        
-        if (!categoryId) {
-          throw new Error("Category ID is missing");
-        }
-        
-        await ApiService.categories.delete(categoryId)
-
-        setCategories(categories.filter((cat) => cat._id !== categoryId))
-
-        toast({
-          title: "Deleted successfully",
-          description: `Category "${category.name}" has been deleted`,
-        })
-      } catch (error) {
-        console.error("Failed to delete category", error)
-        toast({
-          title: "Delete failed",
-          description: "Unable to delete the category, please try again",
-          variant: "destructive",
-        })
-      }
+    try {
+      await categoryService.delete(category._id)
+      setCategories(categories.filter((c) => c._id !== category._id))
+      toast({
+        title: "Deleted successfully",
+        description: `Category "${category.name}" has been deleted`,
+      })
+    } catch (error) {
+      console.error("Failed to delete category", error)
+      toast({
+        title: "Delete failed",
+        description: "Unable to delete the category, please try again",
+        variant: "destructive",
+      })
     }
   }
 
   // Handle tag deletion
-  const handleDeleteTag = async (tag: TagType) => {
-    if (confirm(`Are you sure you want to delete the tag "${tag.name}"?`)) {
-      try {
-        // 修正：使用_id而不是id
-        const tagId = tag._id || tag.id; // 兼容两种可能的ID属性名
-        
-        if (!tagId) {
-          throw new Error("Tag ID is missing");
-        }
-        
-        await ApiService.tags.delete(tagId)
-
-        // 更新本地数据
-        setTags(tags.filter((t) => {
-          // 如果t有_id属性则用_id比较，否则用id比较
-          if (t._id) return t._id !== tagId;
-          return t.id !== tagId;
-        }));
-
-        toast({
-          title: "Deleted successfully",
-          description: `Tag "${tag.name}" has been deleted`,
-        })
-      } catch (error) {
-        console.error("Failed to delete tag", error)
-        toast({
-          title: "Delete failed",
-          description: "Unable to delete the tag, please try again",
-          variant: "destructive",
-        })
-      }
+  const handleDeleteTag = async (tag: Tag) => {
+    try {
+      await tagService.delete(tag._id)
+      setTags(tags.filter((t) => t._id !== tag._id))
+      toast({
+        title: "Deleted successfully",
+        description: `Tag "${tag.name}" has been deleted`,
+      })
+    } catch (error) {
+      console.error("Failed to delete tag", error)
+      toast({
+        title: "Delete failed",
+        description: "Unable to delete the tag, please try again",
+        variant: "destructive",
+      })
     }
   }
 
@@ -315,7 +296,7 @@ export default function CategoriesPage() {
             New Category
           </Button>
           <Button onClick={openNewTagDialog} variant="outline" className="flex items-center gap-1">
-            <Tag className="h-4 w-4" />
+            <TagIcon className="h-4 w-4" />
             New Tag
           </Button>
         </div>
@@ -415,28 +396,34 @@ export default function CategoriesPage() {
                 ))
               ) : filteredTags.length > 0 ? (
                 filteredTags.map((tag) => (
-                  <Card key={tag._id || tag.id || `tag-fallback-${Math.random().toString(36).substr(2, 9)}`} className="h-[120px]">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center justify-between">
-                        {tag.name}
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditTagDialog(tag)}>
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteTag(tag)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                            <span className="sr-only">Delete</span>
-                          </Button>
-                        </div>
-                      </CardTitle>
-                      <CardDescription>
+                  <Card key={tag._id} className="h-[120px]">
+                    <CardHeader className="p-4">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">{tag.name}</CardTitle>
                         <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">/{tag.slug}</span>
-                          <Badge variant="outline">{tag.postCount} posts</Badge>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditTagDialog(tag)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteTag(tag)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </CardDescription>
+                      </div>
                     </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">{tag.slug}</Badge>
+                        <Badge variant="outline">{tag.postCount} posts</Badge>
+                      </div>
+                    </CardContent>
                   </Card>
                 ))
               ) : (

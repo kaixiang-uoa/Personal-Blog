@@ -21,7 +21,7 @@ import { Settings } from "@/types/settings"
 import { formatAboutSettingsForApi } from "@/lib/settings/utils"
 
 // Services
-import ApiService from "@/lib/api-service"
+import { settingsService } from "@/lib/services/settings-service"
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -37,28 +37,69 @@ export default function SettingsPage() {
   }, [])
 
   // 获取设置
-    async function fetchSettings() {
-      try {
-        setLoading(true)
-        
+  async function fetchSettings() {
+    try {
+      setLoading(true)
+      
       // 从API获取所有设置
-        const response = await ApiService.settings.getAll()
-        const data = response.data
-        
-        if (data) {
-          setSettings(data)
+      const response = await settingsService.getAll()
+      const data = response.data
+      
+      if (data) {
+        // 确保数据符合 Settings 类型
+        const settingsData: Settings = {
+          general: data.general || {
+            siteName: "",
+            siteDescription: "",
+            siteUrl: "",
+            logo: "",
+            favicon: "",
+            metaKeywords: "",
+          },
+          posts: data.posts || {
+            postsPerPage: 10,
+            defaultCategory: "",
+            showAuthor: true,
+            enableComments: true,
+            moderateComments: true,
+            excerptLength: 200,
+          },
+          appearance: data.appearance || {
+            theme: "light",
+            accentColor: "",
+            fontFamily: "",
+            enableRTL: false,
+            showSidebar: true,
+          },
+          advanced: data.advanced || {
+            cacheTimeout: 3600,
+            apiKey: "",
+            debugMode: false,
+          },
+          about: data.about || {
+            intro: "",
+            intro_zh: "",
+            contact: "",
+            skills: "",
+            education: "",
+            experience: "",
+            projects: "",
+            social: "",
+          },
         }
-      } catch (error) {
-        console.error("Failed to fetch settings", error)
-        toast({
-          title: "Failed to load settings",
-          description: "Please check your network connection and try again",
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
+        setSettings(settingsData)
       }
+    } catch (error) {
+      console.error("Failed to fetch settings", error)
+      toast({
+        title: "Failed to load settings",
+        description: "Please check your network connection and try again",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
+  }
 
   // 保存设置通用方法
   const saveSettings = async (section: keyof Settings, values: any) => {
@@ -66,13 +107,13 @@ export default function SettingsPage() {
       setIsSaving(true)
 
       // 保存设置
-      await ApiService.settings.update(section, values)
+      const response = await settingsService.update(section, values)
 
       // 更新本地状态
       if (settings) {
         setSettings({
           ...settings,
-          [section]: values,
+          [section]: response.data,
         })
       }
 
@@ -101,7 +142,7 @@ export default function SettingsPage() {
       const formattedSettings = formatAboutSettingsForApi(values)
       
       // 批量更新设置
-      await ApiService.settings.batchUpdate(formattedSettings)
+      await settingsService.batchUpdate(formattedSettings)
       
       // 刷新设置
       await fetchSettings()
@@ -136,10 +177,10 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
-        <p className="text-muted-foreground">Manage global configurations and preferences</p>
-      </div>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
+          <p className="text-muted-foreground">Manage global configurations and preferences</p>
+        </div>
         
         <SettingsActions 
           onHistoryOpen={viewSettingHistory}

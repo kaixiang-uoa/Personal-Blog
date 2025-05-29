@@ -1,44 +1,26 @@
-// Authentication service
-
-import apiClient from '@/lib/services/api-client';
-import type { LoginResponse, UserInfo } from '@/types/auth';
+import apiClient from './api-client';
+import type { LoginRequest, LoginResponse, UserInfo } from '@/types/auth';
 import type { ApiResponse } from '@/types/common';
 
 export const authService = {
-  // Check if user is logged in
-  isAuthenticated: () => {
-    return !!localStorage.getItem("authToken")
-  },
-
-  // Login
   login: async (credentials: { email: string; password: string; rememberMe: boolean }): Promise<ApiResponse<LoginResponse>> => {
+    console.log('Sending login request:', {
+      url: '/auth/login',
+      credentials: { ...credentials, password: '***' }
+    });
     const response = await apiClient.post<ApiResponse<LoginResponse>>("/auth/login", credentials);
+    console.log('Login response:', response);
     return response.data;
   },
 
-  // Logout
   logout: async (): Promise<ApiResponse<void>> => {
     const response = await apiClient.post<ApiResponse<void>>("/auth/logout");
     return response.data;
   },
 
-  // Get current logged-in user information
   getCurrentUser: async (): Promise<ApiResponse<UserInfo>> => {
     const response = await apiClient.get<ApiResponse<UserInfo>>("/auth/me");
     return response.data;
-  },
-
-  // Check permission
-  hasPermission: (permission: string): boolean => {
-    const userStr = localStorage.getItem("user")
-    if (!userStr) return false
-
-    try {
-      const user = JSON.parse(userStr) as UserInfo
-      return user.permissions?.includes(permission) || false
-    } catch (error) {
-      return false
-    }
   },
 
   register: async (data: { username: string; email: string; password: string }): Promise<ApiResponse<void>> => {
@@ -46,4 +28,4 @@ export const authService = {
   }
 };
 
-export default authService;
+export default authService; 

@@ -7,7 +7,8 @@ import { Activity, BookOpen, Edit3, Eye, FileText, MessageSquare, Bookmark, Plus
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
-import ApiService from "@/lib/api-service"
+import { postService } from "@/lib/services/post-service"
+import { categoryService } from "@/lib/services/category-service"
 
 // Dashboard data types
 interface DashboardData {
@@ -34,15 +35,15 @@ export default function DashboardPage() {
         setLoading(true)
         
         // Get data
-        const statsData = await ApiService.posts.getDashboardStats()
+        const statsData = await postService.getDashboardStats()
 
         // Try to get post data, use mock data if it fails
         let postsData = []
         try {
-          postsData = await ApiService.posts.getAll({ limit: 5, sort: 'createdAt:desc' })
+          const response = await postService.getAll({ limit: 5, sort: 'createdAt:desc' })
           // Correctly extract posts array from API response
-          if (postsData && postsData.data.posts) {
-            postsData = postsData.data.posts
+          if (response && response.data) {
+            postsData = response.data
           }
         } catch (error) {
           console.warn('Failed to fetch recent posts, using mock data', error)
@@ -75,11 +76,9 @@ export default function DashboardPage() {
         let categoriesCount = statsData.categoryCount || 0
         if (!categoriesCount) {
           try {
-            const categoriesData = await ApiService.categories.getAll()
-            if (Array.isArray(categoriesData)) {
-              categoriesCount = categoriesData.length
-            } else if (categoriesData && Array.isArray(categoriesData.categories)) {
-              categoriesCount = categoriesData.categories.length
+            const response = await categoryService.getAll()
+            if (response && response.data) {
+              categoriesCount = response.data.length
             }
           } catch (error) {
             console.warn('Failed to fetch category data', error)

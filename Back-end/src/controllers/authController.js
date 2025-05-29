@@ -61,10 +61,9 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        
         // 查找用户
         const user = await User.findOne({ email });
-        
+        console.log(user);
         if (!user) {
             return res.status(401).json({
                 success: false,

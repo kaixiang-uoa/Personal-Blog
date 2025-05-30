@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast"
 import AuthLayout from "@/components/layouts/auth-layout"
 import { Loader2, EyeIcon, EyeOffIcon } from "lucide-react"
-import ApiService from "@/lib/api-service"
+import { authService } from "@/lib/services/auth-service"
 import { useTypedForm } from "@/types/form"
 
 // Registration form validation schema
@@ -49,7 +49,7 @@ export default function RegisterPage() {
       setIsLoading(true)
       
       // Call registration API
-      await ApiService.auth.register({
+      await authService.register({
         username: values.username,
         email: values.email,
         password: values.password

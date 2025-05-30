@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast"
 import AuthLayout from "@/components/layouts/auth-layout"
 import { Loader2, EyeIcon, EyeOffIcon } from "lucide-react"
-import AuthService from "@/lib/auth-service"
+import { useAuth } from "@/lib/auth/AuthContext"
 import { useTypedForm } from "@/types/form"
 
 // Login form validation schema - keep UI field names unchanged
@@ -25,6 +25,7 @@ const formSchema = z.object({
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { login } = useAuth() // 使用 AuthContext 的 login 方法
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -39,34 +40,40 @@ export default function LoginPage() {
   const onSubmit = form.handleSubmit(async (values) => {
     try {
       setIsLoading(true)
-      // Use AuthService for login
-      await AuthService.login({
+      
+      // 使用 AuthContext 提供的 login 方法
+      await login({
         email: values.email, 
         password: values.password,
         rememberMe: values.rememberMe
       })
 
-      // Login successful
+      // 登录成功提示
       toast({
         title: "Login Successful",
         description: "Welcome back!",
       })
 
-      // Redirect to dashboard - use correct route path
-      router.push("/dashboard") // Next.js will handle route groups automatically
+      // 检查是否有保存的重定向目标
+      const redirectPath = typeof window !== 'undefined' 
+        ? sessionStorage.getItem('redirectAfterLogin') 
+        : null;
+        
+      // 重定向到保存的页面或默认到仪表板
+      if (redirectPath) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        router.push(redirectPath);
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error: any) {
-      // 不再打印错误到控制台
-      // console.error("Login failed", error)
-      
-      // 更详细的错误信息提取
+      // 错误处理
       let errorMessage = "用户名或密码不正确，请重试"
       
-      // 对于登录页面的401错误优先使用我们增强的错误信息
+      // 处理特定错误
       if (error.loginError && error.originalMessage) {
         errorMessage = error.originalMessage
-      } 
-      // 尝试从不同路径获取错误信息，但限制详细程度
-      else if (error.response && error.response.data?.message) {
+      } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message
       }
       

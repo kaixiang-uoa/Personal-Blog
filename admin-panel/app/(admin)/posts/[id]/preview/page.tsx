@@ -1,78 +1,61 @@
 "use client"
-import { use } from "react";
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import { postService } from "@/lib/services/post-service"
+import { PostData } from "@/types/post"
 import { ChevronLeft, Calendar, User, Tag } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import ApiService from "@/lib/api-service"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { PostData, PostParams } from "@/types/post"
 import { TagType } from "@/types/tags"
 
-
-
-export default function PreviewPostPage({ params }: { params: any}) {
-  const resolvedParams = use(params) as PostParams;
-  const id = resolvedParams?.id;
-  const router = useRouter()
+export default function PostPreviewPage() {
+  const params = useParams()
   const [post, setPost] = useState<PostData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [currentLang, setCurrentLang] = useState('en')
 
   useEffect(() => {
-    const fetchPost = async () => {
+    async function fetchPost() {
       try {
-        const response = await ApiService.posts.getById(id, currentLang)
-        // 确保文章数据包含所有必要的字段
-        if (response?.data?.post) {
-          // 确保常用字段有默认值
-          const processedPost = {
-            ...response.data.post,
-            tags: response.data.post.tags || [],
-            categories: response.data.post.categories || [],
-            excerpt: response.data.post.excerpt || '',
-            content: response.data.post.content || '',
-          };
-          setPost(processedPost);
-        } else {
-          console.error("Invalid post data structure:", response);
+        const id = params.id as string
+        const response = await postService.getById(id, currentLang)
+        if (response.data) {
+          setPost(response.data)
         }
       } catch (error) {
-        console.error("Failed to fetch post", error)
+        console.error('Error fetching post:', error)
+        setError('Failed to load post')
       } finally {
-        setIsLoading(false)
+        setLoading(false)
       }
     }
 
-    fetchPost()
-  }, [id, currentLang])
+    if (params.id) {
+      fetchPost()
+    }
+  }, [params.id, currentLang])
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>
   }
 
   if (!post) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-2xl font-bold mb-4">Post Not Found</h1>
-        <Button asChild>
-          <Link href="/posts">Back to Posts</Link>
-        </Button>
-      </div>
-    )
+    return <div>Post not found</div>
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/posts/${id}/edit`}>
+          <Link href={`/posts/${params.id}/edit`}>
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Edit
           </Link>
@@ -134,15 +117,15 @@ export default function PreviewPostPage({ params }: { params: any}) {
         )}
 
         <div className="mb-8">
-          {post.category && (
+          {post.categoryData && post.categoryData.length > 0 && (
             <Badge variant="secondary" className="mr-2">
-              {post.category}
+              {post.categoryData[0].name}
             </Badge>
           )}
-          {Array.isArray(post.tags) && post.tags.length > 0 && post.tags.map((tag: string | TagType) => (
-            <Badge key={typeof tag === 'object' ? tag._id || tag.name : tag} variant="outline" className="mr-2">
+          {post.displayTags && post.displayTags.length > 0 && post.displayTags.map((tag: string) => (
+            <Badge key={tag} variant="outline" className="mr-2">
               <Tag className="w-3 h-3 mr-1" />
-              {typeof tag === 'object' ? tag.name : tag}
+              {tag}
             </Badge>
           ))}
         </div>

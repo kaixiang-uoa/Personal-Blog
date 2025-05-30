@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,6 +25,7 @@ import { categoryService } from "@/lib/services/category-service"
 import { tagService } from "@/lib/services/tag-service"
 import { Category } from "@/types/category"
 import type { Tag } from "@/types/tags"
+import { CategoryResponse, TagResponse } from "@/types/common"
 
 // Form validation schema
 const categoryFormSchema = z.object({
@@ -79,40 +80,59 @@ export default function CategoriesPage() {
     },
   })
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true)
-        
-        // Fetch categories and tags from API
-        const categoriesResponse = await categoryService.getAll()
-        const tagsResponse = await tagService.getAll()
-
-        setCategories(categoriesResponse.data || [])
-        setTags(tagsResponse.data || [])
-      } catch (error) {
-        console.error("Failed to fetch data", error)
-        toast({
-          title: "Failed to fetch data",
-          description: "Please check your network connection and try again",
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
+  // fetchData 封装为 useCallback，便于复用
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      const categoriesResponse = await categoryService.getAll()
+      const tagsResponse = await tagService.getAll()
+      if (categoriesResponse?.success && categoriesResponse.data) {
+        const categoryData = categoriesResponse.data as unknown as CategoryResponse
+        setCategories(categoryData.categories)
+      } else {
+        setCategories([])
       }
+      if (tagsResponse?.success && tagsResponse.data) {
+        const tagData = tagsResponse.data as unknown as TagResponse
+        setTags(tagData.tags)
+      } else {
+        setTags([])
+      }
+    } catch (error) {
+      console.error("Failed to fetch data", error)
+      toast({
+        title: "Failed to fetch data",
+        description: "Please check your network connection and try again",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
-
-    fetchData()
   }, [toast])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   // Filter categories and tags based on search
   const filteredCategories = categories.filter(
-    (category) =>
-      category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      category.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+    (category) => {
+      if (!category) return false;
+      const name = category.name?.toLowerCase() || '';
+      const description = category.description?.toLowerCase() || '';
+      const query = searchQuery.toLowerCase();
+      return name.includes(query) || description.includes(query);
+    }
   )
 
-  const filteredTags = tags.filter((tag) => tag.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredTags = tags.filter(
+    (tag) => {
+      if (!tag) return false;
+      const name = tag.name?.toLowerCase() || '';
+      const query = searchQuery.toLowerCase();
+      return name.includes(query);
+    }
+  )
 
   // Open new category dialog
   const openNewCategoryDialog = () => {
@@ -140,41 +160,27 @@ export default function CategoriesPage() {
   const onCategorySubmit = async (values: z.infer<typeof categoryFormSchema>) => {
     try {
       if (editingCategory) {
-        // Edit existing category
-        const response = await categoryService.update(editingCategory._id, {
+        await categoryService.update(editingCategory._id, {
           name: values.name,
           slug: values.slug,
           description: values.description || "",
         })
-
-        if (response.data) {
-          setCategories(categories.map((cat) => 
-            cat._id === editingCategory._id ? response.data as Category : cat
-          ))
-        }
-
         toast({
           title: "Updated successfully",
-          description: `Category "${values.name}" has been updated`,
+          description: `Category \"${values.name}\" has been updated`,
         })
       } else {
-        // Create new category
-        const response = await categoryService.create({
+        await categoryService.create({
           name: values.name,
           slug: values.slug,
           description: values.description || "",
         })
-
-        if (response.data) {
-          setCategories([...categories, response.data as Category])
-        }
-
         toast({
           title: "Created successfully",
-          description: `Category "${values.name}" has been created`,
+          description: `Category \"${values.name}\" has been created`,
         })
       }
-
+      await fetchData()
       setCategoryDialogOpen(false)
     } catch (error) {
       console.error("Failed to save category", error)
@@ -210,33 +216,19 @@ export default function CategoriesPage() {
   const onTagSubmit = async (values: z.infer<typeof tagFormSchema>) => {
     try {
       if (editingTag) {
-        const response = await tagService.update(editingTag._id, values)
-
-        if (response.data) {
-          const updatedTag = response.data as Tag
-          setTags(tags.map((t) => 
-            t._id === editingTag._id ? updatedTag : t
-          ))
-        }
-
+        await tagService.update(editingTag._id, values)
         toast({
           title: "Updated successfully",
-          description: `Tag "${values.name}" has been updated`,
+          description: `Tag \"${values.name}\" has been updated`,
         })
       } else {
-        const response = await tagService.create(values)
-
-        if (response.data) {
-          const newTag = response.data as Tag
-          setTags([...tags, newTag])
-        }
-
+        await tagService.create(values)
         toast({
           title: "Created successfully",
-          description: `Tag "${values.name}" has been created`,
+          description: `Tag \"${values.name}\" has been created`,
         })
       }
-
+      await fetchData()
       setTagDialogOpen(false)
     } catch (error) {
       console.error("Failed to save tag", error)
@@ -252,11 +244,11 @@ export default function CategoriesPage() {
   const handleDeleteCategory = async (category: Category) => {
     try {
       await categoryService.delete(category._id)
-      setCategories(categories.filter((c) => c._id !== category._id))
       toast({
         title: "Deleted successfully",
-        description: `Category "${category.name}" has been deleted`,
+        description: `Category \"${category.name}\" has been deleted`,
       })
+      await fetchData()
     } catch (error) {
       console.error("Failed to delete category", error)
       toast({
@@ -271,11 +263,11 @@ export default function CategoriesPage() {
   const handleDeleteTag = async (tag: Tag) => {
     try {
       await tagService.delete(tag._id)
-      setTags(tags.filter((t) => t._id !== tag._id))
       toast({
         title: "Deleted successfully",
-        description: `Tag "${tag.name}" has been deleted`,
+        description: `Tag \"${tag.name}\" has been deleted`,
       })
+      await fetchData()
     } catch (error) {
       console.error("Failed to delete tag", error)
       toast({
@@ -396,7 +388,7 @@ export default function CategoriesPage() {
                 ))
               ) : filteredTags.length > 0 ? (
                 filteredTags.map((tag) => (
-                  <Card key={tag._id} className="h-[120px]">
+                  <Card key={tag._id || `tag-${tag.slug}-${Math.random().toString(36).substr(2, 9)}`} className="h-[120px]">
                     <CardHeader className="p-4">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{tag.name}</CardTitle>
@@ -421,7 +413,7 @@ export default function CategoriesPage() {
                     <CardContent className="p-4 pt-0">
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary">{tag.slug}</Badge>
-                        <Badge variant="outline">{tag.postCount} posts</Badge>
+                        <Badge variant="outline">{tag.postCount || 0} posts</Badge>
                       </div>
                     </CardContent>
                   </Card>

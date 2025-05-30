@@ -65,7 +65,8 @@ export default function PostsPage() {
         
         // 调用 API 获取帖子，传递过滤参数
         const response = await postService.getAll(params);
-        setPosts(response.data || []);
+        // 确保 response.data 是数组
+        setPosts(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error("Failed to fetch posts", error);
         toast({
@@ -101,11 +102,14 @@ export default function PostsPage() {
 
       // Search filter
       if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
         return (
-          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+          post.title.toLowerCase().includes(searchLower) ||
+          post.excerpt.toLowerCase().includes(searchLower) ||
+          post.category.toLowerCase().includes(searchLower) ||
+          post.tags.some((tag) => 
+            typeof tag === 'string' ? tag.toLowerCase().includes(searchLower) : false
+          )
         )
       }
 

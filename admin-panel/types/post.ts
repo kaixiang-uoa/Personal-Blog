@@ -36,6 +36,8 @@ export interface PostFormData {
   excerpt: string;
   content: string;
   category: string;
+  categoryName?: string;
+  categorySlug?: string;
   tags: string[];
   status: PostStatus;
   featured: boolean;

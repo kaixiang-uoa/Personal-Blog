@@ -11,6 +11,7 @@ import {
   Loader2 
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { settingsService } from "@/lib/services/settings-service"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -27,7 +28,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { downloadSettingsJSON } from "@/lib/settings/utils"
-import ApiService from "@/lib/api-service"
 
 interface SettingsActionsProps {
   onHistoryOpen: (key?: string) => void
@@ -48,7 +48,7 @@ export default function SettingsActions({ onHistoryOpen, onRefresh }: SettingsAc
       setIsExporting(true)
       
       // 1. 获取所有设置数据
-      const response = await ApiService.settings.getAll()
+      const response = await settingsService.getAll()
       const settingsData = response.data
       
       if (!settingsData) {
@@ -93,7 +93,7 @@ export default function SettingsActions({ onHistoryOpen, onRefresh }: SettingsAc
       setIsExporting(true)
       
       // 获取环境特定的设置
-      const exportData = await ApiService.settings.exportForEnvironment(env)
+      const exportData = await settingsService.exportForEnvironment(env)
       
       // 下载文件
       downloadSettingsJSON(
@@ -178,7 +178,7 @@ export default function SettingsActions({ onHistoryOpen, onRefresh }: SettingsAc
       }
       
       // 4. 使用批量更新API保存设置
-      await ApiService.settings.batchUpdate({ settings: settingsToImport })
+      await settingsService.batchUpdate(settingsToImport)
       
       // 5. 刷新页面以获取最新设置
       onRefresh()

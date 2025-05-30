@@ -1,16 +1,22 @@
-import type React from "react"
-import { ThemeProvider } from "@/components/theme-provider"
-import "./globals.css"
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { Providers } from "./providers"
+import "./globals.css"
+import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/lib/auth/AuthContext"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
 
 const inter = Inter({ subsets: ["latin"] })
 
+export const metadata: Metadata = {
+  title: "Admin Panel",
+  description: "Personal Blog Admin Panel",
+}
+
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -18,16 +24,13 @@ export default function RootLayout({
         <meta name="description" content="Modern blog content management system" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Providers>
-          {children}
-          </Providers>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )
 }
-
-export const metadata = {
-      generator: 'v0.dev'
-    };

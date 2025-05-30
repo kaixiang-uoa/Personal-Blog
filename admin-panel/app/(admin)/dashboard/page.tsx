@@ -1,7 +1,8 @@
-// @ts-nocheck
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, BookOpen, Edit3, Eye, FileText, MessageSquare, Bookmark, PlusCircle, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,25 +10,26 @@ import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
 import { postService } from "@/lib/services/post-service"
 import { categoryService } from "@/lib/services/category-service"
-
-// Dashboard data types
-interface DashboardData {
-  postCount: number
-  viewCount: number
-  commentCount: number
-  categoryCount: number
-  recentPosts: {
-    id: string
-    title: string
-    publishDate: string
-    status: "published" | "draft"
-    viewCount: number
-  }[]
-}
+import { DashboardData, DashboardStats, PostResponse, CategoryResponse } from "@/types/common"
+import { Post } from "@/types/post"
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // 验证登录状态
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/login")
+    }
+  }, [isAuthenticated, router])
+  
+  // 如果未认证，不渲染内容
+  if (!isAuthenticated) {
+    return null
+  }
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -35,39 +37,73 @@ export default function DashboardPage() {
         setLoading(true)
         
         // Get data
-        const statsData = await postService.getDashboardStats()
+        const statsResponse = await postService.getDashboardStats()
+        const statsData = statsResponse.data as DashboardStats || { 
+          postCount: 0, 
+          viewCount: 0, 
+          commentCount: 0, 
+          categoryCount: 0 
+        }
 
         // Try to get post data, use mock data if it fails
-        let postsData = []
+        let postsData: Post[] = []
         try {
           const response = await postService.getAll({ limit: 5, sort: 'createdAt:desc' })
           // Correctly extract posts array from API response
-          if (response && response.data) {
-            postsData = response.data
+          if (response?.success && response.data) {
+            const postResponse = response.data as unknown as PostResponse
+            postsData = postResponse.posts
           }
         } catch (error) {
           console.warn('Failed to fetch recent posts, using mock data', error)
           postsData = [
             {
-              id: "1",
+              _id: "1",
               title: "React 18 New Features and Performance Optimization Best Practices",
               publishDate: "2023-04-15",
               status: "published",
               viewCount: 1245,
+              slug: "react-18-features",
+              excerpt: "Learn about React 18's new features",
+              content: "",
+              category: "",
+              tags: [],
+              featured: false,
+              featuredImage: "",
+              createdAt: "2023-04-15",
+              updatedAt: "2023-04-15"
             },
             {
-              id: "2",
+              _id: "2",
               title: "Perfect Deployment Process with NextJS and Vercel",
               publishDate: "2023-04-10",
               status: "published",
               viewCount: 986,
+              slug: "nextjs-vercel-deployment",
+              excerpt: "Guide to deploying NextJS apps",
+              content: "",
+              category: "",
+              tags: [],
+              featured: false,
+              featuredImage: "",
+              createdAt: "2023-04-10",
+              updatedAt: "2023-04-10"
             },
             {
-              id: "3",
+              _id: "3",
               title: "Advanced Tailwind CSS Techniques",
               publishDate: "2023-04-05",
-              status: "draft", 
+              status: "draft",
               viewCount: 0,
+              slug: "advanced-tailwind",
+              excerpt: "Master Tailwind CSS",
+              content: "",
+              category: "",
+              tags: [],
+              featured: false,
+              featuredImage: "",
+              createdAt: "2023-04-05",
+              updatedAt: "2023-04-05"
             }
           ]
         }
@@ -77,8 +113,9 @@ export default function DashboardPage() {
         if (!categoriesCount) {
           try {
             const response = await categoryService.getAll()
-            if (response && response.data) {
-              categoriesCount = response.data.length
+            if (response?.success && response.data) {
+              const categoryResponse = response.data as unknown as CategoryResponse
+              categoriesCount = categoryResponse.count
             }
           } catch (error) {
             console.warn('Failed to fetch category data', error)
@@ -92,10 +129,10 @@ export default function DashboardPage() {
           commentCount: statsData.commentCount || 0,
           categoryCount: categoriesCount,
           recentPosts: Array.isArray(postsData) ? postsData.map((post) => ({
-            id: post.id || post._id || "",
-            title: post.title || "Untitled",
-            publishDate: post.publishedAt || post.createdAt || new Date().toISOString(),
-            status: post.status || (post.published ? "published" : "draft"),
+            id: post._id,
+            title: post.title,
+            publishDate: post.publishDate || post.createdAt || new Date().toISOString(),
+            status: post.status,
             viewCount: post.viewCount || 0
           })) : []
         }

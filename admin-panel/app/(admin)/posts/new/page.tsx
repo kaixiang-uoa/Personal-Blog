@@ -15,31 +15,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import PostEditor from "@/components/post-editor"
-import ApiService from "@/lib/api-service"
-
-// Define post data type
-interface PostData {
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  category: string;
-  tags: string[];
-  status: string;
-  featured: boolean;
-  featuredImage: string;
-}
+import { postService } from "@/lib/services/post-service"
+import { PostFormData } from "@/types/post"
+import { categoryService } from "@/lib/services/category-service"
+import type { Category, CategoryFormData } from "@/types/category"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import type { ApiResponse } from "@/types/common"
 
 export default function NewPostPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [postData, setPostData] = useState<PostData>({
+  const [postData, setPostData] = useState<PostFormData>({
     title: "",
     slug: "",
     excerpt: "",
@@ -50,36 +48,10 @@ export default function NewPostPage() {
     featured: false,
     featuredImage: "",
   })
-
-  // Add state to store categories
-  const [categories, setCategories] = useState<Array<{_id: string, name: string}>>([])
-  const [categoryInput, setCategoryInput] = useState("")
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
-
-  // Default suggested categories
-  const suggestedCategories = [
-    "Technology",
-    "Lifestyle",
-    "Travel",
-    "Food",
-    "Other"
-  ]
-
-  // Fetch categories when component mounts
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await ApiService.categories.getAll()
-        setCategories(response.data.categories || [])
-      } catch (error) {
-        console.error("Failed to fetch categories:", error)
-      } finally {
-        setIsLoadingCategories(false)
-      }
-    }
-
-    fetchCategories()
-  }, [])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [newCategory, setNewCategory] = useState<CategoryFormData>({ name: "", slug: "" })
+  const [creatingCategory, setCreatingCategory] = useState(false)
 
   // Handle input changes
   const handleInputChange = (field: string, value: any) => {
@@ -125,17 +97,55 @@ export default function NewPostPage() {
     }))
   }
 
-  // Handle category selection or creation
-  const handleCategoryChange = (value: string) => {
-    // If selected from suggested categories
-    if (suggestedCategories.includes(value)) {
-      setPostData(prev => ({
-        ...prev,
-        category: value
-      }))
-    } else {
-      // If input is a new category
-      setCategoryInput(value)
+  // Handle category change
+  const handleCategoryChange = (categoryId: string) => {
+    handleInputChange("category", categoryId)
+  }
+
+  // 拉取分类列表
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await categoryService.getAll()
+        if (res && res.data && Array.isArray((res.data as any).categories)) {
+          setCategories((res.data as any).categories)
+        } else {
+          setCategories([])
+        }
+      } catch (e) {
+        setCategories([])
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  // 新建分类表单提交
+  const handleCreateCategory = async () => {
+    if (!newCategory.name) {
+      toast({ title: "Category Name Required", description: "Please enter a category name", variant: "destructive" })
+      return
+    }
+    setCreatingCategory(true)
+    try {
+      const res = await categoryService.create(newCategory) as ApiResponse<{ category: Category }>
+      if (res.success && res.data?.category?._id) {
+        // 刷新分类列表
+        const refreshed = await categoryService.getAll()
+        let arr: Category[] = []
+        if (Array.isArray((refreshed.data as any).categories)) {
+          arr = (refreshed.data as any).categories
+        }
+        setCategories(arr)
+        // 选中新建项
+        handleCategoryChange(res.data.category._id)
+        setCategoryDialogOpen(false)
+        setNewCategory({ name: "", slug: "" })
+        toast({ title: "Success", description: "Category created and selected" })
+      }
+    } catch (e) {
+      toast({ title: "Create Failed", description: "Failed to create category", variant: "destructive" })
+    } finally {
+      setCreatingCategory(false)
     }
   }
 
@@ -150,26 +160,19 @@ export default function NewPostPage() {
       return
     }
 
+    if (!postData.category) {
+      toast({
+        title: "Category Required",
+        description: "Please select or create a category",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      // If a new category is selected, create it first
-      let categoryId = postData.category
-      if (suggestedCategories.includes(postData.category)) {
-        const categoryResponse = await ApiService.categories.create({
-          name: postData.category,
-          slug: postData.category.toLowerCase().replace(/\s+/g, '-')
-        })
-        categoryId = categoryResponse.data.category._id
-      }
-
-      // Create post with the new categoryId
-      const postDataWithCategory = {
-        ...postData,
-        category: categoryId
-      }
-
-      await ApiService.posts.create(postDataWithCategory)
+      await postService.create(postData)
 
       toast({
         title: "Success",
@@ -190,111 +193,142 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/posts">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-bold tracking-tight">Create New Post</h1>
+    <div className="container mx-auto py-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <Link href="/posts">
+            <Button variant="ghost" size="icon">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">New Post</h1>
         </div>
         <Button onClick={handleSubmit} disabled={isLoading}>
           {isLoading ? (
-            "Saving..."
+            <>
+              <Save className="h-4 w-4 mr-2 animate-spin" />
+              Saving...
+            </>
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              Save
+              Save Post
             </>
           )}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Editor section */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Title and slug */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="p-6">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Post Title</Label>
+                <div>
+                  <Label htmlFor="title">Title</Label>
                   <Input
                     id="title"
-                    placeholder="Enter post title"
                     value={postData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
+                    placeholder="Enter post title"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Permalink</Label>
+
+                <div>
+                  <Label htmlFor="slug">Slug</Label>
                   <Input
                     id="slug"
-                    placeholder="Enter URL slug"
                     value={postData.slug}
                     onChange={(e) => handleInputChange("slug", e.target.value)}
+                    placeholder="Enter post slug"
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Editor */}
-          <Card>
-            <CardContent className="pt-6">
-              <Tabs defaultValue="editor">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="editor">Editor</TabsTrigger>
-                  <TabsTrigger value="preview">Preview</TabsTrigger>
-                </TabsList>
-                <TabsContent value="editor" className="min-h-[500px]">
-                  <PostEditor 
-                    onChange={handleContentChange} 
-                    content={postData.content} 
-                    placeholder="Write your post content here..."
+                <div>
+                  <Label htmlFor="excerpt">Excerpt</Label>
+                  <Textarea
+                    id="excerpt"
+                    value={postData.excerpt}
+                    onChange={(e) => handleInputChange("excerpt", e.target.value)}
+                    placeholder="Enter post excerpt"
+                    rows={3}
                   />
-                </TabsContent>
-                <TabsContent value="preview" className="min-h-[500px] prose prose-slate max-w-none">
-                  <div className="border rounded-md p-4" dangerouslySetInnerHTML={{ __html: postData.content }} />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                </div>
 
-          {/* Excerpt */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-2">
-                <Label htmlFor="excerpt">Post Excerpt</Label>
-                <Textarea
-                  id="excerpt"
-                  placeholder= "Enter post excerpt (optional)"
-                  value={postData.excerpt}
-                  onChange={(e) => handleInputChange("excerpt", e.target.value)}
-                  rows={4}
-                />
+                <div>
+                  <Label>Content</Label>
+                  <PostEditor
+                    value={postData.content}
+                    onChange={handleContentChange}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Settings panel */}
-        <div className="space-y-6">
-          {/* Publish settings */}
+        <div>
           <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-lg font-medium mb-4">Publish Settings</h3>
+            <CardContent className="p-6">
               <div className="space-y-4">
-                <div className="space-y-2">
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={postData.category}
+                      onValueChange={handleCategoryChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" variant="outline" onClick={() => setCategoryDialogOpen(true)}>
+                      + New
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="tags">Tags</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="tags"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleTagAdd()
+                        }
+                      }}
+                      placeholder="Add tags"
+                    />
+                    <Button onClick={handleTagAdd}>Add</Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {postData.tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={() => handleTagRemove(tag)}
+                      >
+                        {tag} ×
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={postData.status}
                     onValueChange={(value) => handleInputChange("status", value)}
                   >
-                    <SelectTrigger id="status">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -303,144 +337,73 @@ export default function NewPostPage() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Categories */}
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-lg font-medium mb-4">Categories</h3>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Select or Create Category</Label>
+                <div>
+                  <Label htmlFor="featured">Featured</Label>
                   <Select
-                    value={postData.category}
-                    onValueChange={handleCategoryChange}
+                    value={postData.featured ? "true" : "false"}
+                    onValueChange={(value) =>
+                      handleInputChange("featured", value === "true")
+                    }
                   >
-                    <SelectTrigger id="category">
-                      <SelectValue placeholder="Select category" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select featured status" />
                     </SelectTrigger>
                     <SelectContent>
-                      {isLoadingCategories ? (
-                        <SelectItem value="loading" disabled>Loading categories...</SelectItem>
-                      ) : categories.length > 0 ? (
-                        // Display existing categories
-                        categories.map(category => (
-                          <SelectItem key={category._id} value={category._id}>
-                            {category.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        // Display suggested categories
-                        suggestedCategories.map(category => (
-                          <SelectItem key={category} value={category}>
-                            {category} (New)
-                          </SelectItem>
-                        ))
-                      )}
+                      <SelectItem value="true">Yes</SelectItem>
+                      <SelectItem value="false">No</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                
-                {/* Display suggested categories */}
-                {categories.length === 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    <p className="mb-2">Suggested categories:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {suggestedCategories.map(category => (
-                        <Badge 
-                          key={category}
-                          variant="outline"
-                          className="cursor-pointer hover:bg-accent"
-                          onClick={() => handleCategoryChange(category)}
-                        >
-                          {category}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Tags */}
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-lg font-medium mb-4">Tags</h3>
-              <div className="space-y-4">
-                <div className="flex">
+                <div>
+                  <Label htmlFor="featuredImage">Featured Image URL</Label>
                   <Input
-                    placeholder="Add tag"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault()
-                        handleTagAdd()
-                      }
-                    }}
-                    className="rounded-r-none"
+                    id="featuredImage"
+                    value={postData.featuredImage}
+                    onChange={(e) =>
+                      handleInputChange("featuredImage", e.target.value)
+                    }
+                    placeholder="Enter featured image URL"
                   />
-                  <Button
-                    onClick={handleTagAdd}
-                    className="rounded-l-none"
-                    variant="secondary"
-                  >
-                    Add
-                  </Button>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {postData.tags.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No tags added yet</div>
-                  ) : (
-                    postData.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="px-2 py-1">
-                        {tag}
-                        <button
-                          onClick={() => handleTagRemove(tag)}
-                          className="ml-2 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          ×
-                        </button>
-                      </Badge>
-                    ))
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Featured Image */}
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-lg font-medium mb-4">Featured Image</h3>
-              <div className="space-y-2">
-                <Label htmlFor="featuredImage">Image URL</Label>
-                <Input
-                  id="featuredImage"
-                  placeholder="Enter image URL"
-                  value={postData.featuredImage}
-                  onChange={(e) => handleInputChange("featuredImage", e.target.value)}
-                />
-                {postData.featuredImage && (
-                  <div className="mt-4 rounded-md overflow-hidden border">
-                    <img
-                      src={postData.featuredImage}
-                      alt="Featured"
-                      className="w-full h-auto object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/image-placeholder.jpg"
-                      }}
-                    />
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
+      {/* 新建分类弹窗 */}
+      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>New Category</DialogTitle>
+            <DialogDescription>Create a new category for posts.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Category Name</Label>
+              <Input
+                value={newCategory.name}
+                onChange={e => setNewCategory(n => ({ ...n, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') }))}
+                placeholder="Enter category name"
+              />
+            </div>
+            <div>
+              <Label>Category Slug</Label>
+              <Input
+                value={newCategory.slug}
+                onChange={e => setNewCategory(n => ({ ...n, slug: e.target.value }))}
+                placeholder="Enter category slug"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleCreateCategory} disabled={creatingCategory}>
+              {creatingCategory ? "Creating..." : "Create Category"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
-} 
+}

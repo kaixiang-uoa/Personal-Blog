@@ -12,6 +12,12 @@ export interface ApiError {
   details?: any;
 }
 
+export interface LoginError extends Error {
+  loginError: boolean;
+  originalMessage?: string;
+  isLoginError: boolean;
+}
+
 export interface ApiConfig {
   baseURL: string;
   timeout?: number;

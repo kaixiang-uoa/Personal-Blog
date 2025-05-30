@@ -27,7 +27,8 @@ export const categoryService = {
     return apiClient.get(`/categories/${id}`, { params: { lang } });
   },
 
-  create: async (data: CategoryFormData): Promise<ApiResponse<Category>> => {
+  create: async (data: CategoryFormData): Promise<ApiResponse<{ category: Category }>> => {
+    console.log('data', data);
     return apiClient.post("/categories", data);
   },
 

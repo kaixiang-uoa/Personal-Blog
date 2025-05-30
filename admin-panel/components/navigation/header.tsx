@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import AuthService from "@/lib/auth-service"
+import { authService } from "@/lib/services/auth-service"
 import { useToast } from "@/hooks/use-toast"
 
 interface HeaderProps {
@@ -47,12 +47,19 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
 
   const handleLogout = async () => {
     try {
-      await AuthService.logout()
+      await authService.logout()
       toast({
         title: "登出成功",
         description: "您已成功退出登录",
       })
-      router.push("/login")
+      
+      // 清除可能存在的重定向路径
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('redirectAfterLogin');
+      }
+      
+      // 使用 replace 而非 push，防止用户通过后退按钮返回已登录状态
+      router.replace("/login")
     } catch (error) {
       console.error("登出失败:", error)
       toast({

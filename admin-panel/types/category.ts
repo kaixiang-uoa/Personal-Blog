@@ -16,3 +16,17 @@ export interface CategoryFormData {
 export interface CategoryParams {
   id: string;
 }
+
+export interface CategorySelection {
+  mode: 'select' | 'create'
+  selectedId?: string
+  newCategory?: {
+    name: string
+    slug: string
+  }
+}
+
+export interface CategorySelectorProps {
+  value?: string
+  onChange: (categoryId: string) => void
+}

@@ -12,7 +12,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input"
 import { passwordChangeSchema } from "@/lib/validation/security-schemas"
 import { toast } from "@/hooks/use-toast"
-import ApiService from "@/lib/api-service"
+import { userService } from "@/lib/services/user-service"
 
 export default function PasswordChangeForm() {
   const [isSaving, setIsSaving] = useState(false)
@@ -36,7 +36,7 @@ export default function PasswordChangeForm() {
       setIsSaving(true)
       
       // 调用修改密码API
-      await ApiService.users.updateProfile({
+      await userService.updatePassword({
         currentPassword: values.currentPassword,
         newPassword: values.newPassword
       });

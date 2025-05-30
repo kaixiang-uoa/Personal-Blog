@@ -7,9 +7,23 @@ export const postService = {
     return apiClient.get("/posts", { params });
   },
 
-  getById: async (id: string, lang: string = 'en'): Promise<ApiResponse<Post>> => {
+  getById: async (id: string, lang: string = 'en'): Promise<ApiResponse<PostData>> => {
     try {
-      return await apiClient.get(`/posts/${id}`, { params: { lang } });
+      const response = await apiClient.get(`/posts/${id}`, { params: { lang } });
+      // 转换响应数据为 PostData 类型
+      const post = response.data as Post;
+      const postData: PostData = {
+        ...post,
+        categoryData: Array.isArray(post.categories) ? post.categories : [],
+        displayTags: Array.isArray(post.tags) ? post.tags : [],
+        originalTags: [],
+        tempTags: [],
+        tagsToRemove: []
+      };
+      return {
+        success: true,
+        data: postData
+      };
     } catch (error: any) {
       console.error('Error fetching post:', {
         id,

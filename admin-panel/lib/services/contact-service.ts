@@ -106,7 +106,7 @@ export const contactService = {
     const response = await apiClient.get("/contacts/export", {
       params,
       responseType: 'blob'
-    });
+    }) as { data: Blob };
     return response.data;
   },
 

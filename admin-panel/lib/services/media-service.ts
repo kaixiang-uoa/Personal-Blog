@@ -2,8 +2,18 @@ import apiClient from './api-client';
 import type { ApiResponse, PaginatedResponse } from '@/types/common';
 import type { Media, MediaFormData } from '@/types/media';
 
+interface MediaListResponse {
+  media: Media[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
+}
+
 export const mediaService = {
-  getAll: async (params?: any): Promise<PaginatedResponse<Media[]>> => {
+  getAll: async (params?: any): Promise<ApiResponse<MediaListResponse>> => {
     return apiClient.get("/media", { params });
   },
 
@@ -11,11 +21,8 @@ export const mediaService = {
     return apiClient.get(`/media/${id}`);
   },
 
-  upload: async (formData: FormData, onUploadProgress?: (progressEvent: any) => void): Promise<ApiResponse<Media>> => {
+  upload: async (formData: FormData, onUploadProgress?: (progressEvent: any) => void): Promise<ApiResponse<MediaListResponse>> => {
     return apiClient.post("/media", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
       onUploadProgress,
     });
   },

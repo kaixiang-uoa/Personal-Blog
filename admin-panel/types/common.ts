@@ -37,7 +37,7 @@ export interface PaginatedResponse<T> extends ApiResponse<T> {
 
 // Common author type
 export interface Author {
-  name: string;
+  username: string;
   avatar?: string;
   email?: string;
 }

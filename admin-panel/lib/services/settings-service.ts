@@ -74,7 +74,7 @@ export const settingsService = {
     };
     settings: Record<string, any>;
   }> => {
-    const response = await apiClient.get("/settings");
+    const response = await apiClient.get("/settings") as { data: Record<string, any> };
     const settingsData = response.data;
     
     if (!settingsData) {

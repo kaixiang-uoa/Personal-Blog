@@ -49,36 +49,36 @@ export default function SettingsPage() {
         // 确保数据符合 Settings 类型
         const settingsData: Settings = {
           general: data.general || {
-            siteName: "",
-            siteDescription: "",
-            siteUrl: "",
-            logo: "",
-            favicon: "",
-            metaKeywords: "",
-          },
+      siteName: "",
+      siteDescription: "",
+      siteUrl: "",
+      logo: "",
+      favicon: "",
+      metaKeywords: "",
+    },
           posts: data.posts || {
-            postsPerPage: 10,
-            defaultCategory: "",
-            showAuthor: true,
-            enableComments: true,
-            moderateComments: true,
-            excerptLength: 200,
-          },
+      postsPerPage: 10,
+      defaultCategory: "",
+      showAuthor: true,
+      enableComments: true,
+      moderateComments: true,
+      excerptLength: 200,
+    },
           appearance: data.appearance || {
             theme: "light",
             accentColor: "",
             fontFamily: "",
-            enableRTL: false,
-            showSidebar: true,
-          },
+      enableRTL: false,
+      showSidebar: true,
+    },
           advanced: data.advanced || {
-            cacheTimeout: 3600,
-            apiKey: "",
-            debugMode: false,
-          },
+      cacheTimeout: 3600,
+      apiKey: "",
+      debugMode: false,
+    },
           about: data.about || {
-            intro: "",
-            intro_zh: "",
+      intro: "",
+      intro_zh: "",
             contact: "",
             skills: "",
             education: "",
@@ -88,18 +88,18 @@ export default function SettingsPage() {
           },
         }
         setSettings(settingsData)
+        }
+      } catch (error) {
+        console.error("Failed to fetch settings", error)
+        toast({
+          title: "Failed to load settings",
+          description: "Please check your network connection and try again",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error("Failed to fetch settings", error)
-      toast({
-        title: "Failed to load settings",
-        description: "Please check your network connection and try again",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
     }
-  }
 
   // 保存设置通用方法
   const saveSettings = async (section: keyof Settings, values: any) => {
@@ -177,10 +177,10 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
-          <p className="text-muted-foreground">Manage global configurations and preferences</p>
-        </div>
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">System Settings</h2>
+        <p className="text-muted-foreground">Manage global configurations and preferences</p>
+      </div>
         
         <SettingsActions 
           onHistoryOpen={viewSettingHistory}

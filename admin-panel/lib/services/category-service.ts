@@ -1,5 +1,5 @@
 import apiClient from './api-client';
-import type { Category, CategoryFormData } from '@/types/category';
+import type { Category, CategoryFormData, CategoryApiData } from '@/types/category';
 import type { ApiResponse, PaginatedResponse } from '@/types/common';
 
 export interface CategoryFilters {
@@ -23,16 +23,15 @@ export const categoryService = {
     });
   },
 
-  getById: async (id: string, lang: string = 'en'): Promise<ApiResponse<Category>> => {
-    return apiClient.get(`/categories/${id}`, { params: { lang } });
+  getById: async (id: string): Promise<ApiResponse<Category>> => {
+    return apiClient.get(`/categories/${id}`);
   },
 
-  create: async (data: CategoryFormData): Promise<ApiResponse<{ category: Category }>> => {
-    console.log('data', data);
+  create: async (data: CategoryApiData): Promise<ApiResponse<{ category: Category }>> => {
     return apiClient.post("/categories", data);
   },
 
-  update: async (id: string, data: CategoryFormData): Promise<ApiResponse<Category>> => {
+  update: async (id: string, data: CategoryApiData): Promise<ApiResponse<Category>> => {
     return apiClient.put(`/categories/${id}`, data);
   },
 

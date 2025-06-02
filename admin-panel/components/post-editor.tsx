@@ -111,11 +111,23 @@ export default function PostEditor({ value, onChange }: PostEditorProps) {
         placeholder: "Write your post content here...",
       }),
     ],
-    content: value,
+    content: value || "",
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm focus:outline-none max-w-none',
+      },
+    },
   })
+
+  // Update editor content when value prop changes
+  useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value || "")
+    }
+  }, [value, editor])
 
   useEffect(() => {
     setIsMounted(true)

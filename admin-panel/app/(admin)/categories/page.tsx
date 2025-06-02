@@ -7,18 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
 import { useToast } from "@/hooks/use-toast"
 import { BookmarkPlus, Edit, PlusCircle, Search, Tag as TagIcon, Trash2 } from "lucide-react"
 import { categoryService } from "@/lib/services/category-service"
@@ -26,28 +14,8 @@ import { tagService } from "@/lib/services/tag-service"
 import { Category } from "@/types/category"
 import type { Tag } from "@/types/tags"
 import { CategoryResponse, TagResponse } from "@/types/common"
-
-// Form validation schema
-const categoryFormSchema = z.object({
-  name: z.string().min(2, { message: "Category name must be at least 2 characters" }),
-  slug: z
-    .string()
-    .min(2, { message: "Category slug must be at least 2 characters" })
-    .regex(/^[a-z0-9-]+$/, {
-      message: "Slug can only contain lowercase letters, numbers, and hyphens",
-    }),
-  description: z.string().optional(),
-})
-
-const tagFormSchema = z.object({
-  name: z.string().min(2, { message: "Tag name must be at least 2 characters" }),
-  slug: z
-    .string()
-    .min(2, { message: "Tag slug must be at least 2 characters" })
-    .regex(/^[a-z0-9-]+$/, {
-      message: "Slug can only contain lowercase letters, numbers, and hyphens",
-    }),
-})
+import { categoryFormSchema, tagFormSchema } from "@/lib/validation/form-validation"
+import { EntityFormDialog } from "@/components/posts/EntityFormDialog"
 
 export default function CategoriesPage() {
   const { toast } = useToast()
@@ -60,25 +28,8 @@ export default function CategoriesPage() {
   const [tagDialogOpen, setTagDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [editingTag, setEditingTag] = useState<Tag | null>(null)
-
-  // Category form
-  const categoryForm = useForm<z.infer<typeof categoryFormSchema>>({
-    resolver: zodResolver(categoryFormSchema),
-    defaultValues: {
-      name: "",
-      slug: "",
-      description: "",
-    },
-  })
-
-  // Tag form
-  const tagForm = useForm<z.infer<typeof tagFormSchema>>({
-    resolver: zodResolver(tagFormSchema),
-    defaultValues: {
-      name: "",
-      slug: "",
-    },
-  })
+  const [creatingCategory, setCreatingCategory] = useState(false)
+  const [creatingTag, setCreatingTag] = useState(false)
 
   // fetchData 封装为 useCallback，便于复用
   const fetchData = useCallback(async () => {
@@ -118,66 +69,119 @@ export default function CategoriesPage() {
   const filteredCategories = categories.filter(
     (category) => {
       if (!category) return false;
-      const name = category.name?.toLowerCase() || '';
-      const description = category.description?.toLowerCase() || '';
+      
+      let nameStr = '';
+      if (typeof category.name === 'string') {
+        nameStr = category.name;
+      } else if (category.name && typeof category.name === 'object') {
+        nameStr = category.name.en || category.name.zh || '';
+      }
+      
+      let descStr = '';
+      if (typeof category.description === 'string') {
+        descStr = category.description;
+      } else if (category.description && typeof category.description === 'object') {
+        descStr = category.description.en || category.description.zh || '';
+      }
+      
       const query = searchQuery.toLowerCase();
-      return name.includes(query) || description.includes(query);
+      return nameStr.toLowerCase().includes(query) || descStr.toLowerCase().includes(query);
     }
   )
 
   const filteredTags = tags.filter(
     (tag) => {
       if (!tag) return false;
-      const name = tag.name?.toLowerCase() || '';
+      
+      let nameStr = '';
+      if (typeof tag.name === 'string') {
+        nameStr = tag.name;
+      } else if (tag.name && typeof tag.name === 'object') {
+        nameStr = tag.name.en || tag.name.zh || '';
+      }
+      
       const query = searchQuery.toLowerCase();
-      return name.includes(query);
+      return nameStr.toLowerCase().includes(query);
     }
   )
+
+  // 辅助函数：显示分类/标签名称
+  const displayName = (item: any): string => {
+    if (!item) return '';
+    if (typeof item.name === 'string') return item.name;
+    return item.name?.en || item.name?.zh || '';
+  }
+
+  // 辅助函数：显示描述
+  const displayDescription = (item: any): string => {
+    if (!item) return '';
+    if (typeof item.description === 'string') return item.description;
+    return item.description?.en || item.description?.zh || '';
+  }
 
   // Open new category dialog
   const openNewCategoryDialog = () => {
     setEditingCategory(null)
-    categoryForm.reset({
-      name: "",
-      slug: "",
-      description: "",
-    })
     setCategoryDialogOpen(true)
   }
 
   // Open edit category dialog
   const openEditCategoryDialog = (category: Category) => {
     setEditingCategory(category)
-    categoryForm.reset({
-      name: category.name,
-      slug: category.slug,
-      description: category.description,
-    })
     setCategoryDialogOpen(true)
   }
 
+  // Category form fields
+  const categoryFields = [
+    { 
+      name: "name", 
+      label: "Category Name", 
+      type: "text" as const,
+      isI18n: true,
+      placeholder: "Enter category name" 
+    },
+    { 
+      name: "slug", 
+      label: "Category Slug", 
+      type: "text" as const,
+      placeholder: "Enter category slug" 
+    },
+    { 
+      name: "description", 
+      label: "Category Description", 
+      type: "textarea" as const,
+      isI18n: true,
+      placeholder: "Brief description of this category" 
+    }
+  ];
+
   // Handle category form submission
-  const onCategorySubmit = async (values: z.infer<typeof categoryFormSchema>) => {
+  const handleCategorySubmit = async (values: any) => {
     try {
+      setCreatingCategory(true);
+      
+      // 将表单数据转换为API期望的格式
+      const apiData = {
+        name: values.name.en,
+        name_zh: values.name.zh,
+        name_en: values.name.en,
+        slug: values.slug,
+        description: values.description?.en || "",
+        description_zh: values.description?.zh || "",
+        description_en: values.description?.en || "",
+      };
+      
       if (editingCategory) {
-        await categoryService.update(editingCategory._id, {
-          name: values.name,
-          slug: values.slug,
-          description: values.description || "",
-        })
+        await categoryService.update(editingCategory._id, apiData)
         toast({
           title: "Updated successfully",
-          description: `Category \"${values.name}\" has been updated`,
+          description: `Category "${values.name.en}" has been updated`,
         })
       } else {
-        await categoryService.create({
-          name: values.name,
-          slug: values.slug,
-          description: values.description || "",
-        })
+        await categoryService.create(apiData)
         toast({
           title: "Created successfully",
-          description: `Category \"${values.name}\" has been created`,
+          description: `Category "${values.name.en}" has been created`,
         })
       }
       await fetchData()
@@ -189,43 +193,64 @@ export default function CategoriesPage() {
         description: "Unable to save the category, please try again",
         variant: "destructive",
       })
+    } finally {
+      setCreatingCategory(false);
     }
   }
 
   // Open new tag dialog
   const openNewTagDialog = () => {
     setEditingTag(null)
-    tagForm.reset({
-      name: "",
-      slug: "",
-    })
     setTagDialogOpen(true)
   }
 
   // Open edit tag dialog
   const openEditTagDialog = (tag: Tag) => {
     setEditingTag(tag)
-    tagForm.reset({
-      name: tag.name,
-      slug: tag.slug,
-    })
     setTagDialogOpen(true)
   }
 
+  // Tag form fields
+  const tagFields = [
+    { 
+      name: "name", 
+      label: "Tag Name", 
+      type: "text" as const,
+      isI18n: true,
+      placeholder: "Enter tag name" 
+    },
+    { 
+      name: "slug", 
+      label: "Tag Slug", 
+      type: "text" as const,
+      placeholder: "Enter tag slug" 
+    }
+  ];
+
   // Handle tag form submission
-  const onTagSubmit = async (values: z.infer<typeof tagFormSchema>) => {
+  const handleTagSubmit = async (values: any) => {
     try {
+      setCreatingTag(true);
+      
+      // 将表单数据转换为API期望的格式
+      const apiData = {
+        name: values.name.en,
+        name_zh: values.name.zh,
+        name_en: values.name.en,
+        slug: values.slug,
+      };
+      
       if (editingTag) {
-        await tagService.update(editingTag._id, values)
+        await tagService.update(editingTag._id, apiData)
         toast({
           title: "Updated successfully",
-          description: `Tag \"${values.name}\" has been updated`,
+          description: `Tag "${values.name.en}" has been updated`,
         })
       } else {
-        await tagService.create(values)
+        await tagService.create(apiData)
         toast({
           title: "Created successfully",
-          description: `Tag \"${values.name}\" has been created`,
+          description: `Tag "${values.name.en}" has been created`,
         })
       }
       await fetchData()
@@ -237,6 +262,8 @@ export default function CategoriesPage() {
         description: "Unable to save the tag, please try again",
         variant: "destructive",
       })
+    } finally {
+      setCreatingTag(false);
     }
   }
 
@@ -246,7 +273,7 @@ export default function CategoriesPage() {
       await categoryService.delete(category._id)
       toast({
         title: "Deleted successfully",
-        description: `Category \"${category.name}\" has been deleted`,
+        description: `Category "${displayName(category)}" has been deleted`,
       })
       await fetchData()
     } catch (error) {
@@ -265,7 +292,7 @@ export default function CategoriesPage() {
       await tagService.delete(tag._id)
       toast({
         title: "Deleted successfully",
-        description: `Tag \"${tag.name}\" has been deleted`,
+        description: `Tag "${displayName(tag)}" has been deleted`,
       })
       await fetchData()
     } catch (error) {
@@ -335,7 +362,7 @@ export default function CategoriesPage() {
                   <Card key={category._id || `category-fallback-${Math.random().toString(36).substr(2, 9)}`} className="flex flex-col">
                     <CardHeader className="pb-2 flex-shrink-0">
                       <CardTitle className="text-xl flex items-center justify-between">
-                        {category.name}
+                        {displayName(category)}
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="icon" onClick={() => openEditCategoryDialog(category)}>
                             <Edit className="h-4 w-4" />
@@ -355,7 +382,7 @@ export default function CategoriesPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="flex-grow">
-                      <p className="text-sm text-muted-foreground line-clamp-3">{category.description || "No description"}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-3">{displayDescription(category) || "No description"}</p>
                     </CardContent>
                   </Card>
                 ))
@@ -391,7 +418,7 @@ export default function CategoriesPage() {
                   <Card key={tag._id || `tag-${tag.slug}-${Math.random().toString(36).substr(2, 9)}`} className="h-[120px]">
                     <CardHeader className="p-4">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{tag.name}</CardTitle>
+                        <CardTitle className="text-lg">{displayName(tag)}</CardTitle>
                         <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
@@ -435,111 +462,54 @@ export default function CategoriesPage() {
       </div>
 
       {/* Category Form Dialog */}
-      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingCategory ? "Edit Category" : "New Category"}</DialogTitle>
-            <DialogDescription>
-              {editingCategory
-                ? "Modify category information. Changes will immediately update all associated posts."
-                : "Create a new post category. Categories are used for basic classification of posts."}
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...categoryForm}>
-            <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4">
-              <FormField
-                control={categoryForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter category name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={categoryForm.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category Slug</FormLabel>
-                    <FormControl>
-                      <Input placeholder="URL-friendly slug, e.g. front-end" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={categoryForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category Description</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Brief description of this category" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DialogFooter>
-                <Button type="submit">{editingCategory ? "Save Changes" : "Create Category"}</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      <EntityFormDialog
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
+        title={editingCategory ? "Edit Category" : "New Category"}
+        description={editingCategory
+          ? "Modify category information. Changes will immediately update all associated posts."
+          : "Create a new post category. Categories are used for basic classification of posts."}
+        defaultValues={editingCategory 
+          ? {
+              name: editingCategory.name,
+              slug: editingCategory.slug,
+              description: editingCategory.description
+            }
+          : {
+              name: { zh: "", en: "" },
+              slug: "",
+              description: { zh: "", en: "" }
+            }}
+        schema={categoryFormSchema}
+        onSubmit={handleCategorySubmit}
+        fields={categoryFields}
+        loading={creatingCategory}
+        submitText={editingCategory ? "Save Changes" : "Create Category"}
+      />
 
       {/* Tag Form Dialog */}
-      <Dialog open={tagDialogOpen} onOpenChange={setTagDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingTag ? "Edit Tag" : "New Tag"}</DialogTitle>
-            <DialogDescription>
-              {editingTag
-                ? "Modify tag information. Changes will immediately update all associated posts."
-                : "Create a new post tag. Tags allow for more granular post classification."}
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...tagForm}>
-            <form onSubmit={tagForm.handleSubmit(onTagSubmit)} className="space-y-4">
-              <FormField
-                control={tagForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tag Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter tag name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={tagForm.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tag Slug</FormLabel>
-                    <FormControl>
-                      <Input placeholder="URL-friendly slug, e.g. react" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DialogFooter>
-                <Button type="submit">{editingTag ? "Save Changes" : "Create Tag"}</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      <EntityFormDialog
+        open={tagDialogOpen}
+        onOpenChange={setTagDialogOpen}
+        title={editingTag ? "Edit Tag" : "New Tag"}
+        description={editingTag
+          ? "Modify tag information. Changes will immediately update all associated posts."
+          : "Create a new post tag. Tags allow for more granular post classification."}
+        defaultValues={editingTag
+          ? {
+              name: editingTag.name,
+              slug: editingTag.slug
+            }
+          : {
+              name: { zh: "", en: "" },
+              slug: ""
+            }}
+        schema={tagFormSchema}
+        onSubmit={handleTagSubmit}
+        fields={tagFields}
+        loading={creatingTag}
+        submitText={editingTag ? "Save Changes" : "Create Tag"}
+      />
     </div>
   )
 }

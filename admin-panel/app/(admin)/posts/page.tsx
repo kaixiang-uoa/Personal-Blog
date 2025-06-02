@@ -30,9 +30,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
 import { postService } from "@/lib/services/post-service"
 import type { Post } from "@/types/post"
+import type { Category } from "@/types/category"
+import type { TagType } from "@/types/tags"
 
 export default function PostsPage() {
-  const router = useRouter()
   const { toast } = useToast()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,25 +49,20 @@ export default function PostsPage() {
       try {
         setLoading(true)
         
-        // 构建查询参数
         const params: any = { 
           limit: 20, 
           sort: 'createdAt:desc',
-          lang: 'en' // 指定请求英文内容
+          lang: 'en'
         };
         
-        // 对于 All Statuses，使用 allStatus=true 参数
         if (statusFilter === "all") {
-          params.allStatus = 'true'; // 后端接收字符串 'true'
+          params.allStatus = 'true';
         } else {
-          // 明确指定状态
           params.status = statusFilter;
         }
         
-        // 调用 API 获取帖子，传递过滤参数
         const response = await postService.getAll(params);
-        // 确保 response.data 是数组
-        setPosts(Array.isArray(response.data) ? response.data : []);
+        setPosts(response.data || []);
       } catch (error) {
         console.error("Failed to fetch posts", error);
         toast({
@@ -80,7 +76,7 @@ export default function PostsPage() {
     }
 
     fetchPosts();
-  }, [toast, statusFilter]); // 添加 statusFilter 作为依赖项
+  }, [toast, statusFilter]);
 
   // Handle sorting
   const handleSort = (field: keyof Post) => {
@@ -106,9 +102,13 @@ export default function PostsPage() {
         return (
           post.title.toLowerCase().includes(searchLower) ||
           post.excerpt.toLowerCase().includes(searchLower) ||
-          post.category.toLowerCase().includes(searchLower) ||
-          post.tags.some((tag) => 
-            typeof tag === 'string' ? tag.toLowerCase().includes(searchLower) : false
+          post.categories?.some(category => 
+            typeof category === 'object' && category !== null
+              ? (category.name?.toLowerCase().includes(searchLower)): false
+          ) ||
+          post.tags.some(tag => 
+            typeof tag === 'object' && tag !== null
+              ? (tag.name?.toLowerCase().includes(searchLower)): false
           )
         )
       }
@@ -282,35 +282,24 @@ export default function PostsPage() {
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="space-y-1">
-                      {/* 处理categories可能是数组的情况 */}
+                      {/* 分类显示部分 */}
                       {Array.isArray(post.categories) && post.categories.length > 0 ? (
                         <div className="flex flex-wrap gap-1 mb-1">
-                          {post.categories.map((category, catIndex) => {
-                            const catName = typeof category === 'object' && category !== null
-                              ? (category as any).name_en || (category as any).name || (category as any).title || (category as any).slug || JSON.stringify(category)
+                          {post.categories.map((category) => {
+                            const categoryName = typeof category === 'object' && category !== null
+                              ? category.name || category.slug
                               : String(category);
-                              
-                            const catId = typeof category === 'object' && category !== null
-                              ? (category as any)._id || (category as any).id || (category as any).slug || catIndex
-                              : category;
                               
                             return (
                               <Badge 
-                                key={`${post._id || `post-${postIndex}`}-cat-${catId}`}
+                                key={`${post._id}-cat-${category._id || category.slug}`}
                                 variant="outline"
                               >
-                                {catName}
+                                {categoryName}
                               </Badge>
                             );
                           })}
                         </div>
-                      ) : post.category ? (
-                        // 处理可能的单个category字段
-                        <Badge variant="outline">
-                          {typeof post.category === 'object' && post.category !== null
-                            ? (post.category as any).name_en || (post.category as any).name || (post.category as any).title || (post.category as any).slug
-                            : post.category}
-                        </Badge>
                       ) : (
                         <Badge variant="outline">Uncategorized</Badge>
                       )}
@@ -318,20 +307,15 @@ export default function PostsPage() {
                       {/* 标签显示部分 */}
                       <div className="flex flex-wrap gap-1">
                         {Array.isArray(post.tags) && post.tags.length > 0 ? (
-                          post.tags.map((tag, tagIndex) => {
-                            // 处理tag可能是对象或字符串的情况
-                            const tagName = typeof tag === 'object' && tag !== null 
-                              ? (tag as any).name_en || (tag as any).name || (tag as any).slug || JSON.stringify(tag) 
-                              : String(tag);
-                            
-                            const tagId = typeof tag === 'object' && tag !== null
-                              ? (tag as any)._id || (tag as any).id || (tag as any).slug || String(tag)
+                          post.tags.map((tag) => {
+                            const tagName = typeof tag === 'object' && tag !== null
+                              ? tag.name || tag.slug
                               : String(tag);
                               
                             return (
                               <Badge 
-                                key={`${post._id || `post-${postIndex}`}-tag-${tagId || tagIndex}`} 
-                                variant="secondary" 
+                                key={`${post._id}-tag-${tag._id || tag.slug}`}
+                                variant="secondary"
                                 className="text-xs"
                               >
                                 {tagName}

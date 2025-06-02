@@ -3,28 +3,26 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { postService } from "@/lib/services/post-service"
-import { PostData } from "@/types/post"
-import { ChevronLeft, Calendar, User, Tag } from "lucide-react"
+import { ApiPost } from "@/types/post"
+import { ChevronLeft, Calendar, User, Tag, Bookmark } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { TagType } from "@/types/tags"
 
 export default function PostPreviewPage() {
   const params = useParams()
-  const [post, setPost] = useState<PostData | null>(null)
+  const [post, setPost] = useState<ApiPost | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [currentLang, setCurrentLang] = useState('en')
 
   useEffect(() => {
     async function fetchPost() {
       try {
         const id = params.id as string
-        const response = await postService.getById(id, currentLang)
+        const response = await postService.getById(id, 'en')
+        console.log('response', response.data.post)
         if (response.data) {
-          setPost(response.data)
+          setPost(response.data.post)
         }
       } catch (error) {
         console.error('Error fetching post:', error)
@@ -37,7 +35,7 @@ export default function PostPreviewPage() {
     if (params.id) {
       fetchPost()
     }
-  }, [params.id, currentLang])
+  }, [params.id])
 
   if (loading) {
     return <div>Loading...</div>
@@ -60,15 +58,6 @@ export default function PostPreviewPage() {
             Back to Edit
           </Link>
         </Button>
-        <Select value={currentLang} onValueChange={setCurrentLang}>
-          <SelectTrigger className="w-[100px]">
-            <SelectValue placeholder="Language" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="zh">中文</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       <article className="prose prose-slate dark:prose-invert max-w-none">
@@ -90,13 +79,13 @@ export default function PostPreviewPage() {
               {post.author.avatar ? (
                 <img
                   src={post.author.avatar}
-                  alt={post.author.name}
+                  alt={post.author.username}
                   className="w-6 h-6 rounded-full"
                 />
               ) : (
                 <User className="w-4 h-4" />
               )}
-              <span>{post.author.name}</span>
+              <span>{post.author.username}</span>
             </div>
           )}
           
@@ -116,18 +105,38 @@ export default function PostPreviewPage() {
           </div>
         )}
 
-        <div className="mb-8">
-          {post.categoryData && post.categoryData.length > 0 && (
-            <Badge variant="secondary" className="mr-2">
-              {post.categoryData[0].name}
-            </Badge>
+        <div className="mb-8 space-y-4">
+          {post.categories && post.categories.length > 0 && (
+            <div className="border-b pb-3">
+              <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+                <Bookmark className="h-4 w-4" />
+                <h3 className="text-sm font-medium">Category</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {post.categories.map((category) => (
+                  <Badge key={category._id} variant="secondary">
+                    {category.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           )}
-          {post.displayTags && post.displayTags.length > 0 && post.displayTags.map((tag: string) => (
-            <Badge key={tag} variant="outline" className="mr-2">
-              <Tag className="w-3 h-3 mr-1" />
-              {tag}
-            </Badge>
-          ))}
+          
+          {post.tags && post.tags.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+                <Tag className="h-4 w-4" />
+                <h3 className="text-sm font-medium">Tags</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
+                  <Badge key={tag._id} variant="outline">
+                    {tag.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div 

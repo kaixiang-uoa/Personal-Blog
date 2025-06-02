@@ -202,17 +202,7 @@ export const createPost = asyncHandler(async (req, res) => {
   // 处理标签
   let tagIds = [];
   if (tags && tags.length > 0) {
-    const tagPromises = tags.map(async (tagName) => {
-      let tag = await Tag.findOne({ name: tagName });
-      if (!tag) {
-        tag = await Tag.create({
-          name: tagName,
-          slug: tagName.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-'),
-        });
-      }
-      return tag._id;
-    });
-    tagIds = await Promise.all(tagPromises);
+    tagIds = tags;
   }
 
   const post = await Post.create({
@@ -222,7 +212,7 @@ export const createPost = asyncHandler(async (req, res) => {
     content,
     author: req.user._id,
     categories,
-    tags: tagIds,
+    tags: tags || [],
     status: status || 'draft',
     featuredImage,
     seo,

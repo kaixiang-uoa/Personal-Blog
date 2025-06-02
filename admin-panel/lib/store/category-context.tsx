@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useReducer, useCallback, ReactNode } from "react"
-import { Category, CategoryFormData } from "@/types/category"
+import { Category, CategoryFormData, CategoryApiData } from "@/types/category"
 import { CategoryState, CategoryAction, CategoryContextType } from "@/types/store"
 import { categoryService } from "@/lib/services"
 
@@ -76,7 +76,12 @@ export function CategoryProvider({ children }: { children: ReactNode }) {
         throw new Error("No data received from server")
       }
 
-      dispatch({ type: "SET_CATEGORIES", payload: response.data })
+      // 处理API返回的嵌套结构
+      const categoriesData = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data as any).categories || [];
+      
+      dispatch({ type: "SET_CATEGORIES", payload: categoriesData })
     } catch (error) {
       dispatch({
         type: "SET_ERROR",
@@ -115,11 +120,21 @@ export function CategoryProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "SET_LOADING", payload: true })
       dispatch({ type: "SET_ERROR", payload: null })
 
-      const response = await categoryService.create(data)
+      const apiData: CategoryApiData = {
+        name: data.name.en,
+        name_zh: data.name.zh,
+        name_en: data.name.en,
+        slug: data.slug,
+        description: data.description?.en || '',
+        description_zh: data.description?.zh || '',
+        description_en: data.description?.en || '',
+      };
+
+      const response = await categoryService.create(apiData)
       if (!response.data) {
         throw new Error("No data received from server")
       }
-      dispatch({ type: "ADD_CATEGORY", payload: response.data })
+      dispatch({ type: "ADD_CATEGORY", payload: response.data.category })
     } catch (error) {
       dispatch({
         type: "SET_ERROR",
@@ -137,10 +152,22 @@ export function CategoryProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "SET_LOADING", payload: true })
       dispatch({ type: "SET_ERROR", payload: null })
 
-      const response = await categoryService.update(id, data)
+      // 转换为API需要的结构
+      const apiData: CategoryApiData = {
+        name: data.name.en,
+        name_zh: data.name.zh,
+        name_en: data.name.en,
+        slug: data.slug,
+        description: data.description?.en || '',
+        description_zh: data.description?.zh || '',
+        description_en: data.description?.en || '',
+      };
+
+      const response = await categoryService.update(id, apiData)
       if (!response.data) {
         throw new Error("No data received from server")
       }
+      // 确保使用 response.data.category
       dispatch({ type: "UPDATE_CATEGORY", payload: response.data })
     } catch (error) {
       dispatch({

@@ -1,9 +1,20 @@
 "use client"
 
 import { createContext, useContext, useReducer, useCallback, ReactNode } from "react"
-import { Post, PostData, PostFormData } from "@/types/post"
+import { PostFormData } from "@/types/post"
 import { PostState, PostAction, PostContextType } from "@/types/store"
 import { postService } from "@/lib/services"
+import { extractPostFormData } from "@/lib/utils/extractPostFormData"
+
+// Post Context
+// 该文件用于管理全局的 Post（文章）相关状态，包括获取、创建、更新、删除文章等操作。
+// 通过 React Context + useReducer 实现全局状态管理，配合自定义的 postService 进行数据请求。
+// 主要导出 PostProvider（用于包裹应用）和 usePost（用于在组件中访问和操作文章状态）。
+// This file manages global post state (fetch, create, update, delete) using React Context + useReducer.
+// It provides PostProvider and usePost for use in components.
+//
+// 业务数据结构转换由 extractPostFormData 工具函数负责，service 层只返回原始数据。
+// Business data mapping is handled by extractPostFormData, service only returns raw data.
 
 // Initial state
 const initialState: PostState = {
@@ -100,13 +111,8 @@ export function PostProvider({ children }: { children: ReactNode }) {
         throw new Error("No data received from server")
       }
 
-      // Convert Post to PostData
-      const postData: PostData = {
-        ...response.data,
-        categoryData: [], // This will be populated by the API
-        displayTags: response.data.tags,
-        originalTags: [], // This will be populated by the API
-      }
+      const post = (response.data as any).post || response.data;
+      const postData = extractPostFormData(post);
 
       dispatch({ type: "SET_CURRENT_POST", payload: postData })
     } catch (error) {

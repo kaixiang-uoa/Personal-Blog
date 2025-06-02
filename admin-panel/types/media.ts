@@ -3,11 +3,14 @@ import { BaseEntity } from './common';
 export interface Media extends BaseEntity {
   url: string;
   filename: string;
+  originalname: string;
   mimetype: string;
   size: number;
-  type: "image" | "document" | "video" | "other";
-  dimensions?: { width: number; height: number };
-  uploadDate: string;
+  path: string;
+  uploadedBy: string;
+  title?: string;
+  description?: string;
+  altText?: string;
 }
 
 export interface MediaFormData {

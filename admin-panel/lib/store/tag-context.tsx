@@ -71,7 +71,12 @@ export function TagProvider({ children }: { children: ReactNode }) {
         throw new Error("No data received from server")
       }
 
-      dispatch({ type: "SET_TAGS", payload: response.data })
+      // 处理API返回的嵌套结构
+      const tagsData = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data as any).tags || [];
+      
+      dispatch({ type: "SET_TAGS", payload: tagsData })
     } catch (error) {
       dispatch({
         type: "SET_ERROR",
@@ -88,11 +93,21 @@ export function TagProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "SET_LOADING", payload: true })
       dispatch({ type: "SET_ERROR", payload: null })
 
-      const response = await tagService.create(data)
+      // 转换为API需要的结构
+      const apiData = {
+        name: data.name.en,
+        name_zh: data.name.zh,
+        name_en: data.name.en,
+        slug: data.slug
+      };
+
+      const response = await tagService.create(apiData)
       if (!response.data) {
         throw new Error("No data received from server")
       }
-      dispatch({ type: "ADD_TAG", payload: response.data })
+      // 从嵌套结构中提取tag对象
+      const tag = (response.data as any).tag || response.data;
+      dispatch({ type: "ADD_TAG", payload: tag })
     } catch (error) {
       dispatch({
         type: "SET_ERROR",
@@ -110,11 +125,21 @@ export function TagProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "SET_LOADING", payload: true })
       dispatch({ type: "SET_ERROR", payload: null })
 
-      const response = await tagService.update(id, data)
+      // 转换为API需要的结构
+      const apiData = {
+        name: data.name.en,
+        name_zh: data.name.zh,
+        name_en: data.name.en,
+        slug: data.slug
+      };
+
+      const response = await tagService.update(id, apiData)
       if (!response.data) {
         throw new Error("No data received from server")
       }
-      dispatch({ type: "UPDATE_TAG", payload: response.data })
+      // 如果响应是嵌套结构，提取tag对象
+      const tag = (response.data as any).tag || response.data;
+      dispatch({ type: "UPDATE_TAG", payload: tag })
     } catch (error) {
       dispatch({
         type: "SET_ERROR",

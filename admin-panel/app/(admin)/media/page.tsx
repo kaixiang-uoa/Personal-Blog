@@ -35,6 +35,16 @@ import { Clipboard, Download, Eye, MoreHorizontal, Search, Trash2, Upload } from
 import Image from "next/image"
 import { mediaService } from "@/lib/services/media-service"
 import type { Media } from "@/types/media"
+import { validateFiles, showValidationError } from "@/lib/validation/media-validation"
+
+// Add base URL constant at the top of the file
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+// Helper function to get full URL
+const getFullUrl = (path: string) => {
+  if (path.startsWith('http')) return path;
+  return `${API_BASE_URL}${path}`;
+};
 
 // Format file size helper
 function formatFileSize(bytes: number): string {
@@ -64,8 +74,12 @@ export default function MediaPage() {
         
         // Fetch media items from API
         const response = await mediaService.getAll()
-        if (response.data) {
-          setMediaItems(response.data)
+        if (response?.success && response.data) {
+          // Extract media array from response data
+          const items = response.data.media || []
+          setMediaItems(items)
+        } else {
+          setMediaItems([])
         }
       } catch (error) {
         console.error("Failed to fetch media items", error)
@@ -74,6 +88,7 @@ export default function MediaPage() {
           description: "Please check your network connection and try again",
           variant: "destructive",
         })
+        setMediaItems([])
       } finally {
         setLoading(false)
       }
@@ -83,9 +98,10 @@ export default function MediaPage() {
   }, [toast])
 
   // Filter media items by search query
-  const filteredItems = mediaItems.filter((item) => 
-    item.filename.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredItems = mediaItems.filter((item) => {
+    if (!item || !item.filename) return false;
+    return item.filename.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   // Toggle item selection
   const toggleSelectItem = (id: string) => {
@@ -112,27 +128,53 @@ export default function MediaPage() {
     const files = event.target.files
     if (!files || files.length === 0) return
 
+    // Validate files
+    const validationResult = validateFiles(files)
+    if (!validationResult.isValid) {
+      showValidationError(validationResult.error!)
+      return
+    }
+
     try {
       setUploading(true)
       const formData = new FormData()
+      
+      // Use 'files' as field name to match multer configuration
       for (let i = 0; i < files.length; i++) {
         formData.append("files", files[i])
       }
 
       const response = await mediaService.upload(formData)
-      if (response.data) {
-        const newMedia = response.data as Media
-        setMediaItems(prevItems => [newMedia, ...prevItems])
+      if (response?.success && response.data) {
+        // Extract media array from response data
+        const newMedia = response.data.media || []
+        setMediaItems(prevItems => [...newMedia, ...prevItems])
         toast({
           title: "Upload successful",
           description: `${files.length} file(s) have been uploaded`,
         })
+      } else {
+        throw new Error("Upload failed: Invalid response")
       }
-    } catch (error) {
-      console.error("Failed to upload files", error)
+    } catch (error: any) {
+      console.error("Upload failed:", error)
+      
+      // More detailed error handling
+      let errorMessage = "Unable to upload files"
+      if (error.response) {
+        console.error("Error response:", error.response.data)
+        if (error.response.status === 400) {
+          errorMessage = error.response.data?.message || "Invalid file format or size"
+        } else if (error.response.status === 413) {
+          errorMessage = "File size exceeds server limit"
+        } else if (error.response.status === 415) {
+          errorMessage = "Unsupported media type"
+        }
+      }
+      
       toast({
         title: "Upload failed",
-        description: "Unable to upload files, please try again",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -247,13 +289,18 @@ export default function MediaPage() {
               >
                 <CardContent className="p-2 space-y-1">
                   <div className="relative aspect-square bg-muted rounded-md overflow-hidden">
-                    {item.type === "image" ? (
-                      <Image src={item.url || "/placeholder.svg"} alt={item.filename} fill className="object-cover" />
-                    ) : item.type === "document" ? (
+                    {item.mimetype.startsWith('image/') ? (
+                      <Image 
+                        src={getFullUrl(item.url) || "/placeholder.svg"} 
+                        alt={item.filename} 
+                        fill 
+                        className="object-cover" 
+                      />
+                    ) : item.mimetype.startsWith('application/pdf') ? (
                       <div className="flex items-center justify-center h-full bg-muted">
                         <span className="text-2xl text-muted-foreground">PDF</span>
                       </div>
-                    ) : item.type === "video" ? (
+                    ) : item.mimetype.startsWith('video/') ? (
                       <div className="flex items-center justify-center h-full bg-muted">
                         <span className="text-2xl text-muted-foreground">Video</span>
                       </div>
@@ -300,13 +347,13 @@ export default function MediaPage() {
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation()
-                            copyToClipboard(item.url)
+                            copyToClipboard(getFullUrl(item.url))
                           }}
                         >
                           Copy URL
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <a href={item.url} download={item.filename} onClick={(e) => e.stopPropagation()}>
+                          <a href={getFullUrl(item.url)} download={item.filename} onClick={(e) => e.stopPropagation()}>
                             Download
                           </a>
                         </DropdownMenuItem>
@@ -417,23 +464,23 @@ export default function MediaPage() {
             </DialogHeader>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-muted rounded-md overflow-hidden flex items-center justify-center">
-                {selectedItem.type === "image" ? (
+                {selectedItem.mimetype.startsWith('image/') ? (
                   <div className="relative h-64 w-full">
                     <Image
-                      src={selectedItem.url || "/placeholder.svg"}
+                      src={getFullUrl(selectedItem.url) || "/placeholder.svg"}
                       alt={selectedItem.filename}
                       fill
                       className="object-contain"
                     />
                   </div>
-                ) : selectedItem.type === "document" ? (
+                ) : selectedItem.mimetype.startsWith('application/pdf') ? (
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center">
                       <span className="text-4xl block mb-2">PDF</span>
                       <p className="text-sm text-muted-foreground">Preview not available</p>
                     </div>
                   </div>
-                ) : selectedItem.type === "video" ? (
+                ) : selectedItem.mimetype.startsWith('video/') ? (
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center">
                       <span className="text-4xl block mb-2">Video</span>
@@ -455,10 +502,14 @@ export default function MediaPage() {
                   <p>{selectedItem.filename}</p>
                 </div>
                 <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Original Name</h3>
+                  <p>{selectedItem.originalname}</p>
+                </div>
+                <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">URL</h3>
                   <div className="flex items-center gap-2">
-                    <Input value={selectedItem.url} readOnly />
-                    <Button variant="outline" size="icon" onClick={() => copyToClipboard(selectedItem.url)}>
+                    <Input value={getFullUrl(selectedItem.url)} readOnly />
+                    <Button variant="outline" size="icon" onClick={() => copyToClipboard(getFullUrl(selectedItem.url))}>
                       <Clipboard className="h-4 w-4" />
                     </Button>
                   </div>
@@ -473,25 +524,13 @@ export default function MediaPage() {
                     <p>{formatFileSize(selectedItem.size)}</p>
                   </div>
                 </div>
-                {selectedItem.dimensions && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Width</h3>
-                      <p>{selectedItem.dimensions.width}px</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Height</h3>
-                      <p>{selectedItem.dimensions.height}px</p>
-                    </div>
-                  </div>
-                )}
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">Upload Date</h3>
-                  <p>{new Date(selectedItem.uploadDate).toLocaleString()}</p>
+                  <p>{new Date(selectedItem.createdAt).toLocaleString()}</p>
                 </div>
                 <div className="flex gap-2 pt-2">
                   <Button variant="secondary" asChild className="flex-1 gap-1">
-                    <a href={selectedItem.url} download={selectedItem.filename}>
+                    <a href={getFullUrl(selectedItem.url)} download={selectedItem.filename}>
                       <Download className="h-4 w-4" /> Download
                     </a>
                   </Button>

@@ -8,10 +8,7 @@ class ApiClient {
   private constructor() {
     this.axios = axios.create({
       baseURL: "http://localhost:3001/api/v1",
-      timeout: 10000,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      timeout: 30000,
     });
 
     this.setupInterceptors();
@@ -50,11 +47,9 @@ class ApiClient {
           const isLoginPage = window.location.pathname.includes('/login');
           
           if (!isLoginPage) {
-            // 非登录页面收到 401 - 清除 token 并重定向
             localStorage.removeItem("authToken");
             window.location.href = "/login";
           } else {
-            // 登录页面收到 401 - 返回更友好的错误
             if (error.response.data) {
               const cleanError = new Error(error.response.data.message || "Invalid credentials") as LoginError;
               cleanError.loginError = true;
@@ -64,6 +59,13 @@ class ApiClient {
             }
           }
         }
+        
+        // 处理 500 错误
+        if (error.response?.status === 500) {
+          console.error("Server error:", error.response.data);
+          return Promise.reject(new Error(error.response.data?.message || "Internal server error"));
+        }
+
         return Promise.reject(error);
       }
     );
@@ -74,6 +76,11 @@ class ApiClient {
   }
 
   public async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    if (!(data instanceof FormData)) {
+      if (!config) config = {};
+      if (!config.headers) config.headers = {};
+      config.headers["Content-Type"] = "application/json";
+    }
     return this.axios.post(url, data, config);
   }
 
@@ -83,6 +90,10 @@ class ApiClient {
 
   public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.axios.delete(url, config);
+  }
+
+  public async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.axios.patch(url, data, config);
   }
 }
 

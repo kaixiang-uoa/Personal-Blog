@@ -73,7 +73,7 @@ router.post('/', protect, upload.array('files', 10), uploadMedia);
 // 更新媒体文件信息
 router.put('/:id', protect, updateMedia);
 
-// 删除媒体文件
-router.delete('/:id', protect, restrictTo('admin', 'editor'), deleteMedia);
+// 删除媒体文件（单个或批量）
+router.delete('/:id?', protect, restrictTo('admin', 'editor'), deleteMedia);
 
 export default router;

@@ -8,13 +8,13 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 获取所有媒体文件
+// Get all media files
 export const getAllMedia = async (req, res) => {
   try {
     const { page = 1, limit = 10, type } = req.query;
     const query = {};
     
-    // 如果指定了类型，添加到查询条件
+    // Add type to query if specified
     if (type) {
       query.fileType = type;
     }
@@ -48,7 +48,7 @@ export const getAllMedia = async (req, res) => {
   }
 };
 
-// 获取单个媒体文件
+// Get single media file
 export const getMediaById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -64,30 +64,45 @@ export const getMediaById = async (req, res) => {
   }
 };
 
-// 上传媒体文件
+// Upload media files
 export const uploadMedia = async (req, res) => {
   try {
-    // 检查是否有文件上传
+    // Add debug logs
+    console.log('Upload request received:');
+    console.log('Files:', req.files);
+    console.log('Body:', req.body);
+    console.log('Headers:', req.headers);
+    
+    // Check if files were uploaded
     if (!req.files || req.files.length === 0) {
+      console.log('No files found in request');
       return error(res, 'media.noFile', 400);
     }
     
-    // 处理多个文件上传
+    // Handle multiple file uploads
     const mediaFiles = [];
     
-    // 为每个文件创建媒体记录
+    // Create media records for each file
     for (const file of req.files) {
+      console.log('Processing file:', {
+        originalname: file.originalname,
+        filename: file.filename,
+        path: file.path,
+        size: file.size,
+        mimetype: file.mimetype
+      });
+      
       const { originalname, filename, path: filePath, size, mimetype } = file;
       const fileType = mimetype.split('/')[0];
       
-      // 创建媒体记录
+      // Create media record, ensure field names match model definition
       const media = await Media.create({
         filename,
-        originalName: originalname,
-        filePath: `/uploads/${filename}`,
-        fileSize: size,
-        fileType,
-        mimeType: mimetype,
+        originalname,
+        mimetype,
+        size,
+        path: filePath,
+        url: `/uploads/${filename}`,  // Add url field
         uploadedBy: req.user.id
       });
       
@@ -96,11 +111,12 @@ export const uploadMedia = async (req, res) => {
     
     return success(res, { media: mediaFiles }, 201, 'media.uploaded');
   } catch (err) {
+    console.error('Upload error:', err);
     return error(res, 'media.uploadFailed', 500, err.message);
   }
 };
 
-// 更新媒体文件信息
+// Update media file information
 export const updateMedia = async (req, res) => {
   try {
     const { id } = req.params;
@@ -112,7 +128,7 @@ export const updateMedia = async (req, res) => {
       return error(res, 'media.notFound', 404);
     }
     
-    // 更新字段
+    // Update fields
     if (title) media.title = title;
     if (description) media.description = description;
     if (altText) media.altText = altText;
@@ -125,25 +141,44 @@ export const updateMedia = async (req, res) => {
   }
 };
 
-// 删除媒体文件
+// Delete media file
 export const deleteMedia = async (req, res) => {
   try {
     const { id } = req.params;
+    const { ids } = req.body;
+
+    // Handle batch deletion
+    if (ids && Array.isArray(ids)) {
+      const mediaItems = await Media.find({ _id: { $in: ids } });
+      
+      // Delete physical files
+      for (const media of mediaItems) {
+        const filePath = path.join(__dirname, '..', '..', 'uploads', path.basename(media.path));
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+      
+      // Delete database records
+      await Media.deleteMany({ _id: { $in: ids } });
+      
+      return success(res, null, 200, 'media.deleted');
+    }
+    
+    // Single deletion
     const media = await Media.findById(id);
     
     if (!media) {
       return error(res, 'media.notFound', 404);
     }
     
-    // 删除物理文件
-    const uploadDir = path.join(__dirname, '..', '..', 'uploads');
-    const filePath = path.join(uploadDir, path.basename(media.filePath));
-    
+    // Delete physical file
+    const filePath = path.join(__dirname, '..', '..', 'uploads', path.basename(media.path));
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
     
-    // 删除数据库记录
+    // Delete database record
     await Media.findByIdAndDelete(id);
     
     return success(res, null, 200, 'media.deleted');

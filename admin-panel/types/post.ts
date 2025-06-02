@@ -7,15 +7,44 @@ export interface Post extends BaseEntity {
   slug: string;
   excerpt: string;
   content: string;
-  category: string;
-  categories?: Category[];
-  tags: string[];
+  category: string; 
+  tags: TagType[];
   status: PostStatus;
   featured: boolean;
   featuredImage: string;
   author?: Author;
   publishDate?: string;
   viewCount?: number;
+}
+
+// API Response interfaces
+export interface ApiPost {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  categories: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+  }>;
+  tags: Array<{
+    _id: string;
+    name: string;
+    slug: string;
+  }>;
+  status: string;
+  featuredImage: string;
+  author: {
+    _id: string;
+    username: string;
+    displayName: string;
+    avatar?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  [key: string]: any;
 }
 
 export interface PostData extends Omit<Post, 'category' | 'tags'> {
@@ -35,12 +64,38 @@ export interface PostFormData {
   slug: string;
   excerpt: string;
   content: string;
-  category: string;
-  categoryName?: string;
-  categorySlug?: string;
+  category?: string;
+  categories?: string[];
   tags: string[];
   status: PostStatus;
   featured: boolean;
   featuredImage: string;
+  publishDate?: string;
+}
+
+// API Response interfaces
+export interface PostListResponse {
+  success: boolean;
+  message: string;
+  data: {
+    currentPage: number;
+    posts: Post[];
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface PostDetailResponse {
+  success: boolean;
+  message: string;
+  data: Post;
+}
+
+export interface PostStatsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    total: number;
+  };
 }
   

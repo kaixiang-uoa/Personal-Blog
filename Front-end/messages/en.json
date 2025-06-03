@@ -9,6 +9,7 @@
     "latestArticles": "Code, life, and beyond.",
     "backToHome": "Back to Home",
     "allCategories": "All Categories",
+    "allTags": "All Tags",
     "searchPlaceholder": "Search articles...",
     "search": "Search",
     "filterConditions": "Filter Conditions",
@@ -44,6 +45,9 @@
     "newestFirst": "Newest First",
     "oldestFirst": "Oldest First",
     "mostPopular": "Most Popular",
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "popular": "Popular",
     "lastUpdated": "Recently Updated",
     "oldestUpdated": "Oldest Updated",
     "selectSortOrder": "Select Sort Order"

@@ -83,17 +83,33 @@ export default function Contact() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-900 text-gray-200">
+    <main className="min-h-screen bg-white">
       <Navbar />
       
-      <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      {/* Banner section similar to home page */}
+      <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4">
+        <div className="py-4">
+          <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10"
+              style={{
+                backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('/images/contact-banner.jpg')"
+              }}>
+            <div className="flex flex-col gap-2 text-left max-w-2xl">
+              <h1 className="text-white text-3xl md:text-5xl font-black leading-tight tracking-[-0.033em]">
+                {t('title')}
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <section className="mb-12">
-          <h1 className="text-4xl font-extrabold mb-4">{t('title')}</h1>
-          <p className="text-gray-400 mb-8 text-lg">
+          <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('title')}</h2>
+          <p className="text-[#60748a] mb-8 text-base">
             {t('description')}
           </p>
 
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 shadow-lg">
+          <div className="border border-[#f0f2f5] rounded-lg p-6 shadow-sm">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -102,15 +118,15 @@ export default function Contact() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-gray-300">{t('nameLabel')}</FormLabel>
+                        <FormLabel className="text-[#111418] font-medium">{t('nameLabel')}</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder={t('namePlaceholder')} 
                             {...field} 
-                            className="bg-gray-800/70 border-gray-700 text-gray-200 focus:border-cyan-600"
+                            className="bg-white border-[#dbe0e6] text-[#111418] focus:border-cyan-600 rounded-lg h-10"
                           />
                         </FormControl>
-                        <FormMessage className="text-red-400" />
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
@@ -120,15 +136,15 @@ export default function Contact() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-gray-300">{t('emailLabel')}</FormLabel>
+                        <FormLabel className="text-[#111418] font-medium">{t('emailLabel')}</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder={t('emailPlaceholder')} 
                             {...field} 
-                            className="bg-gray-800/70 border-gray-700 text-gray-200 focus:border-cyan-600"
+                            className="bg-white border-[#dbe0e6] text-[#111418] focus:border-cyan-600 rounded-lg h-10"
                           />
                         </FormControl>
-                        <FormMessage className="text-red-400" />
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
@@ -139,15 +155,15 @@ export default function Contact() {
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-300">{t('subjectLabel')}</FormLabel>
+                      <FormLabel className="text-[#111418] font-medium">{t('subjectLabel')}</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder={t('subjectPlaceholder')} 
                           {...field} 
-                          className="bg-gray-800/70 border-gray-700 text-gray-200 focus:border-cyan-600"
+                          className="bg-white border-[#dbe0e6] text-[#111418] focus:border-cyan-600 rounded-lg h-10"
                         />
                       </FormControl>
-                      <FormMessage className="text-red-400" />
+                      <FormMessage className="text-red-500" />
                     </FormItem>
                   )}
                 />
@@ -157,22 +173,22 @@ export default function Contact() {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-300">{t('messageLabel')}</FormLabel>
+                      <FormLabel className="text-[#111418] font-medium">{t('messageLabel')}</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder={t('messagePlaceholder')}
-                          className="min-h-32 bg-gray-800/70 border-gray-700 text-gray-200 focus:border-cyan-600"
+                          className="min-h-32 bg-white border-[#dbe0e6] text-[#111418] focus:border-cyan-600 rounded-lg"
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage className="text-red-400" />
+                      <FormMessage className="text-red-500" />
                     </FormItem>
                   )}
                 />
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-cyan-700 hover:bg-cyan-600 text-white" 
+                  className="h-10 px-6 bg-[#111418] hover:bg-[#2a2f35] text-white rounded-lg" 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? t('submitting') : t('submit')}

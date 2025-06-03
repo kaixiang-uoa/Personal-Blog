@@ -2,9 +2,9 @@ import Setting from '../models/Setting.js';
 import connectDB from '../config/db.js';
 import { logger } from '../utils/logger.js';
 
-// 默认设置
+// default settings
 const defaultSettings = [
-  // 常规设置
+  // general settings
   { 
     key: 'general.siteName', 
     value: 'Modern Blog', 
@@ -135,23 +135,23 @@ const defaultSettings = [
   }
 ];
 
-// 初始化设置
+// initialize settings
 export async function initializeSettings() {
   try {
-    // 连接数据库
+    // connect to database
     await connectDB();
     logger.info('Connected to MongoDB for settings initialization');
 
-    // 检查设置是否存在
+    // check if settings already exist
     const settingsCount = await Setting.countDocuments();
     
     if (settingsCount === 0) {
-      // 如果没有设置，创建默认设置
+      // if no settings, create default settings
       await Setting.insertMany(defaultSettings);
       logger.info('🌱 Default settings initialized successfully');
     } else {
       logger.warn('⚠️ Settings already exist, skipping initialization');
-      // 验证和更新所有默认设置
+      // validate and update all default settings
       await validateSettings(true);
     }
     
@@ -163,19 +163,19 @@ export async function initializeSettings() {
   }
 }
 
-// 设置验证函数
+// settings validation function
 export async function validateSettings(silent = false) {
   try {
     if (!silent) {
       logger.info('🔍 Validating settings...');
     }
     
-    // 检查所有必需的设置
+    // check all required settings
     for (const setting of defaultSettings) {
       const exists = await Setting.findOne({ key: setting.key });
       
       if (!exists) {
-        // 如果设置不存在，创建它
+        // if setting does not exist, create it
         await Setting.create(setting);
         if (!silent) {
           logger.info(`Created missing setting: ${setting.key}`);

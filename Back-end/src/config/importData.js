@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 用于存储ID映射关系
+// for storing ID mapping
 const idMap = new Map();
 
 const loadJsonData = (filename) => {
@@ -65,19 +65,19 @@ export const importInitialData = async (models) => {
     const { Category, Tag, Post, Setting } = models;
     
     try {
-        // 加载并导入其他数据
+        // load and import other data
         const categories = loadJsonData('categories');
         const tags = loadJsonData('tags');
         const posts = loadJsonData('posts');
         const settings = loadJsonData('settings');
 
-        // 处理引用关系
+        // process reference relations
         const processedCategories = processReferences(categories, ['parent']);
         const processedTags = processReferences(tags, ['posts']);
         const processedPosts = processReferences(posts, ['author', 'categories', 'tags']);
         const processedSettings = processReferences(settings, []);
 
-        // 按顺序导入数据
+        // import data in order
         if (processedCategories.length > 0) {
             await Category.insertMany(processedCategories);
             logger.info(`✅ Imported ${processedCategories.length} categories`);

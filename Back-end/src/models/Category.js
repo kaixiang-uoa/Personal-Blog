@@ -7,7 +7,7 @@ const CategorySchema = new Schema({
         required: true,
         trim: true
     },
-    // Add multilingual support for name
+    // add multilingual support for name
     name_en: {
         type: String,
         trim: true
@@ -26,7 +26,7 @@ const CategorySchema = new Schema({
         type: String,
         trim: true
     },
-    // Add multilingual support for description
+    // add multilingual support for description
     description_en: {
         type: String,
         trim: true
@@ -47,18 +47,18 @@ const CategorySchema = new Schema({
 { timestamps: true }
 );
 
-// Middleware to auto-generate slug
+// middleware to auto-generate slug
 CategorySchema.pre('save', function(next) {
     if (!this.slug && this.name) {
         this.slug = this.name
             .toLowerCase()
-            // Replace non-word characters (excluding Chinese) with hyphens
+            // replace non-word characters (excluding Chinese) with hyphens
             .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
-            // Remove leading/trailing hyphens
+            // remove leading/trailing hyphens
             .replace(/^-+|-+$/g, '');
     }
     
-    // Set default language values if not provided
+    // set default language values if not provided
     if (!this.name_zh && this.name) {
         this.name_zh = this.name;
     }

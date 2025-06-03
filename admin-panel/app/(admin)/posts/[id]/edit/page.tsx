@@ -29,7 +29,7 @@ import { CategorySelector } from "@/components/categories/CategorySelector"
 import { TagSelector } from "@/components/tags/TagSelector"
 import { Skeleton } from "@/components/ui/skeleton"
 
-// 加载状态的占位组件
+// loading skeleton
 function PostFormSkeleton() {
   return (
     <div className="space-y-6">
@@ -71,17 +71,6 @@ function PostFormSkeleton() {
   );
 }
 
-// Helper function to display category or tag name
-const displayName = (item: any) => {
-  if (!item) return "";
-  if (typeof item.name === "string") return item.name;
-  if (item.name && typeof item.name === "object") {
-    return item.name.en || item.name.zh || "";
-  }
-  return "";
-};
-
-// 主要组件
 export default function EditPostPage() {
   const params = useParams();
   const postId = params.id as string;
@@ -93,7 +82,7 @@ export default function EditPostPage() {
   );
 }
 
-// 表单组件
+
 function EditPostForm({ postId }: { postId: string }) {
   const { state: postState, fetchPost, updatePost } = usePost()
   const { state: categoryState, fetchCategories } = useCategory()
@@ -129,9 +118,9 @@ function EditPostForm({ postId }: { postId: string }) {
     fetchTags()
   }, [fetchTags])
 
-  // 处理categories数据结构
+  // handle categories data structure
   useEffect(() => {
-    // 解析categoryState.categories数据，支持多种数据结构
+    // parse categoryState.categories data, support multiple data structures
     if (categoryState.categories) {
       if (Array.isArray(categoryState.categories)) {
         setAvailableCategories(categoryState.categories);
@@ -157,7 +146,7 @@ function EditPostForm({ postId }: { postId: string }) {
       const postData = postState.currentPost;
       const post = (postData as any).post || postData;
       
-      // 准备表单数据
+      // prepare form data
       const formData = {
         title: post.title,
         slug: post.slug,
@@ -169,7 +158,7 @@ function EditPostForm({ postId }: { postId: string }) {
         featuredImage: post.featuredImage || "",
       };
       
-      // 使用setValue逐个设置字段值
+      // set form data one by one
       Object.entries(formData).forEach(([key, value]) => {
         form.setValue(key as any, value);
       });

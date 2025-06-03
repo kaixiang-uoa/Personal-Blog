@@ -8,20 +8,11 @@ import React from 'react';
  */
 export default function ArticleSkeleton() {
   return (
-    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg animate-pulse">
-      <div className="h-48 bg-gray-700"></div>
-      <div className="p-6">
-        <div className="h-6 bg-gray-700 rounded w-3/4 mb-4"></div>
-        <div className="h-4 bg-gray-700 rounded w-1/2 mb-2"></div>
-        <div className="h-4 bg-gray-700 rounded w-5/6 mb-2"></div>
-        <div className="h-4 bg-gray-700 rounded w-4/6 mb-4"></div>
-        <div className="flex justify-between items-center mt-6">
-          <div className="flex items-center">
-            <div className="h-8 w-8 bg-gray-700 rounded-full"></div>
-            <div className="h-4 bg-gray-700 rounded w-24 ml-2"></div>
-          </div>
-          <div className="h-4 bg-gray-700 rounded w-16"></div>
-        </div>
+    <div className="flex flex-col gap-3 pb-4 h-full animate-pulse">
+      <div className="w-full bg-[#f0f2f5] aspect-[16/10] rounded-lg"></div>
+      <div className="flex-1 flex flex-col">
+        <div className="h-5 bg-[#f0f2f5] rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-[#f0f2f5] rounded w-1/2 mt-auto"></div>
       </div>
     </div>
   );

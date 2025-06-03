@@ -3,10 +3,10 @@ import dotenv from 'dotenv';
 import Setting from '../models/Setting.js';
 import { logger } from '../utils/logger.js';
 
-// 加载环境变量
+// load environment variables
 dotenv.config();
 
-// About页面设置初始数据 - 使用'about'组
+// About page settings initial data - using 'about' group
 const aboutSettings = [
   {
     key: 'about.intro',
@@ -99,22 +99,22 @@ const aboutSettings = [
   }
 ];
 
-// 连接数据库并创建设置
+// connect to database and create settings
 const initAboutSettings = async () => {
   try {
-    // 连接数据库
+    // connect to database
     console.log('MongoDB URI:', process.env.MONGODB_URI.substring(0, 20) + '...');
     await mongoose.connect(process.env.MONGODB_URI);
     logger.info('✅ MongoDB connected for initializing about settings');
     
-    // 检查是否已存在About设置
+    // check if About settings already exist
     const existingSettings = await Setting.find({ key: { $regex: /^about\./ } });
     
     if (existingSettings.length > 0) {
       logger.info(`About settings already exist (${existingSettings.length} found)`);
       logger.info('Skip creating new settings');
     } else {
-      // 创建About设置
+      // create About settings
       await Setting.insertMany(aboutSettings);
       logger.info(`✅ Successfully created ${aboutSettings.length} about settings`);
     }
@@ -131,5 +131,5 @@ const initAboutSettings = async () => {
   }
 };
 
-// 运行初始化
+// run initialization
 initAboutSettings(); 

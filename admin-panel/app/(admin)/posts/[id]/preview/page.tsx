@@ -20,7 +20,6 @@ export default function PostPreviewPage() {
       try {
         const id = params.id as string
         const response = await postService.getById(id, 'en')
-        console.log('response', response.data.post)
         if (response.data) {
           setPost(response.data.post)
         }
@@ -53,9 +52,9 @@ export default function PostPreviewPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/posts/${params.id}/edit`}>
+          <Link href="/posts">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Edit
+            Back to Posts
           </Link>
         </Button>
       </div>

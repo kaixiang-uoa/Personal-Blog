@@ -190,16 +190,16 @@ export const createPost = asyncHandler(async (req, res) => {
     seo,
   } = req.body;
 
-  // 生成唯一的 slug
+  // generate unique slug
   let baseSlug = providedSlug;
   if (!baseSlug) {
     baseSlug = title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
   }
 
-  // 确保 slug 唯一
+  // ensure slug is unique
   const slug = await generateUniqueSlug(baseSlug);
 
-  // 处理标签
+  // process tags
   let tagIds = [];
   if (tags && tags.length > 0) {
     tagIds = tags;
@@ -259,7 +259,7 @@ export const deletePost = asyncHandler(async (req, res) => {
   const post = await getPopulatedPostById(req.params.id);
   if (!post) throw createError('Post not found', 404);
 
-  // 只删除文章本身，不动分类和标签
+  // only delete post, not categories and tags
   await post.deleteOne();
 
   return success(res, { message: 'Post deleted successfully' });

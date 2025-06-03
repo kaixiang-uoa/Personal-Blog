@@ -1,8 +1,8 @@
 /**
- * 重试钩子
+ * retry hook
  *
- * 这个文件展示了如何创建一个自动重试的自定义 Hook
- * 当 API 请求失败时，可以自动或手动重试，提高应用的可靠性
+ * this file shows how to create a custom hook that automatically retries when API requests fail
+ * it can be used to improve the reliability of the application
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -23,11 +23,11 @@ export function useRetry<T>(
       const result = await fetchFunction();
       setData(result);
       setError(null);
-      setRetryCount(0); // 重置重试计数
+      setRetryCount(0); // reset retry count
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('未知错误'));
+      setError(err instanceof Error ? err : new Error('unknown error'));
 
-      // 如果未达到最大重试次数，则安排重试
+      // if the maximum number of retries has not been reached, schedule a retry
       if (retryCount < options.maxRetries) {
         setTimeout(() => {
           setRetryCount(prev => prev + 1);
@@ -42,7 +42,7 @@ export function useRetry<T>(
     fetchData();
   }, [fetchData]);
 
-  // 手动重试的函数
+  // function to manually retry
   const retry = useCallback(() => {
     setRetryCount(prev => prev + 1);
   }, []);

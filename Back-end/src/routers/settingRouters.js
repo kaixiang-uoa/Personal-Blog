@@ -13,19 +13,19 @@ import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// 获取所有设置
+// get all settings
 router.get('/', getAllSettings);
 
-// 获取单个设置
+// get single setting
 router.get('/:key', getSettingByKey);
 
-// 需要管理员权限的路由
+// routes that require admin privileges
 router.put('/:key', protect, restrictTo('admin'), updateSetting);
 router.post('/', protect, restrictTo('admin'), updateSetting);
 router.post('/batch', protect, restrictTo('admin'), updateSettings);
 router.delete('/:key', protect, restrictTo('admin'), deleteSetting);
 
-// 设置历史相关路由
+// setting history related routes
 router.get('/history/all', protect, restrictTo('admin'), getSettingHistory);
 router.get('/history/:key', protect, restrictTo('admin'), getSettingHistory);
 router.get('/versions/:key', protect, restrictTo('admin'), getSettingVersions);

@@ -2,16 +2,16 @@ import Setting from '../models/Setting.js';
 import SettingHistory from '../models/SettingHistory.js';
 import { success, error } from '../utils/responseHandler.js';
 
-// 获取所有设置
+// get all settings
 export const getAllSettings = async (req, res) => {
   try {
     const { group } = req.query;
     
-    // 如果提供了group参数，按group过滤
+    // if group parameter is provided, filter by group
     const filter = group ? { group } : {};
     const settings = await Setting.find(filter);
     
-    // 转换为键值对格式
+    // convert to key-value format
     const settingsMap = {};
     settings.forEach(setting => {
       settingsMap[setting.key] = setting.value;
@@ -23,7 +23,7 @@ export const getAllSettings = async (req, res) => {
   }
 };
 
-// 获取单个设置
+// get single setting
 export const getSettingByKey = async (req, res) => {
   try {
     const { key } = req.params;
@@ -39,33 +39,33 @@ export const getSettingByKey = async (req, res) => {
   }
 };
 
-// 更新或创建设置
+// update or create setting
 export const updateSetting = async (req, res) => {
   try {
     const { key } = req.params;
     const { value, description, group } = req.body;
     
-    // 准备更新的数据，处理可能为undefined的值
+    // prepare update data, handle possible undefined values
     const updateData = {
       value: value === undefined ? '' : value,
     };
     
-    // 只在提供时添加可选字段
+    // add optional fields only when provided
     if (description !== undefined) updateData.description = description;
     if (group !== undefined) updateData.group = group;
     
-    // 查找现有的设置以获取旧值
+    // find existing setting to get old value
     const existingSetting = await Setting.findOne({ key });
     const isCreate = !existingSetting;
     
-    // 使用upsert选项，如果不存在则创建
+    // use upsert option, create if not exists
     const setting = await Setting.findOneAndUpdate(
       { key },
       updateData,
       { new: true, upsert: true }
     );
     
-    // 记录历史
+    // record history
     await SettingHistory.create({
       key,
       oldValue: existingSetting ? existingSetting.value : null,
@@ -81,7 +81,7 @@ export const updateSetting = async (req, res) => {
   }
 };
 
-// 批量更新设置
+// batch update settings
 export const updateSettings = async (req, res) => {
   try {
     const { settings } = req.body;
@@ -92,27 +92,27 @@ export const updateSettings = async (req, res) => {
     
     const historyRecords = [];
     const updatePromises = settings.map(async ({ key, value, description, group }) => {
-      // 准备更新的数据，处理可能为undefined的值
+      // prepare update data, handle possible undefined values
       const updateData = {
         value: value === undefined ? '' : value,
       };
       
-      // 只在提供时添加可选字段
+      // add optional fields only when provided
       if (description !== undefined) updateData.description = description;
       if (group !== undefined) updateData.group = group;
       
-      // 查找现有的设置以获取旧值
+      // find existing setting to get old value
       const existingSetting = await Setting.findOne({ key });
       const isCreate = !existingSetting;
       
-      // 使用upsert更新
+      // use upsert to update
       const result = await Setting.findOneAndUpdate(
         { key },
         updateData,
         { new: true, upsert: true }
       );
       
-      // 准备历史记录
+      // prepare history record
       historyRecords.push({
         key,
         oldValue: existingSetting ? existingSetting.value : null,
@@ -127,7 +127,7 @@ export const updateSettings = async (req, res) => {
     
     const updatedSettings = await Promise.all(updatePromises);
     
-    // 批量创建历史记录
+    // batch create history records
     await SettingHistory.insertMany(historyRecords);
     
     return success(res, updatedSettings, 200, 'setting.batchUpdated');
@@ -136,7 +136,7 @@ export const updateSettings = async (req, res) => {
   }
 };
 
-// 删除设置
+// delete setting
 export const deleteSetting = async (req, res) => {
   try {
     const { key } = req.params;
@@ -146,7 +146,7 @@ export const deleteSetting = async (req, res) => {
       return error(res, 'setting.notFound', 404);
     }
     
-    // 记录删除历史
+    // record delete history
     await SettingHistory.create({
       key,
       oldValue: setting.value,
@@ -162,24 +162,24 @@ export const deleteSetting = async (req, res) => {
   }
 };
 
-// 获取设置历史记录
+// get setting history
 export const getSettingHistory = async (req, res) => {
   try {
     const { key } = req.params;
     const { limit = 10, page = 1 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
-    // 如果提供了key参数，按key过滤
+    // if key parameter is provided, filter by key
     const filter = key ? { key } : {};
     
-    // 查询历史记录
+    // query history records
     const history = await SettingHistory.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
       .populate('changedBy', 'name email');
     
-    // 获取总记录数
+    // get total number of records
     const total = await SettingHistory.countDocuments(filter);
     
     return success(res, {
@@ -196,13 +196,13 @@ export const getSettingHistory = async (req, res) => {
   }
 };
 
-// 获取特定键的最近历史版本
+// get recent history versions of a specific key
 export const getSettingVersions = async (req, res) => {
   try {
     const { key } = req.params;
     const { limit = 5 } = req.query;
     
-    // 查询特定键的历史记录
+    // query history records of a specific key
     const versions = await SettingHistory.find({ key })
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
@@ -214,36 +214,36 @@ export const getSettingVersions = async (req, res) => {
   }
 };
 
-// 回滚到特定历史版本
+// rollback to a specific history version
 export const rollbackSetting = async (req, res) => {
   try {
     const { historyId } = req.params;
     
-    // 查找历史记录
+    // find history record
     const historyRecord = await SettingHistory.findById(historyId);
     
     if (!historyRecord) {
       return error(res, 'setting.historyNotFound', 404);
     }
     
-    // 查找当前设置
+    // find current setting
     const currentSetting = await Setting.findOne({ key: historyRecord.key });
     
     if (!currentSetting) {
       return error(res, 'setting.notFound', 404);
     }
     
-    // 获取要恢复的值
+    // get value to restore
     const valueToRestore = historyRecord.oldValue;
     
-    // 更新设置
+    // update setting
     const updatedSetting = await Setting.findOneAndUpdate(
       { key: historyRecord.key },
       { value: valueToRestore },
       { new: true }
     );
     
-    // 记录回滚历史
+    // record rollback history
     await SettingHistory.create({
       key: historyRecord.key,
       oldValue: currentSetting.value,

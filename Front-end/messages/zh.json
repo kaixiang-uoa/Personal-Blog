@@ -18,6 +18,7 @@
     "filterResults": "筛选结果",
     "latestArticles": "关于代码、生活与不那么确定的未来",
     "allCategories": "所有分类",
+    "allTags": "所有标签",
     "searchPlaceholder": "搜索文章...",
     "noArticlesFound": "没有找到相关文章",
     "clearAllFilters": "清除所有筛选条件",
@@ -44,6 +45,9 @@
     "newestFirst": "最新发布",
     "oldestFirst": "最早发布",
     "mostPopular": "最受欢迎",
+    "newest": "最新",
+    "oldest": "最早",
+    "popular": "热门",
     "lastUpdated": "最近更新",
     "oldestUpdated": "最早更新",
     "selectSortOrder": "选择排序方式"

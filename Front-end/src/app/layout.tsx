@@ -4,7 +4,6 @@ import type { Metadata } from 'next/types';
 import { Inter } from 'next/font/google';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { SettingsProvider } from '@/contexts/SettingsContext';
-import { ThemeProvider } from '@/app/components/theme-provider';
 import { SEOHead } from '@/app/components/SEOHead';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -19,11 +18,9 @@ export default function RootLayout({ children }:{ children: React.ReactNode}) {
     <html lang="en">
       <body className={inter.className}>
         <SettingsProvider>
-          <ThemeProvider>
-            <SEOHead />
-            {children}
-            <SpeedInsights />
-          </ThemeProvider>
+          <SEOHead />
+          {children}
+          <SpeedInsights />
         </SettingsProvider>
       </body>
     </html>

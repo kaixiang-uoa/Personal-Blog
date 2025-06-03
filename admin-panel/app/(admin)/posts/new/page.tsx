@@ -19,29 +19,17 @@ import { useToast } from "@/hooks/use-toast"
 import PostEditor from "@/components/post-editor"
 import { postService } from "@/lib/services/post-service"
 import { PostFormData } from "@/types/post"
-import { categoryService } from "@/lib/services/category-service"
 import type { Category } from "@/types/category"
 import type { Tag } from "@/types/tags" 
-import type { ApiResponse } from "@/types/common"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { postFormSchema, type PostFormSchema } from "@/lib/validation/form-validation"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { tagService } from "@/lib/services/tag-service"
 import { CategorySelector } from "@/components/categories/CategorySelector";
 import { TagSelector } from "@/components/tags/TagSelector";
 import { useCategory } from "@/lib/store/category-context"
 import { useTag } from "@/lib/store/tag-context"
 
-// Helper function to display category or tag name
-const displayName = (item: any) => {
-  if (!item) return "";
-  if (typeof item.name === "string") return item.name;
-  if (item.name && typeof item.name === "object") {
-    return item.name.en || item.name.zh || "";
-  }
-  return "";
-};
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -91,9 +79,9 @@ export default function NewPostPage() {
     fetchTags()
   }, [fetchTags])
 
-  // 处理categories数据结构
+  // handle categories data structure
   useEffect(() => {
-    // 解析categoryState.categories数据，支持多种数据结构
+    // analysis categoryState.categories data structure
     if (categoryState.categories) {
       if (Array.isArray(categoryState.categories)) {
         setAvailableCategories(categoryState.categories);
@@ -116,18 +104,13 @@ export default function NewPostPage() {
         ...data,
         featured: false,
         excerpt: data.excerpt || "",
-        // If backend expects tag IDs, send IDs; if it expects tag names, send names
-        // Here we're sending IDs based on the model
         tags: data.tags || [],
         featuredImage: data.featuredImage || "",
         categories: data.category ? [data.category] : [],  // Convert single category to array
       }
       
-      // Remove the single category field as we're using categories array
       delete (postData as any).category;
-      // Remove the temporary tagObjects field
       delete (postData as any).tagObjects;
-      
       await postService.create(postData)
       toast({
         title: "Success",
@@ -157,9 +140,7 @@ export default function NewPostPage() {
 
   const handleTagSelect = (tags: Tag[]) => {
     setSelectedTags(tags);
-    // Store tag IDs in form
     form.setValue("tags", tags.map(t => t._id));
-    // Also store full tag objects for reference
     form.setValue("tagObjects", tags);
   };
 

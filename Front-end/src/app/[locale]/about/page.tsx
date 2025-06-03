@@ -6,7 +6,7 @@ import Navbar from '../../components/Navbar';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-// 定义About数据接口
+// define About data interface
 interface AboutData {
   intro: string;
   contact: any;
@@ -35,7 +35,7 @@ export default function AboutMe() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 获取About相关设置，使用group参数过滤设置
+    // fetch about settings, use group parameter to filter settings
     fetch('/api/settings?group=about')
       .then(res => {
         if (!res.ok) {
@@ -49,7 +49,7 @@ export default function AboutMe() {
         if (response.success && response.data) {
           const data = response.data;
           
-          // 根据当前语言选择合适的内容
+          // select appropriate content based on current language
           const intro = locale === 'zh' && data['about.intro_zh'] 
             ? data['about.intro_zh'] 
             : data['about.intro'] || '';
@@ -78,16 +78,16 @@ export default function AboutMe() {
       });
   }, [locale]);
 
-  // 检查对象是否有有效的非空值
+  // check if object has valid non-empty values
   const hasValidContent = (obj: unknown): boolean => {
     if (!obj) return false;
     
-    // 检查是否为数组且有元素
+    // check if it is an array and has elements
     if (Array.isArray(obj)) {
       return obj.length > 0;
     }
     
-    // 检查是否为对象且有有效属性值
+    // check if it is an object and has valid property values
     if (typeof obj === 'object' && obj !== null) {
       return Object.values(obj).some(val => 
         val !== null && 
@@ -97,16 +97,16 @@ export default function AboutMe() {
       );
     }
     
-    // 检查普通值是否有效
+    // check if the value is valid
     return obj !== null && obj !== undefined && obj !== '';
   };
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-900 text-gray-200">
+      <main className="min-h-screen bg-white">
         <Navbar />
-        <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+        <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8 flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#111418]"></div>
         </div>
       </main>
     );
@@ -114,15 +114,15 @@ export default function AboutMe() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-gray-900 text-gray-200">
+      <main className="min-h-screen bg-white">
         <Navbar />
-        <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-900/30 border border-red-700 rounded-lg p-6 text-center">
-            <h2 className="text-2xl font-bold mb-4">
+        <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <h2 className="text-2xl font-bold mb-4 text-red-600">
               {locale === 'zh' ? '连接错误' : 'Connection Error'}
             </h2>
-            <p className="mb-4">{error}</p>
-            <p className="text-gray-400">
+            <p className="mb-4 text-red-600">{error}</p>
+            <p className="text-[#60748a]">
               {locale === 'zh' 
                 ? '请确保后端服务器正在运行，然后刷新页面重试。' 
                 : 'Please ensure the backend server is running, then refresh to try again.'}
@@ -134,16 +134,32 @@ export default function AboutMe() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-900 text-gray-200">
+    <main className="min-h-screen bg-white">
       <Navbar />
+      
+      {/* Banner section similar to home page */}
+      <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4">
+        <div className="py-4">
+          <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10"
+              style={{
+                backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('/images/about-banner.jpg')"
+              }}>
+            <div className="flex flex-col gap-2 text-left max-w-2xl">
+              <h1 className="text-white text-3xl md:text-5xl font-black leading-tight tracking-[-0.033em]">
+                {t('title')}
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Introduction Section */}
         {aboutData.intro && (
           <section className="mb-12">
-            <h1 className="text-4xl font-extrabold mb-4">{t('title')}</h1>
+            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('title')}</h2>
             <div 
-              className="text-lg"
+              className="text-[#111418] text-base leading-normal"
               dangerouslySetInnerHTML={{ __html: aboutData.intro }}
             />
           </section>
@@ -152,21 +168,21 @@ export default function AboutMe() {
         {/* Contact Info */}
         {hasValidContent(aboutData.contact) && (
           <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">{t('contactTitle')}</h2>
-            <ul className="list-disc list-inside">
+            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('contactTitle')}</h2>
+            <ul className="list-disc list-inside text-[#111418]">
               {aboutData.contact.email && (
-                <li>
+                <li className="py-1">
                   {t('email')}:{' '}
-                  <a href={`mailto:${aboutData.contact.email}`} className="text-cyan-600 hover:text-cyan-400">
+                  <a href={`mailto:${aboutData.contact.email}`} className="text-cyan-600 hover:text-cyan-700">
                     {aboutData.contact.email}
                   </a>
                 </li>
               )}
               {aboutData.contact.phone && aboutData.contact.phone !== "(Optional) Your phone number" && (
-                <li>{t('phone')}: {aboutData.contact.phone}</li>
+                <li className="py-1">{t('phone')}: {aboutData.contact.phone}</li>
               )}
               {aboutData.contact.location && aboutData.contact.location !== "(Optional) Your location" && (
-                <li>{t('location')}: {aboutData.contact.location}</li>
+                <li className="py-1">{t('location')}: {aboutData.contact.location}</li>
               )}
             </ul>
           </section>
@@ -175,12 +191,12 @@ export default function AboutMe() {
         {/* Skills */}
         {hasValidContent(aboutData.skills) && (
           <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">{t('skillsTitle')}</h2>
+            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('skillsTitle')}</h2>
             <div className="flex flex-wrap gap-2">
               {aboutData.skills.map((skill, index) => (
                 <span 
                   key={index} 
-                  className="px-3 py-1.5 bg-cyan-900/40 text-cyan-300 rounded-full border border-cyan-700/50 text-sm font-medium hover:bg-cyan-800/40 transition-colors"
+                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
                 >
                   {skill}
                 </span>
@@ -192,77 +208,81 @@ export default function AboutMe() {
         {/* Education */}
         {hasValidContent(aboutData.education) && (
           <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">{t('educationTitle')}</h2>
-            <ul className="list-disc list-inside">
+            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('educationTitle')}</h2>
+            <div className="space-y-4">
               {aboutData.education.map((edu, index) => (
-                <li key={index}>
-                  {edu.degree && edu.institution ? 
-                    `${edu.degree}, ${edu.institution} ${edu.year ? `(${edu.year})` : ''}` : 
-                    edu.degree || edu.institution
-                  }
-                  {edu.description && <p className="text-sm text-gray-400 ml-6">{edu.description}</p>}
-                </li>
+                <div key={index} className="border border-[#f0f2f5] rounded-lg p-4 hover:shadow-sm transition-all">
+                  <h3 className="text-[#111418] font-medium">
+                    {edu.degree && edu.institution ? 
+                      `${edu.degree}, ${edu.institution} ${edu.year ? `(${edu.year})` : ''}` : 
+                      edu.degree || edu.institution
+                    }
+                  </h3>
+                  {edu.description && <p className="text-[#60748a] text-sm mt-1">{edu.description}</p>}
+                </div>
               ))}
-            </ul>
+            </div>
           </section>
         )}
 
         {/* Experience */}
         {hasValidContent(aboutData.experience) && (
           <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">{t('experienceTitle')}</h2>
-            <ul className="list-disc list-inside">
+            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('experienceTitle')}</h2>
+            <div className="space-y-4">
               {aboutData.experience.map((exp, index) => (
-                <li key={index}>
-                  {exp.position && exp.company ? 
-                    `${exp.position} ${t('at')} ${exp.company} ${exp.period ? `(${exp.period})` : ''}` : 
-                    exp.position || exp.company
-                  }
-                  {exp.description && <p className="text-sm text-gray-400 ml-6">{exp.description}</p>}
-                </li>
+                <div key={index} className="border border-[#f0f2f5] rounded-lg p-4 hover:shadow-sm transition-all">
+                  <h3 className="text-[#111418] font-medium">
+                    {exp.position && exp.company ? 
+                      `${exp.position} ${t('at')} ${exp.company} ${exp.period ? `(${exp.period})` : ''}` : 
+                      exp.position || exp.company
+                    }
+                  </h3>
+                  {exp.description && <p className="text-[#60748a] text-sm mt-1">{exp.description}</p>}
+                </div>
               ))}
-            </ul>
+            </div>
           </section>
         )}
 
         {/* Projects */}
         {hasValidContent(aboutData.projects) && (
           <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">{t('projectsTitle')}</h2>
-            <ul className="list-disc list-inside">
+            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('projectsTitle')}</h2>
+            <div className="space-y-4">
               {aboutData.projects.map((project, index) => (
-                <li key={index}>
+                <div key={index} className="border border-[#f0f2f5] rounded-lg p-4 hover:shadow-sm transition-all">
                   {project.name && (
-                    <>
-                      {project.name}
-                      {project.description && `: ${project.description}`}
+                    <div>
+                      <h3 className="text-[#111418] font-medium">{project.name}</h3>
+                      {project.description && <p className="text-[#60748a] text-sm mt-1">{project.description}</p>}
                       {project.link && (
                         <a 
                           href={project.link} 
-                          className="text-cyan-600 hover:text-cyan-400 ml-2" 
+                          className="text-cyan-600 hover:text-cyan-700 text-sm mt-2 inline-block" 
                           target="_blank" 
                           rel="noopener noreferrer"
                         >
-                          {t('githubLink')}
+                          {t('githubLink')} →
                         </a>
                       )}
-                    </>
+                    </div>
                   )}
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </section>
         )}
 
         {/* Social Links */}
         {hasValidContent(aboutData.social) && (
           <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">{t('socialTitle')}</h2>
+            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('socialTitle')}</h2>
             <div className="flex flex-wrap gap-3">
               {aboutData.social.github && (
                 <a
                   href={aboutData.social.github}
-                  className="px-3 py-1.5 bg-gray-800 text-cyan-400 rounded-full border border-gray-700 text-sm font-medium hover:bg-gray-700 transition-colors"
+                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -272,7 +292,7 @@ export default function AboutMe() {
               {aboutData.social.linkedin && (
                 <a
                   href={aboutData.social.linkedin}
-                  className="px-3 py-1.5 bg-gray-800 text-cyan-400 rounded-full border border-gray-700 text-sm font-medium hover:bg-gray-700 transition-colors"
+                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -282,7 +302,7 @@ export default function AboutMe() {
               {aboutData.social.twitter && (
                 <a
                   href={aboutData.social.twitter}
-                  className="px-3 py-1.5 bg-gray-800 text-cyan-400 rounded-full border border-gray-700 text-sm font-medium hover:bg-gray-700 transition-colors"
+                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -292,7 +312,7 @@ export default function AboutMe() {
               {aboutData.social.website && (
                 <a
                   href={aboutData.social.website}
-                  className="px-3 py-1.5 bg-gray-800 text-cyan-400 rounded-full border border-gray-700 text-sm font-medium hover:bg-gray-700 transition-colors"
+                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

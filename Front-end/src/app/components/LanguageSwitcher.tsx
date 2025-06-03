@@ -19,24 +19,15 @@ export default function LanguageSwitcher() {
     router.push(newPath);
   };
 
+  // 当前语言文本展示
+  const currentLanguageText = locale === 'en' ? 'EN' : '中文';
+
   return (
-    <div className="flex items-center space-x-2">
-      <button
-        onClick={() => switchLocale('zh')}
-        className={`px-2 py-1 text-sm rounded-md ${
-          locale === 'zh' ? 'bg-cyan-600 text-white' : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        中文
-      </button>
-      <button
-        onClick={() => switchLocale('en')}
-        className={`px-2 py-1 text-sm rounded-md ${
-          locale === 'en' ? 'bg-cyan-600 text-white' : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        English
-      </button>
-    </div>
+    <button
+      onClick={() => switchLocale(locale === 'en' ? 'zh' : 'en')}
+      className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#f0f2f5] text-[#111418] text-sm font-bold leading-normal tracking-[0.015em]"
+    >
+      <span className="truncate">{currentLanguageText}</span>
+    </button>
   );
 }

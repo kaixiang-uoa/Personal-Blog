@@ -2,7 +2,7 @@ import User from '../models/User.js';
 import { success, error } from '../utils/responseHandler.js';
 import bcrypt from 'bcryptjs';
 
-// 获取所有用户
+// get all users
 export const getAllUsers = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
@@ -36,7 +36,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// 获取单个用户
+// get single user
 export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -52,12 +52,12 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// 创建用户 (管理员功能)
+// create user (admin function)
 export const createUser = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
     
-    // 检查用户是否已存在
+    // check if user already exists
     const userExists = await User.findOne({ 
       $or: [{ email }, { username }] 
     });
@@ -66,7 +66,7 @@ export const createUser = async (req, res) => {
       return error(res, userExists.email === email ? 'user.emailExists' : 'user.usernameExists', 400);
     }
     
-    // 创建用户
+    // create user
     const user = await User.create({
       username,
       email,
@@ -85,7 +85,7 @@ export const createUser = async (req, res) => {
   }
 };
 
-// 更新用户 (管理员功能)
+// update user (admin function)
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -97,7 +97,7 @@ export const updateUser = async (req, res) => {
       return error(res, 'user.notFound', 404);
     }
     
-    // 更新字段
+    // update fields
     if (username) user.username = username;
     if (email) user.email = email;
     if (role) user.role = role;
@@ -117,7 +117,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// 删除用户
+// delete user
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -128,7 +128,7 @@ export const deleteUser = async (req, res) => {
       return error(res, 'user.notFound', 404);
     }
     
-    // 不允许删除自己
+    // cannot delete self
     if (user._id.toString() === req.user.id) {
       return error(res, 'user.cannotDeleteSelf', 400);
     }
@@ -141,7 +141,7 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// 更新个人资料
+// update profile
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -153,7 +153,7 @@ export const updateProfile = async (req, res) => {
       return error(res, 'user.notFound', 404);
     }
     
-    // 如果要更新密码，验证当前密码
+    // if want to update password, verify current password
     if (newPassword && currentPassword) {
       const isMatch = await bcrypt.compare(currentPassword, user.password);
       
@@ -164,7 +164,7 @@ export const updateProfile = async (req, res) => {
       user.password = newPassword;
     }
     
-    // 更新其他字段
+    // update other fields
     if (username) user.username = username;
     if (email) user.email = email;
     if (bio) user.bio = bio;

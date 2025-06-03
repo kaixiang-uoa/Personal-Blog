@@ -7,7 +7,7 @@ import databaseConnect from './db.js';
 import logger from './logger.js';
 import { importInitialData } from './importData.js';
 
-// 获取当前文件的目录路径（ES模块兼容方式）
+// get current file directory path (ES module compatible way)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -105,7 +105,7 @@ const processReferences = (data, refFields) => {
 
 const createAdminUser = async () => {
     try {
-        // 检查是否已存在管理员账号
+        // check if admin user already exists
         const adminExists = await User.findOne({ role: 'admin' });
         
         if (adminExists) {
@@ -113,7 +113,7 @@ const createAdminUser = async () => {
             return;
         }
 
-        // 创建管理员账号
+        // create admin user
         const adminUser = await User.create({
             username: process.env.ADMIN_USERNAME || 'admin',
             email: process.env.ADMIN_EMAIL || 'admin@example.com',
@@ -139,7 +139,7 @@ const seedDatabase = async () => {
 
         logger.info('🔄 Starting database seeding...');
         
-        // 清空所有数据
+        // clear all data
         await User.deleteMany({});
         await Category.deleteMany({});
         await Tag.deleteMany({});
@@ -148,10 +148,10 @@ const seedDatabase = async () => {
 
         logger.info('✅ Database cleared successfully');
 
-        // 创建管理员账号
+        // create admin user
         await createAdminUser();
 
-        // 如果需要导入初始数据，取消下面的注释
+        // if need to import initial data, uncomment the following line
         // await importInitialData({ Category, Tag, Post, Setting });
 
         logger.info('🎉 Database seeding completed successfully!');
@@ -163,7 +163,7 @@ const seedDatabase = async () => {
     }
 };
 
-// 如果直接运行此文件，则执行种子脚本
+// if directly run this file, execute seed script
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
     seedDatabase();
 }

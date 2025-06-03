@@ -3,7 +3,7 @@ import { getSupportedLanguages, getTranslations } from '../utils/i18n.js';
 
 const router = express.Router();
 
-// 获取支持的语言列表
+// get supported languages list
 router.get('/languages', (req, res) => {
   res.json({
     success: true,
@@ -11,7 +11,7 @@ router.get('/languages', (req, res) => {
   });
 });
 
-// 获取指定语言的所有翻译
+// get all translations of a specific language
 router.get('/translations/:lang', (req, res) => {
   const lang = req.params.lang;
   res.json({

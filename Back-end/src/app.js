@@ -31,7 +31,8 @@ const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['Content-Type', 'Content-Length', 'Content-Disposition'],
 };
 
 const app = express();
@@ -41,19 +42,37 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors(corsOptions));
-app.use(helmet());
+
+// Configure Helmet but disable crossOriginResourcePolicy for serving images
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", "http:", "https:", "data:", "blob:"],
+        mediaSrc: ["'self'", "http:", "https:", "data:", "blob:"],
+      },
+    },
+  })
+);
 
 // Apply internationalization middleware
 app.use(i18nMiddleware);
 
-// Static file directories
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Static file directories - add CORS headers for static files
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, '..', 'uploads')));
+
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // API prefix
 const API_PREFIX = '/api/v1';
 
-// 添加请求日志中间件
+// add request log middleware
 app.use((req, res, next) => {
     logger.info(`${req.method} ${req.url}`, {
         ip: req.ip,

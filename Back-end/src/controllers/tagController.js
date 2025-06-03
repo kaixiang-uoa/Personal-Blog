@@ -88,14 +88,14 @@ export const updateTag = asyncHandler(async (req, res) => {
   let tag = await Tag.findById(req.params.id);
   
   if (!tag) {
-    throw createError('标签不存在', 404);
+    throw createError('Tag not found', 404);
   }
   
   // Check if slug is already taken by another tag
   if (slug && slug !== tag.slug) {
     const slugExists = await Tag.findOne({ slug });
     if (slugExists) {
-      throw createError('该别名已被使用，请使用其他别名', 400);
+      throw createError('This slug is already in use, please use another one', 400);
     }
   }
   
@@ -107,7 +107,7 @@ export const updateTag = asyncHandler(async (req, res) => {
   // Save updated tag
   await tag.save();
   
-  return success(res, { tag }, 200, '标签更新成功');
+  return success(res, { tag }, 200, 'Tag updated successfully');
 });
 
 /**
@@ -119,7 +119,7 @@ export const deleteTag = asyncHandler(async (req, res) => {
   const tag = await Tag.findById(req.params.id);
   
   if (!tag) {
-    throw createError('标签不存在', 404);
+    throw createError('Tag not found', 404);
   }
   
   // Remove tag from posts
@@ -128,8 +128,8 @@ export const deleteTag = asyncHandler(async (req, res) => {
     { $pull: { tags: tag._id } }
   );
   
-  // 使用现代的Mongoose删除方法替换过时的remove()
+  // use modern mongoose delete method instead of deprecated remove()
   await Tag.deleteOne({ _id: tag._id });
   
-  return success(res, null, 200, '标签删除成功');
+  return success(res, null, 200, 'Tag deleted successfully');
 });

@@ -9,16 +9,16 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// 获取文章的所有评论
+// get all comments of a post
 router.get('/post/:postId', getCommentsByPost);
 
-// 添加评论 (需要登录)
+// add comment (need login)
 router.post('/post/:postId', protect, addComment);
 
-// 更新评论 (需要登录)
+// update comment (need login)
 router.put('/:commentId', protect, updateComment);
 
-// 删除评论 (需要登录)
+// delete comment (need login)
 router.delete('/:commentId', protect, deleteComment);
 
 export default router;

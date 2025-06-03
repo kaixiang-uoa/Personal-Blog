@@ -31,6 +31,10 @@ export const settingsService = {
     return apiClient.get("/settings");
   },
 
+  getByGroup: async (group: string): Promise<ApiResponse<Record<string, any>>> => {
+    return apiClient.get("/settings", { params: { group } });
+  },
+
   getByKey: async (key: string): Promise<ApiResponse<Setting>> => {
     return apiClient.get(`/settings/${key}`);
   },
@@ -39,8 +43,8 @@ export const settingsService = {
     return apiClient.post("/settings", data);
   },
 
-  batchUpdate: async (data: Record<string, any>): Promise<ApiResponse<Setting[]>> => {
-    return apiClient.post("/settings/batch", data);
+  batchUpdate: async (data: any[]): Promise<ApiResponse<Setting[]>> => {
+    return apiClient.post("/settings/batch", { settings: data });
   },
 
   update: async (key: string, data: Partial<SettingFormData>): Promise<ApiResponse<Setting>> => {

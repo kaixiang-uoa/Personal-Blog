@@ -1,8 +1,8 @@
-// 国际化工具函数
+// i18n utility functions
 
-// 翻译字典
+// translation dictionary
 const translations = {
-  // 通用翻译
+  // general translations
   common: {
     en: {
       success: 'Success',
@@ -24,7 +24,7 @@ const translations = {
     }
   },
   
-  // 用户相关翻译
+  // user related translations
   user: {
     en: {
       loginSuccess: 'Login successful',
@@ -50,7 +50,7 @@ const translations = {
     }
   },
   
-  // 文章相关翻译
+  // post related translations
   post: {
     en: {
       created: 'Post created successfully',
@@ -68,7 +68,7 @@ const translations = {
     }
   },
   
-  // 分类相关翻译
+  // category related translations
   category: {
     en: {
       created: 'Category created successfully',
@@ -86,7 +86,7 @@ const translations = {
     }
   },
   
-  // 标签相关翻译
+  // tag related translations
   tag: {
     en: {
       created: 'Tag created successfully',
@@ -104,7 +104,7 @@ const translations = {
     }
   },
   
-  // 设置相关翻译
+  // setting related translations
   setting: {
     en: {
       updated: 'Settings updated successfully',
@@ -118,7 +118,7 @@ const translations = {
     }
   },
   
-  // 媒体相关翻译
+  // media related translations
   media: {
     en: {
       uploaded: 'File uploaded successfully',
@@ -140,29 +140,29 @@ const translations = {
 };
 
 /**
- * 获取翻译文本
- * @param {string} key - 翻译键，格式为 "category.key"
- * @param {string} lang - 语言代码
- * @param {Object} params - 替换参数
- * @returns {string} 翻译后的文本
+ * get translation text
+ * @param {string} key - translation key, format as "category.key"
+ * @param {string} lang - language code
+ * @param {Object} params - replace parameters
+ * @returns {string} translated text
  */
 export const t = (key, lang = 'en', params = {}) => {
-  // 分割键，例如 "user.loginSuccess" -> ["user", "loginSuccess"]
+  // split key, e.g. "user.loginSuccess" -> ["user", "loginSuccess"]
   const [category, messageKey] = key.split('.');
   
-  // 获取翻译
+  // get translation
   const translation = translations[category]?.[lang]?.[messageKey] || key;
   
-  // 替换参数
+  // replace parameters
   return Object.entries(params).reduce((text, [param, value]) => {
     return text.replace(new RegExp(`{${param}}`, 'g'), value);
   }, translation);
 };
 
 /**
- * 获取当前语言的所有翻译
- * @param {string} lang - 语言代码
- * @returns {Object} 所有翻译
+ * get all translations of a specific language
+ * @param {string} lang - language code
+ * @returns {Object} all translations
  */
 export const getTranslations = (lang = 'en') => {
   const result = {};
@@ -175,8 +175,8 @@ export const getTranslations = (lang = 'en') => {
 };
 
 /**
- * 获取支持的语言列表
- * @returns {Array} 支持的语言列表
+ * get supported languages list
+ * @returns {Array} supported languages list
  */
 export const getSupportedLanguages = () => {
   return ['en', 'zh'];

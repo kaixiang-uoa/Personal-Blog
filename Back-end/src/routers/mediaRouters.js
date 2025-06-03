@@ -16,13 +16,13 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 确保上传目录存在
+// ensure upload directory exists
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// 配置Multer存储
+// configure Multer storage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, uploadDir);
@@ -34,23 +34,23 @@ const storage = multer.diskStorage({
     }
 });
 
-// 文件过滤器
+// file filter
 const fileFilter = (req, file, cb) => {
-    // 允许的文件类型
+    // allowed file types
     const allowedTypes = /jpeg|jpg|png|gif|webp|svg|pdf|doc|docx|xls|xlsx|ppt|pptx/;
     
-    // 检查文件扩展名
+    // check file extension
     const ext = path.extname(file.originalname).toLowerCase();
     const isAllowed = allowedTypes.test(ext);
     
     if (isAllowed) {
         cb(null, true);
     } else {
-        cb(new Error('不支持的文件类型'), false);
+        cb(new Error('Unsupported file type'), false);
     }
 };
 
-// 配置上传中间件
+// configure upload middleware
 const upload = multer({ 
     storage: storage,
     fileFilter: fileFilter,
@@ -61,19 +61,19 @@ const upload = multer({
 
 const router = express.Router();
 
-// 获取所有媒体文件
+// get all media files
 router.get('/', protect, getAllMedia);
 
-// 获取单个媒体文件
+// get single media file
 router.get('/:id', protect, getMediaById);
 
-// 上传媒体文件
+// upload media file
 router.post('/', protect, upload.array('files', 10), uploadMedia);
 
-// 更新媒体文件信息
+// update media file information
 router.put('/:id', protect, updateMedia);
 
-// 删除媒体文件（单个或批量）
+// delete media file (single or batch)
 router.delete('/:id?', protect, restrictTo('admin', 'editor'), deleteMedia);
 
 export default router;

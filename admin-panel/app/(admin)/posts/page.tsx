@@ -29,17 +29,15 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
 import { postService } from "@/lib/services/post-service"
-import type { Post } from "@/types/post"
-import type { Category } from "@/types/category"
-import type { TagType } from "@/types/tags"
+import type { ApiPost } from "@/types/post"
 
 export default function PostsPage() {
   const { toast } = useToast()
-  const [posts, setPosts] = useState<Post[]>([])
+  const [posts, setPosts] = useState<ApiPost[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [sortField, setSortField] = useState<keyof Post>("createdAt")
+  const [sortField, setSortField] = useState<keyof ApiPost>("createdAt")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [postToDelete, setPostToDelete] = useState<string | null>(null)
@@ -62,7 +60,12 @@ export default function PostsPage() {
         }
         
         const response = await postService.getAll(params);
-        setPosts(response.data || []);
+       
+        const apiPosts = response.data as unknown as ApiPost[];
+        console.log('response', apiPosts[0]?.publishedAt)
+        // 确保数据是数组并且每个元素都有必要的属性
+        const validPosts = Array.isArray(apiPosts) ? apiPosts.filter(post => post && typeof post === 'object') : [];
+        setPosts(validPosts || []);
       } catch (error) {
         console.error("Failed to fetch posts", error);
         toast({
@@ -79,7 +82,7 @@ export default function PostsPage() {
   }, [toast, statusFilter]);
 
   // Handle sorting
-  const handleSort = (field: keyof Post) => {
+  const handleSort = (field: keyof ApiPost) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc")
     } else {
@@ -102,13 +105,19 @@ export default function PostsPage() {
         return (
           post.title.toLowerCase().includes(searchLower) ||
           post.excerpt.toLowerCase().includes(searchLower) ||
-          post.categories?.some(category => 
+          post.categories?.some((category: { name: string; slug: string }) => 
             typeof category === 'object' && category !== null
-              ? (category.name?.toLowerCase().includes(searchLower)): false
+              ? (typeof category.name === 'string' 
+                  ? category.name.toLowerCase().includes(searchLower)
+                  : false)
+              : false
           ) ||
-          post.tags.some(tag => 
+          post.tags?.some((tag: { name: string; slug: string }) => 
             typeof tag === 'object' && tag !== null
-              ? (tag.name?.toLowerCase().includes(searchLower)): false
+              ? (typeof tag.name === 'string'
+                  ? tag.name.toLowerCase().includes(searchLower)
+                  : false)
+              : false
           )
         )
       }
@@ -276,16 +285,16 @@ export default function PostsPage() {
                 <TableRow key={post._id || `post-row-${postIndex}`}>
                   <TableCell>
                     <div className="font-medium hover:underline">
-                      <Link href={`/posts/${post._id}`}>{post.title}</Link>
+                      <Link href={`/posts/${post._id}/preview`}>{post.title}</Link>
                     </div>
                     <div className="text-sm text-muted-foreground line-clamp-1">{post.excerpt}</div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="space-y-1">
-                      {/* 分类显示部分 */}
+                      {/* category */}
                       {Array.isArray(post.categories) && post.categories.length > 0 ? (
                         <div className="flex flex-wrap gap-1 mb-1">
-                          {post.categories.map((category) => {
+                          {post.categories.map((category: { _id: string, name: string, slug: string }) => {
                             const categoryName = typeof category === 'object' && category !== null
                               ? category.name || category.slug
                               : String(category);
@@ -303,11 +312,10 @@ export default function PostsPage() {
                       ) : (
                         <Badge variant="outline">Uncategorized</Badge>
                       )}
-                      
-                      {/* 标签显示部分 */}
+                      {/* tags */}
                       <div className="flex flex-wrap gap-1">
                         {Array.isArray(post.tags) && post.tags.length > 0 ? (
-                          post.tags.map((tag) => {
+                          post.tags.map((tag: { _id: string, name: string, slug: string }) => {
                             const tagName = typeof tag === 'object' && tag !== null
                               ? tag.name || tag.slug
                               : String(tag);
@@ -336,7 +344,7 @@ export default function PostsPage() {
                     )}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {post.status === "published" ? post.publishDate : "Not published"}
+                    {post.status === "published" && post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : "Not published"}
                   </TableCell>
                   <TableCell className="hidden lg:table-cell text-right">
                     {post.status === "published" ? post.viewCount : "-"}

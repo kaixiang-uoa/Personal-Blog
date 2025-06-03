@@ -1,0 +1,221 @@
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700"
+    />
+
+    <title>Stitch Design</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body>
+    <div
+      class="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden"
+      style='--select-button-svg: url(&apos;data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(96,116,138)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e&apos;); font-family: "Space Grotesk", "Noto Sans", sans-serif;'
+    >
+      <div class="layout-container flex h-full grow flex-col">
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f5] px-10 py-3">
+          <div class="flex items-center gap-4 text-[#111418]">
+            <div class="size-4">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_6_543)">
+                  <path
+                    d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z"
+                    fill="currentColor"
+                  ></path>
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M7.24189 26.4066C7.31369 26.4411 7.64204 26.5637 8.52504 26.3738C9.59462 26.1438 11.0343 25.5311 12.7183 24.4963C14.7583 23.2426 17.0256 21.4503 19.238 19.238C21.4503 17.0256 23.2426 14.7583 24.4963 12.7183C25.5311 11.0343 26.1438 9.59463 26.3738 8.52504C26.5637 7.64204 26.4411 7.31369 26.4066 7.24189C26.345 7.21246 26.143 7.14535 25.6664 7.1918C24.9745 7.25925 23.9954 7.5498 22.7699 8.14278C20.3369 9.32007 17.3369 11.4915 14.4142 14.4142C11.4915 17.3369 9.32007 20.3369 8.14278 22.7699C7.5498 23.9954 7.25925 24.9745 7.1918 25.6664C7.14534 26.143 7.21246 26.345 7.24189 26.4066ZM29.9001 10.7285C29.4519 12.0322 28.7617 13.4172 27.9042 14.8126C26.465 17.1544 24.4686 19.6641 22.0664 22.0664C19.6641 24.4686 17.1544 26.465 14.8126 27.9042C13.4172 28.7617 12.0322 29.4519 10.7285 29.9001L21.5754 40.747C21.6001 40.7606 21.8995 40.931 22.8729 40.7217C23.9424 40.4916 25.3821 39.879 27.0661 38.8441C29.1062 37.5904 31.3734 35.7982 33.5858 33.5858C35.7982 31.3734 37.5904 29.1062 38.8441 27.0661C39.879 25.3821 40.4916 23.9425 40.7216 22.8729C40.931 21.8995 40.7606 21.6001 40.747 21.5754L29.9001 10.7285ZM29.2403 4.41187L43.5881 18.7597C44.9757 20.1473 44.9743 22.1235 44.6322 23.7139C44.2714 25.3919 43.4158 27.2666 42.252 29.1604C40.8128 31.5022 38.8165 34.012 36.4142 36.4142C34.012 38.8165 31.5022 40.8128 29.1604 42.252C27.2666 43.4158 25.3919 44.2714 23.7139 44.6322C22.1235 44.9743 20.1473 44.9757 18.7597 43.5881L4.41187 29.2403C3.29027 28.1187 3.08209 26.5973 3.21067 25.2783C3.34099 23.9415 3.8369 22.4852 4.54214 21.0277C5.96129 18.0948 8.43335 14.7382 11.5858 11.5858C14.7382 8.43335 18.0948 5.9613 21.0277 4.54214C22.4852 3.8369 23.9415 3.34099 25.2783 3.21067C26.5973 3.08209 28.1187 3.29028 29.2403 4.41187Z"
+                    fill="currentColor"
+                  ></path>
+                </g>
+                <defs>
+                  <clipPath id="clip0_6_543"><rect width="48" height="48" fill="white"></rect></clipPath>
+                </defs>
+              </svg>
+            </div>
+            <h2 class="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em]">DevBlog</h2>
+          </div>
+          <div class="flex flex-1 justify-end gap-8">
+            <div class="flex items-center gap-9">
+              <a class="text-[#111418] text-sm font-medium leading-normal" href="#">Home</a>
+              <a class="text-[#111418] text-sm font-medium leading-normal" href="#">About</a>
+              <a class="text-[#111418] text-sm font-medium leading-normal" href="#">Contact</a>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#f0f2f5] text-[#111418] text-sm font-bold leading-normal tracking-[0.015em]"
+              >
+                <span class="truncate">EN</span>
+              </button>
+              <button
+                class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 bg-[#f0f2f5] text-[#111418] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5"
+              >
+                <div class="text-[#111418]" data-icon="Moon" data-size="20px" data-weight="regular">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
+                    <path
+                      d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"
+                    ></path>
+                  </svg>
+                </div>
+              </button>
+            </div>
+          </div>
+        </header>
+        <div class="gap-1 px-6 flex flex-1 justify-center py-5">
+          <div class="layout-content-container flex flex-col w-80">
+            <h2 class="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Filter</h2>
+            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              <label class="flex flex-col min-w-40 flex-1">
+                <p class="text-[#111418] text-base font-medium leading-normal pb-2">Category</p>
+                <select
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111418] focus:outline-0 focus:ring-0 border border-[#dbe0e6] bg-white focus:border-[#dbe0e6] h-14 bg-[image:--select-button-svg] placeholder:text-[#60748a] p-[15px] text-base font-normal leading-normal"
+                >
+                  <option value="one">All</option>
+                  <option value="two">two</option>
+                  <option value="three">three</option>
+                </select>
+              </label>
+            </div>
+            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              <label class="flex flex-col min-w-40 flex-1">
+                <p class="text-[#111418] text-base font-medium leading-normal pb-2">Tags</p>
+                <select
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111418] focus:outline-0 focus:ring-0 border border-[#dbe0e6] bg-white focus:border-[#dbe0e6] h-14 bg-[image:--select-button-svg] placeholder:text-[#60748a] p-[15px] text-base font-normal leading-normal"
+                >
+                  <option value="one">All</option>
+                  <option value="two">two</option>
+                  <option value="three">three</option>
+                </select>
+              </label>
+            </div>
+            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              <label class="flex flex-col min-w-40 flex-1">
+                <p class="text-[#111418] text-base font-medium leading-normal pb-2">Sort by</p>
+                <select
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111418] focus:outline-0 focus:ring-0 border border-[#dbe0e6] bg-white focus:border-[#dbe0e6] h-14 bg-[image:--select-button-svg] placeholder:text-[#60748a] p-[15px] text-base font-normal leading-normal"
+                >
+                  <option value="one">Newest</option>
+                  <option value="two">two</option>
+                  <option value="three">three</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+            <div class="@container">
+              <div class="@[480px]:p-4">
+                <div
+                  class="flex min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat @[480px]:gap-8 @[480px]:rounded-xl items-start justify-end px-4 pb-10 @[480px]:px-10"
+                  style='background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCAvMmY596FeQcfcATBZ7OCdgRlSZliPxjcpZQUcZDqH5aEwjRN_P38-l88OIVnA9PyzIWRGnVNwbjVmCoZOZ_MnIY9KnnrpDWEWyOKr74u0BfuxcU8SCMdy_m4R1XJrfQAbbPvd_LOUHwPGiRA7iZZLHNUz2tdANkx_VRCWWEB9fN6A1KhjUB5sAv03TuX4i4LtLrekE7qhDDqrMb2yCjou6oipdZSlw5L4upEMuuXII_n8xAuCdFTVn0_RDqCdKy6rXtMwHOp5CE");'
+                >
+                  <div class="flex flex-col gap-2 text-left">
+                    <h1
+                      class="text-white text-4xl font-black leading-tight tracking-[-0.033em] @[480px]:text-5xl @[480px]:font-black @[480px]:leading-tight @[480px]:tracking-[-0.033em]"
+                    >
+                      Explore the world of software development
+                    </h1>
+                    <h2 class="text-white text-sm font-normal leading-normal @[480px]:text-base @[480px]:font-normal @[480px]:leading-normal">
+                      Dive into the latest trends, tutorials, and insights from industry experts. Whether you're a beginner or a seasoned pro, find resources to level up your
+                      skills.
+                    </h2>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <h2 class="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Latest Posts</h2>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">
+              <div class="flex flex-col gap-3 pb-3">
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCXeLd7Tj2K5n_L2zJf8sUGpWwu312je4Ljbpuqxh3cKq3H1qbBREhQrf3c5CqTehV5TEZovYyVXv6wRoUJe6dZoZRJvAZcRpXysmcWGEFngyYTN9atWGE8Le8WqcFroAZKBbXlsXHWhVmlt2U6i3e58KlCH4LzX7znQecI16xYJsGvHmo6N-OAGtRfWwUCA9EY3gBEadt39f1RDIV-2w7dSlZP81nejmeRyicVEZZdi507qyeSgkHGFjHQlQ6a3vnxclgiheHk9zc");'
+                ></div>
+                <div>
+                  <p class="text-[#111418] text-base font-medium leading-normal">Building Scalable APIs with Node.js</p>
+                  <p class="text-[#60748a] text-sm font-normal leading-normal">By Alex Turner</p>
+                </div>
+              </div>
+              <div class="flex flex-col gap-3 pb-3">
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCiCyl-d0RhXbE455_6tDGO0XOg-2PScVOR0yTbZqgNe1W1hvvsVInQ68TnUfrmljD-wy9TUvw5SgRO1QgrgCd0XWbUpwdwI0N9-ml7v4TnLfuRRtxUNjRMHi9qcxUn8x0FOxgHdkVDKNJ2_QIrSdWi6wCOJ4zJOLTgCIw00YxaW53t6bmiNzZ0JnQYB4ffjPsjPkTwfB7tvFVktGlNIRws7eRk1BPONCqHZ2luwwJKFiT577AgH9B5IZ8Bp69GUOgTm1gIyRuEmt8");'
+                ></div>
+                <div>
+                  <p class="text-[#111418] text-base font-medium leading-normal">Mastering React Hooks for Efficient State Management</p>
+                  <p class="text-[#60748a] text-sm font-normal leading-normal">By Sophia Chen</p>
+                </div>
+              </div>
+              <div class="flex flex-col gap-3 pb-3">
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC_zM2DihseC8hqZ4YvJt1ZoUVb4kWX5xOtAbx5vp7nA9u-9l2KBfW9rzHcMbbzujM0VAKCbQAcvHHmyxgANHXXIUv4YQGgRYMknntuQaOyRYi6Jnv2ubjtKcP5QtDS4rkqFTN2qM60DjJLWYjeFkMJEaiebfl4Hs7eWOzgmieIlfqvSXBBRM3J9SXVMYCkb5WYyubQd6zqJvi7vTE4m78-2128FfOQyFoyIDLK8dJU_0QU6UqdpzgHR729d6jftjLYO0ZMmqcp5cM");'
+                ></div>
+                <div>
+                  <p class="text-[#111418] text-base font-medium leading-normal">Introduction to Serverless Architecture with AWS Lambda</p>
+                  <p class="text-[#60748a] text-sm font-normal leading-normal">By Ethan Lee</p>
+                </div>
+              </div>
+              <div class="flex flex-col gap-3 pb-3">
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC61ejAU3gXMx9xso3zHBVMdHJwQT1XXyZyXKC0ooRGbhUrD2aoawRtoL8eP9-fdkR1Us49wrLe8niXqZNwANTND2dcB-sbnWX2nTulYVmymbpCRe_H-W3pupDhBO6XaowHe7fff_pA0b6uenSNIFhFqIKmTHdpmB24LcKsJYYYIlCCLESdJGMiEXT6M0634QZ7qvYqhHbC8zQea6aEq_RhjHss4kDx5bze2bx5BKKdZJBXUIV6q5nLMudR8ggbT3neUpDU8zkabXg");'
+                ></div>
+                <div>
+                  <p class="text-[#111418] text-base font-medium leading-normal">Securing Your Web Applications: Best Practices</p>
+                  <p class="text-[#60748a] text-sm font-normal leading-normal">By Olivia Carter</p>
+                </div>
+              </div>
+              <div class="flex flex-col gap-3 pb-3">
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDGgZyUUDm__YazeLn9pg90OjKYOg84RU8PKwPB3J2QmBjZgiNS7lr0WJRZ1Ud18j2HOmbtodmexkA2PeN7umJg5TJ_ND38SEr_5oyqZ34Mycw-d93IsSkGFFhtyssXOjvCmBekFaoDaepjkh4b1eEj7zoT8bWkc26XWseq5VELjbY_R_uafG81m-mq-lm6uQOG8nbbsomV1ILzPXMTwJyOGWIRtrDQTXFPUtrxgH5-Dj_qqWZpGhqhIEU_-266ABWf-ENYUtCFR4Q");'
+                ></div>
+                <div>
+                  <p class="text-[#111418] text-base font-medium leading-normal">Optimizing Database Performance in Large-Scale Systems</p>
+                  <p class="text-[#60748a] text-sm font-normal leading-normal">By Nathan Davis</p>
+                </div>
+              </div>
+              <div class="flex flex-col gap-3 pb-3">
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDBBoleBRw7xRXDP-_WzEM1dPMJCsPyoPtpCZduKTL6IxiQ9mkX3aO_NE_M8AHQv1gT61BEWARxVpEQXOjHiuOCQWHXM7NfdADZyyeK_BoBpU-4VMemzPOBzuwM8IWilbhaaqx34_X7usnu0LQJvHIlkYTtAX3j-X3ZMr6aLCUoeUKtPOlWYTAkyf_50ziC3VCfvFsnPLY9Wy5YzQFWBllpHmkM1Dqnu3unTqH91OUOfZj8-r9qA2eamNi4Xvr5kC6mNd-oSX8lMO4");'
+                ></div>
+                <div>
+                  <p class="text-[#111418] text-base font-medium leading-normal">The Future of Front-End Development: Trends and Tools</p>
+                  <p class="text-[#60748a] text-sm font-normal leading-normal">By Isabella Wilson</p>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-center p-4">
+              <a href="#" class="flex size-10 items-center justify-center">
+                <div class="text-[#111418]" data-icon="CaretLeft" data-size="18px" data-weight="regular">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor" viewBox="0 0 256 256">
+                    <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
+                  </svg>
+                </div>
+              </a>
+              <a class="text-sm font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-[#111418] rounded-full bg-[#f0f2f5]" href="#">1</a>
+              <a class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#111418] rounded-full" href="#">2</a>
+              <a class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#111418] rounded-full" href="#">3</a>
+              <span class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#111418] rounded-full" href="#">...</span>
+              <a class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#111418] rounded-full" href="#">10</a>
+              <a href="#" class="flex size-10 items-center justify-center">
+                <div class="text-[#111418]" data-icon="CaretRight" data-size="18px" data-weight="regular">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor" viewBox="0 0 256 256">
+                    <path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path>
+                  </svg>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

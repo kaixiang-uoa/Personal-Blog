@@ -1,8 +1,8 @@
 /**
- * 离线提示组件
+ * offline notice component
  *
- * 这个文件展示了如何创建一个离线状态检测组件
- * 当用户网络连接中断时，显示友好的提示信息
+ * this file shows how to create an offline status detection component
+ * when the user's network connection is interrupted, display a friendly prompt message
  */
 
 import React, { useState, useEffect } from 'react';
@@ -11,10 +11,10 @@ export default function OfflineNotice() {
   const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
-    // 初始检查
+    // initial check
     setIsOffline(!navigator.onLine);
 
-    // 添加事件监听器
+    // add event listeners
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
 
@@ -40,7 +40,7 @@ export default function OfflineNotice() {
             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
           />
         </svg>
-        <span>您当前处于离线状态，部分功能可能不可用</span>
+        <span>You are currently offline, some features may not be available</span>
       </div>
     </div>
   );

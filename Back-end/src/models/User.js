@@ -43,17 +43,17 @@ const UserSchema = new Schema({
 { timestamps: true }
 );
 
-// 密码加密中间件
+// password encryption middleware
 UserSchema.pre('save', async function(next) {
-    // 只有在密码被修改时才重新加密
+    // only re-encrypt if password is modified
     if (!this.isModified('password')) {
         return next();
     }
     
     try {
-        // 生成盐值
+        // generate salt
         const salt = await bcrypt.genSalt(10);
-        // 哈希密码
+        // hash password
         this.password = await bcrypt.hash(this.password, salt);
         next();
     } catch (error) {

@@ -17,20 +17,20 @@ const startServer = async () => {
     // Validate settings, ensure all default settings exist (silent mode)
     await validateSettings(true);
     
-    // 获取预期端口
+    // get expected port
     let PORT = parseInt(process.env.PORT || '3002', 10);
     let maxRetries = 5;
     let retries = 0;
     
     const startAppWithRetry = () => {
-      // 创建服务器但不立即监听
+      // create server but not listen immediately
       const server = app.listen(PORT)
         .on('listening', () => {
-          logger.info(`服务器成功运行在端口 ${PORT}`);
+          logger.info(`Server is running on port ${PORT}`);
           console.log(`
 ====================================
-🚀 服务器已启动!
-📡 本地: http://localhost:${PORT}
+🚀 Server is running!
+📡 Local: http://localhost:${PORT}
 ====================================
           `);
         })
@@ -38,22 +38,22 @@ const startServer = async () => {
           if (err.code === 'EADDRINUSE' && retries < maxRetries) {
             PORT++;
             retries++;
-            logger.warn(`端口 ${PORT-1} 已被占用，尝试端口 ${PORT}...`);
-            // 关闭当前服务器并重试
+            logger.warn(`Port ${PORT-1} is already in use, trying port ${PORT}...`);
+            // close current server and retry
             server.close();
             startAppWithRetry();
           } else {
-            logger.error(`无法启动服务器: ${err.message}`);
+            logger.error(`Failed to start server: ${err.message}`);
             process.exit(1);
           }
         });
     };
     
-    // 开始尝试启动服务器
-    console.log(`尝试启动服务器，初始端口: ${PORT}`);
+    // start trying to start server
+    console.log(`Trying to start server, initial port: ${PORT}`);
     startAppWithRetry();
   } catch (error) {
-    logger.error(`服务器启动失败: ${error.message}`);
+    logger.error(`Failed to start server: ${error.message}`);
     process.exit(1);
   }
 };

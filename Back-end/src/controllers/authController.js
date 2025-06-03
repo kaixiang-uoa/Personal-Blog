@@ -2,19 +2,19 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-// 生成JWT令牌
+// generate JWT token
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN || '30d'
     });
 };
 
-// 用户注册
+// user register
 export const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
         
-        // 检查用户是否已存在
+        // check if user already exists
         const userExists = await User.findOne({ 
             $or: [{ email }, { username }] 
         });
@@ -22,19 +22,19 @@ export const register = async (req, res) => {
         if (userExists) {
             return res.status(400).json({
                 success: false,
-                message: '用户名或邮箱已被注册'
+                message: 'Username or email already exists'
             });
         }
         
-        // 创建用户 - 密码将由模型中间件自动加密
+        // create user - password will be automatically encrypted by model middleware
         const user = await User.create({
             username,
             email,
             password,
-            role: 'author' // 修改默认角色为 author
+            role: 'author' // change default role to author
         });
         
-        // 生成令牌
+        // generate token
         const token = generateToken(user._id);
         
         res.status(201).json({
@@ -51,41 +51,41 @@ export const register = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: '注册失败',
+            message: 'Registration failed',
             error: error.message
         });
     }
 };
 
-// 用户登录
+// user login
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        // 查找用户
+        // find user
         const user = await User.findOne({ email });
         console.log(user);
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: '邮箱或密码不正确'
+                message: 'Email or password is incorrect'
             });
         }
         
-        // 验证密码 - 只使用 bcrypt 加密方式
+        // verify password - only use bcrypt encryption
         const isMatch = await bcrypt.compare(password, user.password);
         
         if (!isMatch) {
             return res.status(401).json({
                 success: false,
-                message: '邮箱或密码不正确'
+                message: 'Email or password is incorrect'
             });
         }
         
-        // 更新最后登录时间
+        // update last login time
         user.lastLogin = Date.now();
         await user.save();
         
-        // 生成令牌
+        // generate token
         const token = generateToken(user._id);
         
         res.status(200).json({
@@ -102,13 +102,13 @@ export const login = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: '登录失败',
+            message: 'Login failed',
             error: error.message
         });
     }
 };
 
-// 获取当前用户信息
+// get current user info
 export const getMe = async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
@@ -120,37 +120,37 @@ export const getMe = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: '获取用户信息失败',
+            message: 'Failed to get user info',
             error: error.message
         });
     }
 };
 
-// 用户登出
+// user logout
 export const logout = async (req, res) => {
     try {
-        // JWT是无状态的，实际上不需要在服务器端"注销"
-        // 真正的注销发生在客户端删除token
-        // 但我们可以记录登出行为
+        // JWT is stateless, actually no need to "logout" on server side
+        // real logout happens when client deletes token
+        // but we can record logout behavior
         
         if (req.user) {
-            // 可选：记录用户退出时间
+            // optional: record user logout time
             await User.findByIdAndUpdate(req.user.id, {
                 lastActivity: Date.now()
             });
             
-            // 可选：如果使用的是刷新令牌，可以将其加入黑名单
+            // optional: if using refresh token, can add it to blacklist
             // await BlacklistedToken.create({ token: req.body.refreshToken });
         }
         
         res.status(200).json({
             success: true,
-            message: '已成功登出'
+            message: 'Successfully logged out'
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: '登出失败',
+            message: 'Failed to logout',
             error: error.message
         });
     }

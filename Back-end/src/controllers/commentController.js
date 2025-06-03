@@ -1,9 +1,8 @@
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import { success, error } from '../utils/responseHandler.js';
-import mongoose from 'mongoose';
 
-// 获取文章的所有评论
+// get all comments of a post
 export const getCommentsByPost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -24,14 +23,14 @@ export const getCommentsByPost = async (req, res) => {
   }
 };
 
-// 添加评论
+// add comment
 export const addComment = async (req, res) => {
   try {
     const { postId } = req.params;
     const { content, parentComment } = req.body;
     const userId = req.user.id;
 
-    // 验证文章是否存在
+    // check if post exists
     const post = await Post.findById(postId);
     if (!post) {
       return error(res, 'post.notFound', 404);
@@ -43,7 +42,7 @@ export const addComment = async (req, res) => {
       post: postId,
     };
 
-    // 如果是回复评论
+    // if it is a reply comment
     if (parentComment) {
       const parentCommentExists = await Comment.findById(parentComment);
       if (!parentCommentExists) {
@@ -54,7 +53,7 @@ export const addComment = async (req, res) => {
 
     const comment = await Comment.create(commentData);
 
-    // 如果是回复，将回复添加到父评论的replies数组中
+    // if it is a reply, add reply to parent comment's replies array
     if (parentComment) {
       await Comment.findByIdAndUpdate(
         parentComment,
@@ -62,7 +61,7 @@ export const addComment = async (req, res) => {
       );
     }
 
-    // 增加文章评论计数
+    // increase post comment count
     await Post.findByIdAndUpdate(
       postId,
       { $inc: { commentCount: 1 } }
@@ -74,7 +73,7 @@ export const addComment = async (req, res) => {
   }
 };
 
-// 删除评论
+// delete comment
 export const deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -85,17 +84,17 @@ export const deleteComment = async (req, res) => {
       return error(res, 'comment.notFound', 404);
     }
 
-    // 检查是否是评论作者或管理员
+    // check if it is comment author or admin
     if (comment.user.toString() !== userId && req.user.role !== 'admin') {
       return error(res, 'comment.unauthorized', 403);
     }
 
-    // 如果有回复，也删除所有回复
+    // if there are replies, also delete all replies
     if (comment.replies && comment.replies.length > 0) {
       await Comment.deleteMany({ _id: { $in: comment.replies } });
     }
 
-    // 如果是回复，从父评论的replies数组中移除
+    // if it is a reply, remove it from parent comment's replies array
     if (comment.parentComment) {
       await Comment.findByIdAndUpdate(
         comment.parentComment,
@@ -103,7 +102,7 @@ export const deleteComment = async (req, res) => {
       );
     }
 
-    // 减少文章评论计数
+    // decrease post comment count
     await Post.findByIdAndUpdate(
       comment.post,
       { $inc: { commentCount: -1 } }
@@ -116,7 +115,7 @@ export const deleteComment = async (req, res) => {
   }
 };
 
-// 更新评论
+// update comment
 export const updateComment = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -129,7 +128,7 @@ export const updateComment = async (req, res) => {
       return error(res, 'comment.notFound', 404);
     }
     
-    // 检查是否是评论作者
+    // check if it is comment author
     if (comment.user.toString() !== userId) {
       return error(res, 'comment.unauthorized', 403);
     }

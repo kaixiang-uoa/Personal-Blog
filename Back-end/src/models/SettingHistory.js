@@ -32,7 +32,7 @@ const SettingHistorySchema = new Schema({
 { timestamps: true }
 );
 
-// 创建索引以便快速查询特定键的历史记录
+// create index for fast query of history records of a specific key
 SettingHistorySchema.index({ key: 1, createdAt: -1 });
 
 export default mongoose.model('SettingHistory', SettingHistorySchema); 

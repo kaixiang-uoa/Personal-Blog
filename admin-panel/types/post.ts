@@ -44,6 +44,8 @@ export interface ApiPost {
   };
   createdAt: string;
   updatedAt: string;
+  publishedAt?: string;
+  viewCount?: number;
   [key: string]: any;
 }
 

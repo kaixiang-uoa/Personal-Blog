@@ -5,12 +5,12 @@ const Schema = mongoose.Schema;
 const PostSchema = new Schema({
     title: {
         type: String,
-        required: true,
+        required: function() { return this.status === 'published'; },
         trim: true
     },
     slug: {
         type: String,
-        required: true,
+        required: function() { return this.status === 'published'; },
         unique: true,
         trim: true
     },
@@ -20,7 +20,7 @@ const PostSchema = new Schema({
     },
     content: {
         type: String,
-        required: true
+        required: function() { return this.status === 'published'; }
     },
     author: {
         type: mongoose.Schema.Types.ObjectId,

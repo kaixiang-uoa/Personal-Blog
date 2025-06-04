@@ -62,16 +62,16 @@ export interface PostParams {
 }
 
 export interface PostFormData {
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
+  title?: string;
+  slug?: string;
+  excerpt?: string;
+  content?: string;
   category?: string;
   categories?: string[];
-  tags: string[];
+  tags?: string[];
   status: PostStatus;
   featured: boolean;
-  featuredImage: string;
+  featuredImage?: string;
   publishDate?: string;
 }
 

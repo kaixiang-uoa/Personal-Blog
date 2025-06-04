@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getInternalApiData } from '@/services/api';
 
 interface SettingsContextType {
   settings: Record<string, any>;
@@ -28,30 +29,24 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
         
         // 后台刷新缓存
-        fetch('/api/settings')
-          .then(res => res.json())
-          .then(data => {
-            setSettings(data.data || {});
-            saveToCache(data.data || {});
-          })
-          .catch(console.error);
+        try {
+          const data = await getInternalApiData<Record<string, any>>('/settings');
+          setSettings(data);
+          saveToCache(data);
+        } catch (error) {
+          // 静默处理后台刷新错误
+        }
           
         return;
       }
       
       // 没有缓存则从API获取
-      const response = await fetch('/api/settings');
-      if (!response.ok) {
-        throw new Error('Failed to fetch settings');
-      }
-      const data = await response.json();
-      const settingsData = data.data || {};
+      const settingsData = await getInternalApiData<Record<string, any>>('/settings');
       
       setSettings(settingsData);
       saveToCache(settingsData);
     } catch (err) {
       setError(err as Error);
-      console.error('Error fetching settings:', err);
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +64,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       };
       localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
     } catch (e) {
-      console.error('Error saving settings to cache', e);
+      // 静默处理缓存保存错误
     }
   }
   
@@ -86,13 +81,21 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       
       return data;
     } catch (e) {
-      console.error('Error loading settings from cache', e);
+      // 静默处理缓存加载错误
       return null;
     }
   }
   
   function getSetting<T>(key: string, defaultValue: T): T {
-    return (settings[key] !== undefined ? settings[key] : defaultValue) as T;
+    // 检查设置是否存在且不为空
+    const value = settings[key];
+    
+    // 特殊处理字符串类型，如果是空字符串则返回默认值
+    if (typeof value === 'string' && value.trim() === '' && typeof defaultValue === 'string') {
+      return defaultValue;
+    }
+    
+    return (value !== undefined && value !== null) ? value : defaultValue;
   }
   
   useEffect(() => {

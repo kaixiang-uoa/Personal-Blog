@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import GeneralSettingsForm from "@/components/settings/GeneralSettingsForm"
 import PostsSettingsForm from "@/components/settings/PostsSettingsForm"
 import AboutSettingsForm from "@/components/settings/AboutSettingsForm"
+import AppearanceSettingsForm from "@/components/settings/AppearanceSettingsForm"
 import PasswordChangeForm from "@/components/settings/PasswordChangeForm"
 import SettingsActions from "@/components/settings/SettingsActions"
 import SettingHistoryDialog from "@/components/settings/SettingHistoryDialog"
@@ -120,6 +121,12 @@ export default function SettingsPage() {
             fontFamily: data['appearance.fontFamily'] || "",
             enableRTL: data['appearance.enableRTL'] === 'true' || false,
             showSidebar: data['appearance.showSidebar'] === 'true' || true,
+            homeBanner: data['appearance.homeBanner'] || "",
+            aboutBanner: data['appearance.aboutBanner'] || "",
+            contactBanner: data['appearance.contactBanner'] || "",
+            homeBannerMobile: data['appearance.homeBannerMobile'] || "",
+            aboutBannerMobile: data['appearance.aboutBannerMobile'] || "",
+            contactBannerMobile: data['appearance.contactBannerMobile'] || "",
           },
           advanced: {
             cacheTimeout: Number(data['advanced.cacheTimeout']) || 3600,
@@ -177,9 +184,39 @@ export default function SettingsPage() {
       }
       
       setIsSaving(true)
-
-      console.log('section', section)
-      console.log('values', values)
+      
+      // 对于appearance部分，我们需要特殊处理
+      if (section === 'appearance') {
+        const settingsArray: { key: string; value: any; group: string }[] = [];
+        
+        // 转换为API需要的格式，将扁平对象转换为键值对数组
+        Object.entries(values).forEach(([key, value]) => {
+          const fullKey = `appearance.${key}`;
+          // 对于布尔值，转换为字符串
+          const formattedValue = typeof value === 'boolean' ? String(value) : value;
+          
+          settingsArray.push({
+            key: fullKey,
+            value: formattedValue,
+            group: 'appearance'
+          });
+        });
+        
+        // 使用批量更新API
+        await settingsService.batchUpdate(settingsArray);
+        
+        // 重新加载设置
+        await fetchSettings();
+        
+        toast({
+          title: "Saved Successfully", 
+          description: "Appearance settings have been updated",
+        });
+        
+        setIsSaving(false);
+        return;
+      }
+      
       // save settings
       const response = await settingsService.update(section, values)
 
@@ -316,6 +353,28 @@ export default function SettingsPage() {
                 excerptLength: 200,
               }}
               onSubmit={(values) => saveSettings("posts", values)}
+              loading={loading}
+              isSaving={isSaving}
+            />
+          </TabsContent>
+
+          {/* Appearance Settings */}
+          <TabsContent value="appearance" className="space-y-4">
+            <AppearanceSettingsForm
+              defaultValues={{
+                theme: settings?.appearance?.theme || "light",
+                accentColor: settings?.appearance?.accentColor || "",
+                fontFamily: settings?.appearance?.fontFamily || "",
+                enableRTL: settings?.appearance?.enableRTL || false,
+                showSidebar: settings?.appearance?.showSidebar || true,
+                homeBanner: settings?.appearance?.homeBanner || "",
+                aboutBanner: settings?.appearance?.aboutBanner || "",
+                contactBanner: settings?.appearance?.contactBanner || "",
+                homeBannerMobile: settings?.appearance?.homeBannerMobile || "",
+                aboutBannerMobile: settings?.appearance?.aboutBannerMobile || "",
+                contactBannerMobile: settings?.appearance?.contactBannerMobile || "",
+              }}
+              onSubmit={(values) => saveSettings("appearance", values)}
               loading={loading}
               isSaving={isSaving}
             />

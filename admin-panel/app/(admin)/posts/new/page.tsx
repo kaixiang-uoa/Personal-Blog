@@ -98,20 +98,37 @@ export default function NewPostPage() {
   const onSubmit = async (data: PostFormSchema) => {
     setIsLoading(true)
     try {
-      
-      // convert data to match PostFormData type
-      const postData: PostFormData = {
-        ...data,
-        featured: false,
-        excerpt: data.excerpt || "",
-        tags: data.tags || [],
-        featuredImage: data.featuredImage || "",
-        categories: data.category ? [data.category] : [],  // Convert single category to array
+      // 如果是发布状态，再次检查必填字段
+      if (data.status === "published") {
+        if (!data.title || !data.content) {
+          toast({
+            title: "无法发布",
+            description: "发布文章需要填写标题和内容",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
       }
       
-      delete (postData as any).category;
-      delete (postData as any).tagObjects;
-      await postService.create(postData)
+      // 使用类型断言创建 PostFormData
+      const postData = {
+        status: data.status,
+        featured: false,
+        title: data.title || '',
+        slug: data.slug || '',
+        excerpt: data.excerpt || '',
+        content: data.content || '',
+        tags: data.tags || [],
+        featuredImage: data.featuredImage || ''
+      } as PostFormData;
+      
+      // 添加分类
+      if (data.category) {
+        postData.categories = [data.category];
+      }
+      
+      await postService.create(postData);
       toast({
         title: "Success",
         description: "Post created successfully",
@@ -181,7 +198,15 @@ export default function NewPostPage() {
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Title</FormLabel>
+                        <FormLabel>
+                          标题
+                          {form.watch("status") === "published" && (
+                            <span className="text-red-500 ml-1">*</span>
+                          )}
+                          {form.watch("status") === "draft" && (
+                            <span className="text-gray-400 text-xs ml-2">(发布时必填)</span>
+                          )}
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter post title"
@@ -199,7 +224,12 @@ export default function NewPostPage() {
                     name="slug"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Slug</FormLabel>
+                        <FormLabel>
+                          Slug
+                          {form.watch("status") === "draft" && (
+                            <span className="text-gray-400 text-xs ml-2">(可选，会自动从标题生成)</span>
+                          )}
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter post slug"
@@ -217,7 +247,10 @@ export default function NewPostPage() {
                     name="excerpt"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Excerpt</FormLabel>
+                        <FormLabel>
+                          摘要
+                          <span className="text-gray-400 text-xs ml-2">(可选)</span>
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Enter post excerpt"
@@ -236,10 +269,18 @@ export default function NewPostPage() {
                     name="content"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Content</FormLabel>
+                        <FormLabel>
+                          内容
+                          {form.watch("status") === "published" && (
+                            <span className="text-red-500 ml-1">*</span>
+                          )}
+                          {form.watch("status") === "draft" && (
+                            <span className="text-gray-400 text-xs ml-2">(发布时必填)</span>
+                          )}
+                        </FormLabel>
                         <FormControl>
                           <PostEditor
-                            value={field.value}
+                            value={field.value || ""}
                             onChange={(value) => handleInputChange("content", value)}
                           />
                         </FormControl>
@@ -306,7 +347,23 @@ export default function NewPostPage() {
                         <FormLabel>Status</FormLabel>
                         <Select
                           value={field.value}
-                          onValueChange={(value) => handleInputChange("status", value)}
+                          onValueChange={(value) => {
+                            // 如果切换到发布状态，检查必填字段
+                            if (value === "published") {
+                              const { title, content } = form.getValues();
+                              if (!title || !content) {
+                                toast({
+                                  title: "无法发布",
+                                  description: "发布文章需要填写标题和内容",
+                                  variant: "destructive",
+                                });
+                                // 如果验证失败，保持为草稿状态
+                                return;
+                              }
+                            }
+                            // 设置新状态
+                            field.onChange(value);
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select status" />

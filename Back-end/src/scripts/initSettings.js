@@ -80,6 +80,58 @@ const defaultSettings = [
     description_zh: '侧边栏位置 (左/右)'
   },
   
+  // Banner图片设置
+  { 
+    key: 'appearance.homeBanner', 
+    value: '', 
+    group: 'appearance', 
+    description: 'Home page banner image URL',
+    description_en: 'Home page banner image URL',
+    description_zh: '首页横幅图片URL'
+  },
+  { 
+    key: 'appearance.aboutBanner', 
+    value: '', 
+    group: 'appearance', 
+    description: 'About page banner image URL',
+    description_en: 'About page banner image URL',
+    description_zh: '关于页面横幅图片URL'
+  },
+  { 
+    key: 'appearance.contactBanner', 
+    value: '', 
+    group: 'appearance', 
+    description: 'Contact page banner image URL',
+    description_en: 'Contact page banner image URL',
+    description_zh: '联系页面横幅图片URL'
+  },
+  
+  // 移动端Banner图片设置
+  { 
+    key: 'appearance.homeBannerMobile', 
+    value: '', 
+    group: 'appearance', 
+    description: 'Home page banner image URL for mobile devices',
+    description_en: 'Home page banner image URL for mobile devices',
+    description_zh: '首页移动端横幅图片URL'
+  },
+  { 
+    key: 'appearance.aboutBannerMobile', 
+    value: '', 
+    group: 'appearance', 
+    description: 'About page banner image URL for mobile devices',
+    description_en: 'About page banner image URL for mobile devices',
+    description_zh: '关于页面移动端横幅图片URL'
+  },
+  { 
+    key: 'appearance.contactBannerMobile', 
+    value: '', 
+    group: 'appearance', 
+    description: 'Contact page banner image URL for mobile devices',
+    description_en: 'Contact page banner image URL for mobile devices',
+    description_zh: '联系页面移动端横幅图片URL'
+  },
+  
   // 文章设置
   { 
     key: 'posts.perPage', 

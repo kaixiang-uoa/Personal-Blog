@@ -38,11 +38,15 @@ export function FeaturedImageUploader({ value, onChange, className }: FeaturedIm
 
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('files', file)
       
       const response = await mediaService.upload(formData)
-      if (response.data) {
-        onChange(response.data.url)
+      if (response.data && response.data.media && response.data.media.length > 0) {
+        // 获取上传文件的URL并添加后端域名前缀
+        const fileUrl = response.data.media[0].url
+        // 如果URL不是以http开头，添加完整的后端域名
+        const fullUrl = fileUrl.startsWith('http') ? fileUrl : `http://localhost:3001${fileUrl}`
+        onChange(fullUrl)
       }
     } catch (error) {
       console.error('Failed to upload image:', error)
@@ -56,12 +60,18 @@ export function FeaturedImageUploader({ value, onChange, className }: FeaturedIm
     onChange('')
   }
 
+  // 确保显示图片时也使用完整URL
+  const getImageSrc = (src: string) => {
+    if (!src) return ''
+    return src.startsWith('http') ? src : `http://localhost:3001${src}`
+  }
+
   return (
     <div className={cn("space-y-2", className)}>
       {value ? (
         <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
           <Image
-            src={value}
+            src={getImageSrc(value)}
             alt="Featured image"
             fill
             className="object-cover"

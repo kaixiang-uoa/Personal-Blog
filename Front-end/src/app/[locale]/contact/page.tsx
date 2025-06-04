@@ -19,14 +19,21 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { API_BASE_URL } from '@/services/api';
+import { useSetting } from '@/contexts/SettingsContext';
 
 export const dynamic = 'force-dynamic';
 
 export default function Contact() {
   const t = useTranslations('contact');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // get contact banner image url from settings
+  const contactBanner = useSetting('appearance.contactBanner', '/images/contact-banner.jpg');
 
-  // 定义表单验证模式
+  // get contact banner image url for mobile from settings  
+  const contactBannerMobile = useSetting('appearance.contactBannerMobile', contactBanner);
+
+
   const formSchema = z.object({
     name: z.string().min(1, {
       message: t('nameValidation'),
@@ -42,7 +49,7 @@ export default function Contact() {
     }),
   });
 
-  // 初始化表单
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,12 +60,12 @@ export default function Contact() {
     },
   });
 
-  // 表单提交处理
+  
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
 
     try {
-      // 调用后端API发送表单数据
+      
       const response = await axios.post(`${API_BASE_URL}/contact`, values);
 
       if (response.status === 200) {
@@ -67,7 +74,6 @@ export default function Contact() {
           description: t('successMessage'),
         });
 
-        // 重置表单
         form.reset();
       }
     } catch (error: any) {
@@ -89,10 +95,17 @@ export default function Contact() {
       {/* Banner section similar to home page */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4">
         <div className="py-4">
-          <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10"
+          <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10 banner-image"
               style={{
-                backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('/images/contact-banner.jpg')"
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${contactBanner}')`
               }}>
+            <style jsx>{`
+              @media (max-width: 768px) {
+                .banner-image {
+                  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${contactBannerMobile}') !important;
+                }
+              }
+            `}</style>
             <div className="flex flex-col gap-2 text-left max-w-2xl">
               <h1 className="text-white text-3xl md:text-5xl font-black leading-tight tracking-[-0.033em]">
                 {t('title')}

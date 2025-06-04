@@ -190,32 +190,40 @@ export const createPost = asyncHandler(async (req, res) => {
     seo,
   } = req.body;
 
-  // generate unique slug
-  let baseSlug = providedSlug;
-  if (!baseSlug) {
-    baseSlug = title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
+  // 如果是草稿且没有标题，使用临时标题
+  const postTitle = title || '';
+  
+  // 处理 slug
+  let slug = '';
+  if (providedSlug) {
+    // 如果提供了 slug，确保它是唯一的
+    slug = await generateUniqueSlug(providedSlug);
+  } else if (postTitle) {
+    // 如果有标题但没有 slug，从标题生成
+    const baseSlug = postTitle.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
+    slug = await generateUniqueSlug(baseSlug);
+  } else if (status === 'published') {
+    // 如果是发布状态但没有标题和 slug，生成一个临时 slug
+    const timestamp = Date.now();
+    slug = await generateUniqueSlug(`post-${timestamp}`);
+  } else {
+    // 草稿模式下，如果没有标题和 slug，生成一个临时 slug
+    const timestamp = Date.now();
+    slug = `draft-${timestamp}`;
   }
 
-  // ensure slug is unique
-  const slug = await generateUniqueSlug(baseSlug);
-
-  // process tags
-  let tagIds = [];
-  if (tags && tags.length > 0) {
-    tagIds = tags;
-  }
-
+  // 创建文章
   const post = await Post.create({
-    title,
+    title: postTitle,
     slug,
-    excerpt,
-    content,
+    excerpt: excerpt || '',
+    content: content || '',
     author: req.user._id,
-    categories,
+    categories: categories || [],
     tags: tags || [],
     status: status || 'draft',
-    featuredImage,
-    seo,
+    featuredImage: featuredImage || '',
+    seo: seo || {},
     publishedAt: status === 'published' ? Date.now() : null,
   });
 
@@ -232,13 +240,32 @@ export const updatePost = asyncHandler(async (req, res) => {
   let post = await Post.findById(req.params.id);
   if (!post) throw createError('Post not found', 404);
 
-  if (req.body.slug && req.body.slug !== post.slug) {
-    const slugExists = await Post.findOne({ slug: req.body.slug, _id: { $ne: req.params.id } });
-    if (slugExists) throw createError('This slug is already in use, please use another slug', 400);
+  const { status, title, content, slug: providedSlug } = req.body;
+
+  // 检查是否从草稿变为发布状态
+  if (status === 'published' && post.status !== 'published') {
+    // 发布时需要验证必填字段
+    if (!title) throw createError('Title is required for published posts', 400);
+    if (!content) throw createError('Content is required for published posts', 400);
+    
+    // 设置发布时间
+    req.body.publishedAt = Date.now();
   }
 
-  if (req.body.status === 'published' && post.status !== 'published') {
-    req.body.publishedAt = Date.now();
+  // 处理 slug
+  if (providedSlug && providedSlug !== post.slug) {
+    const slugExists = await Post.findOne({ slug: providedSlug, _id: { $ne: req.params.id } });
+    if (slugExists) throw createError('This slug is already in use, please use another slug', 400);
+  } else if (status === 'published' && !post.slug && !providedSlug) {
+    // 如果是发布状态但没有 slug，从标题生成
+    if (title) {
+      const baseSlug = title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
+      req.body.slug = await generateUniqueSlug(baseSlug, req.params.id);
+    } else {
+      // 如果没有标题，使用时间戳生成 slug
+      const timestamp = Date.now();
+      req.body.slug = await generateUniqueSlug(`post-${timestamp}`, req.params.id);
+    }
   }
 
   post = await Post.findByIdAndUpdate(req.params.id, req.body, {

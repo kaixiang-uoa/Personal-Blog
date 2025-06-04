@@ -1,4 +1,4 @@
-// 设置数据类型
+
 export interface Settings {
   general: {
     siteName: string
@@ -22,6 +22,12 @@ export interface Settings {
     fontFamily: string
     enableRTL: boolean
     showSidebar: boolean
+    homeBanner?: string
+    aboutBanner?: string
+    contactBanner?: string
+    homeBannerMobile?: string
+    aboutBannerMobile?: string
+    contactBannerMobile?: string
   }
   advanced: {
     cacheTimeout: number
@@ -40,12 +46,12 @@ export interface Settings {
   }
 }
 
-// 表单项类型
+
 export interface FieldItem {
   [key: string]: any;
 }
 
-// 表单相关类型
+
 export interface AboutFormData {
   intro?: string
   intro_zh?: string
@@ -79,4 +85,29 @@ export interface AboutFormData {
     twitter: string
     website: string
   } | null
+}
+
+export interface AppearanceSettingsFormProps {
+  defaultValues: {
+    theme: string
+    accentColor: string
+    fontFamily: string
+    enableRTL: boolean
+    showSidebar: boolean
+    homeBanner?: string
+    aboutBanner?: string
+    contactBanner?: string
+    homeBannerMobile?: string
+    aboutBannerMobile?: string
+    contactBannerMobile?: string
+  }
+  onSubmit: (values: any) => void
+  loading: boolean
+  isSaving: boolean
+}
+
+export interface BannerImageSelectorProps {
+  value: string
+  onChange: (url: string) => void
+  label: string
 } 

@@ -27,20 +27,27 @@ export const textInputSchema = z.object({
 
 // ===== Content Management Validation =====
 export const postFormSchema = z.object({
-  title: z.string().min(5, { message: "Title must be at least 5 characters" }),
-  slug: z
-    .string()
-    .min(2, { message: "Slug must be at least 2 characters" })
-    .regex(/^[a-z0-9-]+$/, { message: "Slug can only contain lowercase letters, numbers, and hyphens" }),
-  content: z.string().min(10, { message: "Content must be at least 10 characters" }),
+  title: z.string().optional(),
+  slug: z.string().optional(),
+  content: z.string().optional(),
   excerpt: z.string().optional(),
-  category: z.string().min(1, { message: "Please select a category" }),
+  category: z.string().optional(),
   tags: z.array(z.string()).optional(),
   tagObjects: z.any().optional(),
   status: z.enum(["draft", "published", "archived"]),
   publishDate: z.string().optional(),
   featuredImage: z.string().optional(),
-})
+}).refine(data => {
+  // 只在发布状态验证必填字段
+  if (data.status === "published") {
+    const hasTitleAndContent = !!data.title && !!data.content;
+    return hasTitleAndContent;
+  }
+  return true;
+}, {
+  message: "Published posts require title and content",
+  path: ["status"]
+});
 
 export const categoryFormSchema = z.object({
   name: z.object({

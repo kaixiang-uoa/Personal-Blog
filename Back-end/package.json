@@ -11,7 +11,8 @@
     "start": "node src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "init-about": "node src/scripts/init-about-settings.js",
-    "update-about-group": "node src/scripts/update-about-group.js"
+    "update-about-group": "node src/scripts/update-about-group.js",
+    "update-banner-settings": "node src/scripts/update-banner-settings.js"
   },
   "author": "kaixiang",
   "license": "ISC",

@@ -7,7 +7,7 @@ import Navbar from '../components/Navbar';
 import ArticleCard from '../components/ArticleCard';
 import FilterSidebar from '../components/FilterSidebar';
 import ArticleSkeleton from '../components/ArticleSkeleton';
-import { useSetting } from '@/contexts/SettingsContext';
+import { useSetting, useSettings } from '@/contexts/SettingsContext';
 
 import { Article, Category, Tag, SortOrder } from '@/types';
 import { postApi } from '@/services/postApi';
@@ -26,12 +26,26 @@ const getArrayParam = (param: string | string[] | null | undefined): string[] =>
   return str.split(',').map(s => s.trim()).filter(Boolean);
 };
 
+// 检查URL是否有效
+const isValidUrl = (url: string): boolean => {
+  if (!url || url.trim() === '') return false;
+  
+  // 检查是否以http(s)或/开头
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
+    return true;
+  }
+  
+  return false;
+};
+
 export default function Home() {  
   const t = useTranslations('common');
   const params = useParams();
   const locale = params.locale as string;
   const router = useRouter();
   const searchParams = useSearchParams();  // use useSearchParams hook
+  
+
 
   // use searchParams.get() method to get parameters
   const sort = getStringParam(searchParams.get('sort'), 'latest') as SortOrder;
@@ -52,6 +66,13 @@ export default function Home() {
   // get sidebar position from settings
   const postsPerPage = useSetting('posts.perPage', 10); 
 
+  // get home banner image url from settings
+  const defaultBannerUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCAvMmY596FeQcfcATBZ7OCdgRlSZliPxjcpZQUcZDqH5aEwjRN_P38-l88OIVnA9PyzIWRGnVNwbjVmCoZOZ_MnIY9KnnrpDWEWyOKr74u0BfuxcU8SCMdy_m4R1XJrfQAbbPvd_LOUHwPGiRA7iZZLHNUz2tdANkx_VRCWWEB9fN6A1KhjUB5sAv03TuX4i4LtLrekE7qhDDqrMb2yCjou6oipdZSlw5L4upEMuuXII_n8xAuCdFTVn0_RDqCdKy6rXtMwHOp5CE";
+  const homeBanner = useSetting('appearance.homeBanner', defaultBannerUrl);
+
+  // get home banner image url for mobile from settings
+  const homeBannerMobile = useSetting('appearance.homeBannerMobile', homeBanner);
+  
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
@@ -101,6 +122,17 @@ export default function Home() {
     });
   }, [locale]);
 
+  // 确保banner URL有效
+  const getValidBannerUrl = (url: string | null | undefined): string => {
+    if (!url) return defaultBannerUrl;
+    if (isValidUrl(url)) return url;
+    return defaultBannerUrl;
+  };
+  
+  // 处理后的banner URL
+  const processedHomeBanner = getValidBannerUrl(homeBanner);
+  const processedMobileBanner = getValidBannerUrl(homeBannerMobile);
+  
   const filteredArticles = useMemo(() => {
     let result = [...articles];
 
@@ -213,10 +245,18 @@ export default function Home() {
           {/* banner area - adjust ratio */}
           <div>
             <div className="py-4">
-              <div className="flex min-h-[380px] md:min-h-[420px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10"
+              <div className="flex min-h-[380px] md:min-h-[420px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10 banner-image"
                   style={{
-                    backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('https://lh3.googleusercontent.com/aida-public/AB6AXuCAvMmY596FeQcfcATBZ7OCdgRlSZliPxjcpZQUcZDqH5aEwjRN_P38-l88OIVnA9PyzIWRGnVNwbjVmCoZOZ_MnIY9KnnrpDWEWyOKr74u0BfuxcU8SCMdy_m4R1XJrfQAbbPvd_LOUHwPGiRA7iZZLHNUz2tdANkx_VRCWWEB9fN6A1KhjUB5sAv03TuX4i4LtLrekE7qhDDqrMb2yCjou6oipdZSlw5L4upEMuuXII_n8xAuCdFTVn0_RDqCdKy6rXtMwHOp5CE')"
-                  }}>
+                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${processedHomeBanner}')`,
+                  }}
+              >
+                <style jsx>{`
+                  @media (max-width: 768px) {
+                    .banner-image {
+                      background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${processedMobileBanner}') !important;
+                    }
+                  }
+                `}</style>
                 <div className="flex flex-col gap-2 text-left max-w-2xl">
                   <h1 className="text-white text-3xl md:text-5xl font-black leading-tight tracking-[-0.033em]">
                     Explore the world of software development

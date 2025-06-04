@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useSetting } from '@/contexts/SettingsContext';
+import { settingApi } from '@/services/settingApi';
 
 // define About data interface
 interface AboutData {
@@ -34,40 +36,34 @@ export default function AboutMe() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // get about banner image url from settings
+  const aboutBanner = useSetting('appearance.aboutBanner', '/images/about-banner.jpg');
+
+  // get about banner image url for mobile from settings
+  const aboutBannerMobile = useSetting('appearance.aboutBannerMobile', aboutBanner);
+
   useEffect(() => {
-    // fetch about settings, use group parameter to filter settings
-    fetch('/api/settings?group=about')
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(res.status === 404 
-            ? 'API endpoint not found. Backend may not be running.' 
-            : `Server responded with status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(response => {
-        if (response.success && response.data) {
-          const data = response.data;
+    // 使用settingApi获取about组的设置
+    settingApi.getSettingsByGroup('about')
+      .then(data => {
+        // select appropriate content based on current language
+        const intro = locale === 'zh' && data['about.intro_zh'] 
+          ? data['about.intro_zh'] 
+          : data['about.intro'] || '';
           
-          // select appropriate content based on current language
-          const intro = locale === 'zh' && data['about.intro_zh'] 
-            ? data['about.intro_zh'] 
-            : data['about.intro'] || '';
-            
-          try {
-            setAboutData({
-              intro,
-              contact: data['about.contact'] ? JSON.parse(data['about.contact']) : {},
-              skills: data['about.skills'] ? JSON.parse(data['about.skills']) : [],
-              education: data['about.education'] ? JSON.parse(data['about.education']) : [],
-              experience: data['about.experience'] ? JSON.parse(data['about.experience']) : [],
-              projects: data['about.projects'] ? JSON.parse(data['about.projects']) : [],
-              social: data['about.social'] ? JSON.parse(data['about.social']) : {}
-            });
-          } catch (err) {
-            console.error('Error parsing JSON data:', err);
-            setError('Error parsing data from server. Please try again later.');
-          }
+        try {
+          setAboutData({
+            intro,
+            contact: data['about.contact'] ? JSON.parse(data['about.contact']) : {},
+            skills: data['about.skills'] ? JSON.parse(data['about.skills']) : [],
+            education: data['about.education'] ? JSON.parse(data['about.education']) : [],
+            experience: data['about.experience'] ? JSON.parse(data['about.experience']) : [],
+            projects: data['about.projects'] ? JSON.parse(data['about.projects']) : [],
+            social: data['about.social'] ? JSON.parse(data['about.social']) : {}
+          });
+        } catch (err) {
+          console.error('Error parsing JSON data:', err);
+          setError('Error parsing data from server. Please try again later.');
         }
         setLoading(false);
       })
@@ -140,10 +136,17 @@ export default function AboutMe() {
       {/* Banner section similar to home page */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4">
         <div className="py-4">
-          <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10"
+          <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10 banner-image"
               style={{
-                backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('/images/about-banner.jpg')"
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${aboutBanner}')`
               }}>
+            <style jsx>{`
+              @media (max-width: 768px) {
+                .banner-image {
+                  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${aboutBannerMobile}') !important;
+                }
+              }
+            `}</style>
             <div className="flex flex-col gap-2 text-left max-w-2xl">
               <h1 className="text-white text-3xl md:text-5xl font-black leading-tight tracking-[-0.033em]">
                 {t('title')}

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link } from '@/i18n/navigation'; 
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from './LanguageSwitcher';
+import { ThemeToggle } from './ui/theme-toggle';
 import { useSetting } from '@/contexts/SettingsContext';
 import Image from 'next/image';
 
@@ -13,8 +14,8 @@ export default function Navbar() {
   const logo = useSetting('general.logo', '');
 
   return (
-    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f5] px-10 py-3">
-      <div className="flex items-center gap-4 text-[#111418]">
+    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f5] px-10 py-3 dark:border-b-gray-800">
+      <div className="flex items-center gap-4 text-foreground">
         <div className="size-4">
           {logo ? (
             <Image
@@ -43,23 +44,24 @@ export default function Navbar() {
             </svg>
           )}
         </div>
-        <h2 className="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em]">{siteName}</h2>
+        <h2 className="text-foreground font-bold text-lg leading-tight tracking-[-0.015em]">{siteName}</h2>
       </div>
       <div className="flex flex-1 justify-end gap-8">
         {/* navigation menu - desktop */}
         <div className="hidden md:flex items-center gap-9">
-          <Link href="/" className="text-[#111418] text-sm font-medium leading-normal">
+          <Link href="/" className="text-foreground hover:text-primary text-sm font-medium leading-normal">
             {t('home')}
           </Link>
-          <Link href="/about" className="text-[#111418] text-sm font-medium leading-normal">
+          <Link href="/about" className="text-foreground hover:text-primary text-sm font-medium leading-normal">
             {t('about')}
           </Link>
-          <Link href="/contact" className="text-[#111418] text-sm font-medium leading-normal">
+          <Link href="/contact" className="text-foreground hover:text-primary text-sm font-medium leading-normal">
             {t('contact')}
           </Link>
         </div>
-        {/* language switcher */}
-        <div className="flex gap-2">
+        {/* language switcher and theme toggle */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           <LanguageSwitcher />
         </div>
         
@@ -68,7 +70,7 @@ export default function Navbar() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             type="button"
-            className="flex items-center justify-center p-2 rounded-md text-[#111418]"
+            className="flex items-center justify-center p-2 rounded-md text-foreground"
           >
             <span className="sr-only">Open main menu</span>
             {isOpen ? (
@@ -85,15 +87,15 @@ export default function Navbar() {
       </div>
       
       {/* mobile menu */} 
-      <div className={`${isOpen ? 'block' : 'hidden'} absolute top-16 left-0 right-0 bg-white shadow-lg md:hidden z-50`}>
+      <div className={`${isOpen ? 'block' : 'hidden'} absolute top-16 left-0 right-0 bg-background shadow-lg md:hidden z-50`}>
         <div className="px-4 py-2 space-y-2">
-          <Link href="/" className="text-[#111418] hover:bg-[#f0f2f5] block px-3 py-2 rounded-md text-base font-medium">
+          <Link href="/" className="text-foreground hover:bg-muted block px-3 py-2 rounded-md text-base font-medium">
             {t('home')}
           </Link>
-          <Link href="/about" className="text-[#111418] hover:bg-[#f0f2f5] block px-3 py-2 rounded-md text-base font-medium">
+          <Link href="/about" className="text-foreground hover:bg-muted block px-3 py-2 rounded-md text-base font-medium">
             {t('about')}
           </Link>
-          <Link href="/contact" className="text-[#111418] hover:bg-[#f0f2f5] block px-3 py-2 rounded-md text-base font-medium">
+          <Link href="/contact" className="text-foreground hover:bg-muted block px-3 py-2 rounded-md text-base font-medium">
             {t('contact')}
           </Link>
         </div>

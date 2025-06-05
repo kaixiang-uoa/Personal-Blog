@@ -4,38 +4,38 @@ import type { ApiResponse } from '@/types/dto/commonDto';
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 export const INTERNAL_API_BASE_URL = '/api';
 
-const api = axios.create({
+// 为外部API创建axios实例
+const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 15000,
 });
 
-// API错误处理拦截器
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // 记录错误
-    console.error('API Error:', error.response || error);
-    
-    // 让错误继续传播
+// 处理全局错误
+axiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+    // 只记录服务器错误和网络错误，避免记录客户端预期错误（如401/404）
+    if (!error.response || error.response.status >= 500) {
+      console.error('API Error:', error.response || error);
+    }
     return Promise.reject(error);
   }
 );
 
-// 创建内部API服务 (通过Next.js API路由)
-const internalAxios = axios.create({
+// 为内部API创建axios实例
+const internalAxiosInstance = axios.create({
   baseURL: INTERNAL_API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 10000,
 });
 
-// 内部API错误处理
-internalAxios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('Internal API Error:', error.response || error);
+// 处理全局错误
+internalAxiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+    // 只记录服务器错误和网络错误，避免记录客户端预期错误
+    if (!error.response || error.response.status >= 500) {
+      console.error('Internal API Error:', error.response || error);
+    }
     return Promise.reject(error);
   }
 );
@@ -63,8 +63,8 @@ function createApiRequest(axiosInstance: AxiosInstance) {
 }
 
 // 创建API客户端
-export const externalApi = createApiRequest(api);
-export const internalApi = createApiRequest(internalAxios);
+export const externalApi = createApiRequest(axiosInstance);
+export const internalApi = createApiRequest(internalAxiosInstance);
 
 // 为了向后兼容，保留原来的函数名
 export const getApiData = externalApi.get;
@@ -72,6 +72,6 @@ export const postApiData = externalApi.post;
 export const getInternalApiData = internalApi.get;
 export const postInternalApiData = internalApi.post;
 
-export default api;
+export default axiosInstance;
 
 

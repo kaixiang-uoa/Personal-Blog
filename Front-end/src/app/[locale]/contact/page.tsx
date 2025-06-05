@@ -89,7 +89,7 @@ export default function Contact() {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-background">
       <Navbar />
       
       {/* Banner section similar to home page */}
@@ -117,12 +117,12 @@ export default function Contact() {
       
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <section className="mb-12">
-          <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('title')}</h2>
-          <p className="text-[#60748a] mb-8 text-base">
+          <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('title')}</h2>
+          <p className="text-muted-foreground mb-8 text-base">
             {t('description')}
           </p>
 
-          <div className="border border-[#f0f2f5] rounded-lg p-6 shadow-sm">
+          <div className="border border-border rounded-lg p-6 shadow-sm">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -131,12 +131,12 @@ export default function Contact() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[#111418] font-medium">{t('nameLabel')}</FormLabel>
+                        <FormLabel className="text-foreground font-medium">{t('nameLabel')}</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder={t('namePlaceholder')} 
                             {...field} 
-                            className="bg-white border-[#dbe0e6] text-[#111418] focus:border-cyan-600 rounded-lg h-10"
+                            className="bg-background border-input text-foreground focus:border-cyan-600 rounded-lg h-10"
                           />
                         </FormControl>
                         <FormMessage className="text-red-500" />
@@ -149,12 +149,12 @@ export default function Contact() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[#111418] font-medium">{t('emailLabel')}</FormLabel>
+                        <FormLabel className="text-foreground font-medium">{t('emailLabel')}</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder={t('emailPlaceholder')} 
                             {...field} 
-                            className="bg-white border-[#dbe0e6] text-[#111418] focus:border-cyan-600 rounded-lg h-10"
+                            className="bg-background border-input text-foreground focus:border-cyan-600 rounded-lg h-10"
                           />
                         </FormControl>
                         <FormMessage className="text-red-500" />
@@ -168,12 +168,12 @@ export default function Contact() {
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[#111418] font-medium">{t('subjectLabel')}</FormLabel>
+                      <FormLabel className="text-foreground font-medium">{t('subjectLabel')}</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder={t('subjectPlaceholder')} 
                           {...field} 
-                          className="bg-white border-[#dbe0e6] text-[#111418] focus:border-cyan-600 rounded-lg h-10"
+                          className="bg-background border-input text-foreground focus:border-cyan-600 rounded-lg h-10"
                         />
                       </FormControl>
                       <FormMessage className="text-red-500" />
@@ -186,11 +186,11 @@ export default function Contact() {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[#111418] font-medium">{t('messageLabel')}</FormLabel>
+                      <FormLabel className="text-foreground font-medium">{t('messageLabel')}</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder={t('messagePlaceholder')}
-                          className="min-h-32 bg-white border-[#dbe0e6] text-[#111418] focus:border-cyan-600 rounded-lg"
+                          className="min-h-32 bg-background border-input text-foreground focus:border-cyan-600 rounded-lg"
                           {...field}
                         />
                       </FormControl>
@@ -201,7 +201,7 @@ export default function Contact() {
 
                 <Button 
                   type="submit" 
-                  className="h-10 px-6 bg-[#111418] hover:bg-[#2a2f35] text-white rounded-lg" 
+                  className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg" 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? t('submitting') : t('submit')}

@@ -20,5 +20,5 @@ export interface Article {
     tags: Tag[];
     seo?: SEO;
     category: { slug: string };
-    views: number;
+    viewCount: number;
   }

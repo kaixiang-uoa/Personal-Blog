@@ -50,7 +50,8 @@
     "popular": "Popular",
     "lastUpdated": "Recently Updated",
     "oldestUpdated": "Oldest Updated",
-    "selectSortOrder": "Select Sort Order"
+    "selectSortOrder": "Select Sort Order",
+    "select": "Select"
   },
   "about": {
     "title": "About Me",

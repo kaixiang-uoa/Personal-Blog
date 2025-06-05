@@ -7,17 +7,8 @@ import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useSetting } from '@/contexts/SettingsContext';
 import { settingApi } from '@/services/settingApi';
-
-// define About data interface
-interface AboutData {
-  intro: string;
-  contact: any;
-  skills: string[];
-  education: any[];
-  experience: any[];
-  projects: any[];
-  social: any;
-}
+import { AboutData, SettingItem } from '@/types/models/setting';
+import { tryParseJSON } from '@/utils';
 
 export default function AboutMe() {
   const params = useParams();
@@ -43,32 +34,42 @@ export default function AboutMe() {
   const aboutBannerMobile = useSetting('appearance.aboutBannerMobile', aboutBanner);
 
   useEffect(() => {
-    // 使用settingApi获取about组的设置
+    // use settingApi to get settings for about group
     settingApi.getSettingsByGroup('about')
-      .then(data => {
-        // select appropriate content based on current language
-        const intro = locale === 'zh' && data['about.intro_zh'] 
-          ? data['about.intro_zh'] 
-          : data['about.intro'] || '';
-          
+      .then(settingsData => {
         try {
+          // console.log('settingsData', settingsData);
+          // parse stored about page data
+          const aboutSettings = settingsData.reduce((acc: Record<string, any>, item: SettingItem) => {
+            if (item.key && item.value) {
+              acc[item.key.replace('about.', '')] = item.value;
+            }
+            return acc;
+          }, {} as Record<string, any>);
+          // select data based on current language
           setAboutData({
-            intro,
-            contact: data['about.contact'] ? JSON.parse(data['about.contact']) : {},
-            skills: data['about.skills'] ? JSON.parse(data['about.skills']) : [],
-            education: data['about.education'] ? JSON.parse(data['about.education']) : [],
-            experience: data['about.experience'] ? JSON.parse(data['about.experience']) : [],
-            projects: data['about.projects'] ? JSON.parse(data['about.projects']) : [],
-            social: data['about.social'] ? JSON.parse(data['about.social']) : {}
+            intro: locale === 'zh' ? aboutSettings.intro : aboutSettings.intro,
+            contact: tryParseJSON(aboutSettings.contactInfo, {}),
+            skills: tryParseJSON(aboutSettings.skills, []),
+            education: tryParseJSON(aboutSettings.education, []),
+            experience: tryParseJSON(aboutSettings.experience, []),
+            projects: tryParseJSON(aboutSettings.projects, []),
+            social: tryParseJSON(aboutSettings.socialLinks, {})
           });
         } catch (err) {
-          console.error('Error parsing JSON data:', err);
-          setError('Error parsing data from server. Please try again later.');
+          // only log detailed parsing errors in development environment
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('Error parsing JSON data:', err);
+          }
+          setError('Failed to parse about page data. Please check the data format.');
         }
         setLoading(false);
       })
       .catch(err => {
-        console.error('Error fetching about data:', err);
+        // only log detailed errors in development environment
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('Error fetching about data:', err);
+        }
         setError(err.message || 'Failed to connect to the server. Please make sure the backend is running.');
         setLoading(false);
       });
@@ -130,7 +131,7 @@ export default function AboutMe() {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-background">
       <Navbar />
       
       {/* Banner section similar to home page */}
@@ -160,9 +161,9 @@ export default function AboutMe() {
         {/* Introduction Section */}
         {aboutData.intro && (
           <section className="mb-12">
-            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('title')}</h2>
+            <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('title')}</h2>
             <div 
-              className="text-[#111418] text-base leading-normal"
+              className="text-foreground text-base leading-normal"
               dangerouslySetInnerHTML={{ __html: aboutData.intro }}
             />
           </section>
@@ -171,11 +172,11 @@ export default function AboutMe() {
         {/* Contact Info */}
         {hasValidContent(aboutData.contact) && (
           <section className="mb-12">
-            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('contactTitle')}</h2>
-            <ul className="list-disc list-inside text-[#111418]">
+            <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('contactTitle')}</h2>
+            <ul className="list-disc list-inside text-foreground">
               {aboutData.contact.email && (
                 <li className="py-1">
-                  {t('email')}:{' '}
+                  <span className="text-foreground">{t('email')}:</span>{' '}
                   <a href={`mailto:${aboutData.contact.email}`} className="text-cyan-600 hover:text-cyan-700">
                     {aboutData.contact.email}
                   </a>
@@ -194,12 +195,12 @@ export default function AboutMe() {
         {/* Skills */}
         {hasValidContent(aboutData.skills) && (
           <section className="mb-12">
-            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('skillsTitle')}</h2>
+            <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('skillsTitle')}</h2>
             <div className="flex flex-wrap gap-2">
               {aboutData.skills.map((skill, index) => (
                 <span 
                   key={index} 
-                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
+                  className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
                 >
                   {skill}
                 </span>
@@ -211,17 +212,17 @@ export default function AboutMe() {
         {/* Education */}
         {hasValidContent(aboutData.education) && (
           <section className="mb-12">
-            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('educationTitle')}</h2>
+            <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('educationTitle')}</h2>
             <div className="space-y-4">
               {aboutData.education.map((edu, index) => (
-                <div key={index} className="border border-[#f0f2f5] rounded-lg p-4 hover:shadow-sm transition-all">
-                  <h3 className="text-[#111418] font-medium">
+                <div key={index} className="border border-border rounded-lg p-4 hover:shadow-sm transition-all">
+                  <h3 className="text-foreground font-medium">
                     {edu.degree && edu.institution ? 
                       `${edu.degree}, ${edu.institution} ${edu.year ? `(${edu.year})` : ''}` : 
                       edu.degree || edu.institution
                     }
                   </h3>
-                  {edu.description && <p className="text-[#60748a] text-sm mt-1">{edu.description}</p>}
+                  {edu.description && <p className="text-muted-foreground text-sm mt-1">{edu.description}</p>}
                 </div>
               ))}
             </div>
@@ -231,17 +232,17 @@ export default function AboutMe() {
         {/* Experience */}
         {hasValidContent(aboutData.experience) && (
           <section className="mb-12">
-            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('experienceTitle')}</h2>
+            <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('experienceTitle')}</h2>
             <div className="space-y-4">
               {aboutData.experience.map((exp, index) => (
-                <div key={index} className="border border-[#f0f2f5] rounded-lg p-4 hover:shadow-sm transition-all">
-                  <h3 className="text-[#111418] font-medium">
+                <div key={index} className="border border-border rounded-lg p-4 hover:shadow-sm transition-all">
+                  <h3 className="text-foreground font-medium">
                     {exp.position && exp.company ? 
                       `${exp.position} ${t('at')} ${exp.company} ${exp.period ? `(${exp.period})` : ''}` : 
                       exp.position || exp.company
                     }
                   </h3>
-                  {exp.description && <p className="text-[#60748a] text-sm mt-1">{exp.description}</p>}
+                  {exp.description && <p className="text-muted-foreground text-sm mt-1">{exp.description}</p>}
                 </div>
               ))}
             </div>
@@ -251,14 +252,14 @@ export default function AboutMe() {
         {/* Projects */}
         {hasValidContent(aboutData.projects) && (
           <section className="mb-12">
-            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('projectsTitle')}</h2>
+            <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('projectsTitle')}</h2>
             <div className="space-y-4">
               {aboutData.projects.map((project, index) => (
-                <div key={index} className="border border-[#f0f2f5] rounded-lg p-4 hover:shadow-sm transition-all">
+                <div key={index} className="border border-border rounded-lg p-4 hover:shadow-sm transition-all">
                   {project.name && (
                     <div>
-                      <h3 className="text-[#111418] font-medium">{project.name}</h3>
-                      {project.description && <p className="text-[#60748a] text-sm mt-1">{project.description}</p>}
+                      <h3 className="text-foreground font-medium">{project.name}</h3>
+                      {project.description && <p className="text-muted-foreground text-sm mt-1">{project.description}</p>}
                       {project.link && (
                         <a 
                           href={project.link} 
@@ -280,12 +281,12 @@ export default function AboutMe() {
         {/* Social Links */}
         {hasValidContent(aboutData.social) && (
           <section className="mb-12">
-            <h2 className="text-[#111418] text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('socialTitle')}</h2>
+            <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('socialTitle')}</h2>
             <div className="flex flex-wrap gap-3">
               {aboutData.social.github && (
                 <a
                   href={aboutData.social.github}
-                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
+                  className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -295,7 +296,7 @@ export default function AboutMe() {
               {aboutData.social.linkedin && (
                 <a
                   href={aboutData.social.linkedin}
-                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
+                  className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -305,7 +306,7 @@ export default function AboutMe() {
               {aboutData.social.twitter && (
                 <a
                   href={aboutData.social.twitter}
-                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
+                  className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -315,7 +316,7 @@ export default function AboutMe() {
               {aboutData.social.website && (
                 <a
                   href={aboutData.social.website}
-                  className="px-3 py-1.5 bg-[#f0f2f5] text-[#111418] rounded-full text-sm font-medium hover:bg-[#e4e6eb] transition-colors"
+                  className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

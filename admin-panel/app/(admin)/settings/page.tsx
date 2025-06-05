@@ -57,7 +57,6 @@ export default function SettingsPage() {
       // fetch about settings
       const response = await settingsService.getByGroup('about');
       const data = response.data;
-      console.log('about settings data:', data);
       
       if (data && settings) {
         // ensure data has correct structure  
@@ -248,8 +247,6 @@ export default function SettingsPage() {
   const saveAboutSettings = async (values: any) => {
     try {
       setIsSaving(true);
-      console.log('values', values); // your debug code
-
       // use format function to convert form data to api needed format
       const formattedSettings = formatAboutSettingsForApi(values);
       

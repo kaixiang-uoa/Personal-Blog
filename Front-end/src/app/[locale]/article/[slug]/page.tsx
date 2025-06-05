@@ -1,13 +1,11 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter,useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import Navbar from '../../../components/Navbar';
-import { postApi } from '@/services/postApi';
-import { Article } from '@/types';
-
+import { useArticle } from '@/hooks/useArticle';
+import { Article, PostData } from '@/types';
+import { useSetting } from '@/contexts/SettingsContext';
 
 export default function ArticlePage() {
   const params = useParams();
@@ -15,142 +13,149 @@ export default function ArticlePage() {
   const locale = params.locale as string;
   const router = useRouter();
   const t = useTranslations('common');
-  const [article, setArticle] = useState<Article | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchArticle = async () => {
-      try {
-        setLoading(true);
-        const response = await postApi.getPostBySlug(slug as string);
-        setArticle(response.post);
-        setLoading(false);
-      } catch (err) {
-        console.error('Failed to fetch article:', err);
-        setError(t('error'));
-        setLoading(false);
-      }
-    };
+  // Get article banner default from settings
+  const defaultBannerUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCAvMmY596FeQcfcATBZ7OCdgRlSZliPxjcpZQUcZDqH5aEwjRN_P38-l88OIVnA9PyzIWRGnVNwbjVmCoZOZ_MnIY9KnnrpDWEWyOKr74u0BfuxcU8SCMdy_m4R1XJrfQAbbPvd_LOUHwPGiRA7iZZLHNUz2tdANkx_VRCWWEB9fN6A1KhjUB5sAv03TuX4i4LtLrekE7qhDDqrMb2yCjou6oipdZSlw5L4upEMuuXII_n8xAuCdFTVn0_RDqCdKy6rXtMwHOp5CE";
+  const articleBanner = useSetting('appearance.articleBanner', defaultBannerUrl);
+  
+  // Get article banner for mobile from settings
+  const articleBannerMobile = useSetting('appearance.articleBannerMobile', articleBanner);
 
-    if (slug) {
-      fetchArticle();
-    }
-  }, [slug, t]);
+  // Use React Query to fetch article data
+  const { data, isLoading, error } = useArticle(slug);
+  
+  // Extract article from response
+  const article: Article | null = data ? (data as PostData).post || null : null;
 
-  // 将 handleTagClick 函数移到组件内部，不要使用 useParams
   const handleTagClick = (tagSlug: string) => {
-    // 直接使用传入的 params.locale
     router.push(`/${locale}?tag=${tagSlug}`);
   };
 
-  const handleCategreClick = (categorySlug: string) => {
-    // 直接使用传入的 params.locale
-    console.log('categorySlug:', categorySlug);
+  const handleCategoryClick = (categorySlug: string) => {
     router.push(`/${locale}?category=${categorySlug}`);
   };
 
   return (
-    <main className="min-h-screen bg-gray-900 text-gray-200">
+    <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto w-full px-4 md:px-6 lg:px-8 py-4">
         <Link
           href={`/${params.locale}`}
-          className="text-cyan-600 hover:text-cyan-400 mb-4 inline-block"
+          className="text-foreground hover:text-muted-foreground mb-4 inline-flex items-center"
         >
-          &larr; {t('backToHome')}
+          <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor" viewBox="0 0 256 256" className="mr-1">
+            <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
+          </svg>
+          {t('backToHome')}
         </Link>
 
-        {loading ? (
+        {isLoading ? (
           <div className="text-center py-10">
-            <div className="w-16 h-16 border-4 border-cyan-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="mt-4 text-xl">{t('loading')}</p>
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="mt-4 text-xl text-foreground">{t('loading')}</p>
           </div>
         ) : error ? (
           <div className="text-center py-10">
-            <div className="bg-red-900/30 border border-red-700 rounded-lg p-6">
-              <p className="text-xl text-red-400">{error}</p>
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-6">
+              <p className="text-xl text-destructive">{error instanceof Error ? error.message : 'Failed to load article'}</p>
               <Link
                 href={`/${params.locale}`}
-                className="mt-4 inline-block text-cyan-500 hover:text-cyan-400"
+                className="mt-4 inline-block text-primary hover:text-primary/80"
               >
                 {t('backToHome')}
               </Link>
             </div>
           </div>
         ) : article ? (
-          <article className="bg-gray-800 rounded-lg p-6 shadow-lg">
-            <h1 className="text-3xl font-extrabold mb-4">{article.title}</h1>
-
-            {article.featuredImage && (
-              <div className="mb-6">
-                <Image
-                  src={article.featuredImage}
-                  alt={article.title}
-                  width={800}
-                  height={400}
-                  className="w-full h-auto rounded-lg"
-                  unoptimized={article.featuredImage.startsWith('http')}
-                />
-              </div>
-            )}
-
-            <div className="mb-4 text-gray-400 flex items-center">
-              <span className="mr-4">
-                {t('publishedAt')}: {new Date(article.publishedAt).toLocaleDateString()}
-              </span>
-              {article.author && (
-                <span className="flex items-center">
-                  {t('author')}: {article.author.displayName || article.author.username}
-                </span>
-              )}
-            </div>
-
-            {article.categories && article.categories.length > 0 && (
-              <div className="mb-4">
-                <span className="text-gray-400 mr-2">{t('categories')}:</span>
-                {article.categories.map(category => (
-                  <Link
-                    key={category._id}
-                    onClick={() =>handleCategreClick(category.slug)}
-                    href={`/${params.locale}/?category=${category.slug}`}
-                    className="px-2 py-1 bg-cyan-600 text-white rounded-md text-sm cursor-pointer transition-colors hover:bg-cyan-700"
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {article.tags && article.tags.length > 0 && (
-              <div className="mb-4">
-                <span className="text-gray-400 mr-2">{t('tags')}:</span>
-                <div className="inline-flex flex-wrap gap-2">
-                  {article.tags.map(tag => (
-                    <span
-                      key={tag._id}
-                      onClick={() => handleTagClick(tag.slug)}
-                      className="px-2 py-1 bg-cyan-600 text-white rounded-md text-sm cursor-pointer transition-colors hover:bg-cyan-700"
-                    >
-                      {tag.name}
-                    </span>
-                  ))}
+          <>
+            {/* Banner section similar to home page */}
+            <div className="py-4">
+              <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10 banner-image"
+                style={{
+                  backgroundImage: article.featuredImage 
+                    ? `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${article.featuredImage}')`
+                    : `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${articleBanner}')`
+                }}>
+                <style jsx>{`
+                  @media (max-width: 768px) {
+                    .banner-image {
+                      background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${articleBannerMobile}') !important;
+                    }
+                  }
+                `}</style>
+                <div className="flex flex-col gap-2 text-left max-w-2xl">
+                  <h1 className="text-white text-3xl md:text-5xl font-black leading-tight tracking-[-0.033em]">
+                    {article.title}
+                  </h1>
                 </div>
               </div>
-            )}
-
-            <div className="prose prose-lg prose-invert max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: article.content }} />
             </div>
-          </article>
+
+            <article className="bg-card border border-border rounded-lg p-6 shadow-sm my-4">
+              <div className="mb-6 flex flex-wrap items-center text-muted-foreground gap-x-4 gap-y-2">
+                <span className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" fill="currentColor" viewBox="0 0 256 256" className="mr-1.5">
+                    <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Z"></path>
+                  </svg>
+                  {new Date(article.publishedAt).toLocaleDateString()}
+                </span>
+                {article.author && (
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" fill="currentColor" viewBox="0 0 256 256" className="mr-1.5">
+                      <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C64,166.83,40.5,185.71,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+                    </svg>
+                    {article.author.displayName || article.author.username}
+                  </span>
+                )}
+              </div>
+
+              {article.categories && article.categories.length > 0 && (
+                <div className="mb-4">
+                  <span className="text-muted-foreground mr-2">{t('categories')}:</span>
+                  <div className="inline-flex flex-wrap gap-2">
+                    {article.categories.map(category => (
+                      <span
+                        key={category._id}
+                        onClick={() => handleCategoryClick(category.slug)}
+                        className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors cursor-pointer"
+                      >
+                        {category.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {article.tags && article.tags.length > 0 && (
+                <div className="mb-6">
+                  <span className="text-muted-foreground mr-2">{t('tags')}:</span>
+                  <div className="inline-flex flex-wrap gap-2">
+                    {article.tags.map(tag => (
+                      <span
+                        key={tag._id}
+                        onClick={() => handleTagClick(tag.slug)}
+                        className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors cursor-pointer"
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="prose prose-lg dark:prose-invert max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: article.content }} />
+              </div>
+            </article>
+          </>
         ) : (
           <div className="text-center py-10">
-            <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-6">
-              <p className="text-xl">{t('notFound')}</p>
+            <div className="bg-warning/10 border border-warning/30 rounded-lg p-6">
+              <p className="text-xl text-foreground">{t('notFound')}</p>
               <Link
                 href={`/${params.locale}`}
-                className="mt-4 inline-block text-cyan-500 hover:text-cyan-400"
+                className="mt-4 inline-block text-primary hover:text-primary/80"
               >
                 {t('backToHome')}
               </Link>
@@ -159,9 +164,9 @@ export default function ArticlePage() {
         )}
       </div>
 
-      <footer className="bg-gray-800 py-6 mt-12">
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-gray-400">
+      <footer className="mt-auto py-6 border-t border-border">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center">
+          <p className="text-muted-foreground">
             {t('footer.copyright', { year: new Date().getFullYear() })}
           </p>
         </div>

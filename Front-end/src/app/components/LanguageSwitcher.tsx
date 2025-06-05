@@ -19,13 +19,13 @@ export default function LanguageSwitcher() {
     router.push(newPath);
   };
 
-  // 当前语言文本展示
+  // current language text display
   const currentLanguageText = locale === 'en' ? 'EN' : '中文';
 
   return (
     <button
       onClick={() => switchLocale(locale === 'en' ? 'zh' : 'en')}
-      className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#f0f2f5] text-[#111418] text-sm font-bold leading-normal tracking-[0.015em]"
+      className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-muted text-foreground text-sm font-bold leading-normal tracking-[0.015em] hover:bg-muted/80"
     >
       <span className="truncate">{currentLanguageText}</span>
     </button>

@@ -62,7 +62,6 @@ export default function PostsPage() {
         const response = await postService.getAll(params);
        
         const apiPosts = response.data as unknown as ApiPost[];
-        console.log('response', apiPosts[0]?.publishedAt)
         // 确保数据是数组并且每个元素都有必要的属性
         const validPosts = Array.isArray(apiPosts) ? apiPosts.filter(post => post && typeof post === 'object') : [];
         setPosts(validPosts || []);

@@ -1,10 +1,10 @@
 import React from 'react';
 
 /**
- * 文章骨架屏组件
+ * article skeleton component
  *
- * 在文章数据加载过程中显示，提供视觉上的内容占位
- * 减少用户等待焦虑，提升用户体验
+ * display during article data loading, providing visual content placeholder
+ * reduce user waiting anxiety, improve user experience
  */
 export default function ArticleSkeleton() {
   return (

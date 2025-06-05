@@ -98,7 +98,7 @@ export default function NewPostPage() {
   const onSubmit = async (data: PostFormSchema) => {
     setIsLoading(true)
     try {
-      // 如果是发布状态，再次检查必填字段
+      // if published status, check required fields again
       if (data.status === "published") {
         if (!data.title || !data.content) {
           toast({
@@ -111,7 +111,7 @@ export default function NewPostPage() {
         }
       }
       
-      // 使用类型断言创建 PostFormData
+      // use type assertion to create PostFormData
       const postData = {
         status: data.status,
         featured: false,
@@ -123,7 +123,7 @@ export default function NewPostPage() {
         featuredImage: data.featuredImage || ''
       } as PostFormData;
       
-      // 添加分类
+      // add category
       if (data.category) {
         postData.categories = [data.category];
       }
@@ -199,12 +199,12 @@ export default function NewPostPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          标题
+                          Title
                           {form.watch("status") === "published" && (
                             <span className="text-red-500 ml-1">*</span>
                           )}
                           {form.watch("status") === "draft" && (
-                            <span className="text-gray-400 text-xs ml-2">(发布时必填)</span>
+                            <span className="text-gray-400 text-xs ml-2">(Required when published)</span>
                           )}
                         </FormLabel>
                         <FormControl>
@@ -227,7 +227,7 @@ export default function NewPostPage() {
                         <FormLabel>
                           Slug
                           {form.watch("status") === "draft" && (
-                            <span className="text-gray-400 text-xs ml-2">(可选，会自动从标题生成)</span>
+                            <span className="text-gray-400 text-xs ml-2">(Optional, will be generated from title)</span>
                           )}
                         </FormLabel>
                         <FormControl>
@@ -248,8 +248,8 @@ export default function NewPostPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          摘要
-                          <span className="text-gray-400 text-xs ml-2">(可选)</span>
+                          Excerpt
+                          <span className="text-gray-400 text-xs ml-2">(Optional)</span>
                         </FormLabel>
                         <FormControl>
                           <Textarea
@@ -270,12 +270,12 @@ export default function NewPostPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          内容
+                          Content
                           {form.watch("status") === "published" && (
                             <span className="text-red-500 ml-1">*</span>
                           )}
                           {form.watch("status") === "draft" && (
-                            <span className="text-gray-400 text-xs ml-2">(发布时必填)</span>
+                            <span className="text-gray-400 text-xs ml-2">(Required when published)</span>
                           )}
                         </FormLabel>
                         <FormControl>
@@ -348,20 +348,20 @@ export default function NewPostPage() {
                         <Select
                           value={field.value}
                           onValueChange={(value) => {
-                            // 如果切换到发布状态，检查必填字段
+                            // if switch to published status, check required fields
                             if (value === "published") {
                               const { title, content } = form.getValues();
                               if (!title || !content) {
                                 toast({
-                                  title: "无法发布",
-                                  description: "发布文章需要填写标题和内容",
+                                  title: "Cannot publish",
+                                  description: "Published articles require title and content",
                                   variant: "destructive",
                                 });
-                                // 如果验证失败，保持为草稿状态
+                                // if validation fails, keep as draft
                                 return;
                               }
                             }
-                            // 设置新状态
+                            // set new status
                             field.onChange(value);
                           }}
                         >

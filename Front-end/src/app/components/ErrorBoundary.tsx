@@ -11,9 +11,9 @@ interface State {
 }
 
 /**
- * 错误边界组件
+ * error boundary component
  *
- * 用于捕获子组件树中的 JavaScript 错误，记录错误并显示备用 UI
+ * used to capture JavaScript errors in the child component tree, record errors and display fallback UI
  */
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
@@ -26,19 +26,19 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // 只在开发环境中详细记录错误
+    // only record errors in development environment
     if (process.env.NODE_ENV === 'development') {
-      console.error('组件错误:', error);
-      console.error('错误信息:', errorInfo);
+      console.error('component error:', error);
+      console.error('error info:', errorInfo);
     } else {
-      // 生产环境中可以发送到错误跟踪服务
-      console.error('应用发生错误');
+      // in production environment, can send to error tracking service
+      console.error('application error');
     }
   }
 
   render() {
     if (this.state.hasError) {
-      // 自定义备用 UI
+      // custom fallback UI
       return (
         this.props.fallback || (
           <div className="flex flex-col items-center justify-center min-h-[200px] p-6 bg-gray-800 rounded-lg text-center">
@@ -55,8 +55,8 @@ class ErrorBoundary extends Component<Props, State> {
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
-            <h3 className="text-xl font-medium text-gray-300">内容加载失败</h3>
-            <p className="text-gray-400 mt-2">请稍后再试</p>
+            <h3 className="text-xl font-medium text-gray-300">content loading failed</h3>
+            <p className="text-gray-400 mt-2">please try again later</p>
           </div>
         )
       );

@@ -12,6 +12,7 @@ import type { ApiResponse, PaginatedResponse } from '@/types/common';
 export const postService = {
   getAll: async (params?: any): Promise<PaginatedResponse<Post[]>> => {
     const response = await apiClient.get<PostListResponse>("/posts", { params });
+    console.log('response', response.data.posts);
     return {
       success: response.success,
       message: response.message,
@@ -70,7 +71,6 @@ export const postService = {
         apiClient.get<PostStatsResponse>("/posts?limit=1&count=true"),
         apiClient.get<PostStatsResponse>("/categories?limit=1&count=true"),
       ]);
-      
       return {
         success: true,
         data: {

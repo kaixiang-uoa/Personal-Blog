@@ -17,7 +17,7 @@ export const postApi = {
     return data;
   },
 
-  getPostBySlug: async (slug:string):Promise<PostData> => {
+  getPostBySlug: async (slug:string): Promise<PostData> => {
     const data = await getApiData<PostData>(`/posts/slug/${slug}`);
     return data;
   },

@@ -2,14 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
 @layer base {
-  :root, body {
+  :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -36,6 +30,33 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
 }
 
 @layer base {
@@ -44,5 +65,111 @@
   }
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
+
+  /* 修复select元素在暗色模式下的样式 */
+  select {
+    @apply bg-background text-foreground border-border;
+  }
+
+  /* 暗色模式下修复select选项的颜色 */
+  .dark select {
+    color-scheme: dark;
+  }
+
+  /* 针对某些浏览器，可能需要单独设置option样式 */
+  .dark option {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+  }
+}
+
+/* 直接设置明暗主题背景和文本颜色 */
+:root {
+  --light-bg: #ffffff;
+  --dark-bg: #0a0a0a;
+  --light-text: #222222;
+  --dark-text: #f8f8f8;
+}
+
+html {
+  background-color: var(--light-bg);
+  color: var(--light-text);
+}
+
+html.dark {
+  color-scheme: dark;
+  background-color: var(--dark-bg) !important;
+  color: var(--dark-text) !important;
+}
+
+/* 最高优先级背景颜色设置 */
+.dark body, 
+.dark html, 
+.dark #__next, 
+.dark main, 
+.dark div[data-overlay-container="true"] {
+  background-color: var(--dark-bg) !important; /* 暗色背景 */
+  color: var(--dark-text) !important; /* 亮色文本 */
+}
+
+/* 为某些可能有背景颜色的容器设置透明背景 */
+.dark header, 
+.dark footer, 
+.dark nav, 
+.dark section, 
+.dark article {
+  background-color: transparent !important;
+}
+
+/* 如果有特定组件设置了白色背景，我们需要覆盖它们 */
+.dark [class*="bg-white"], 
+.dark [class*="bg-background"], 
+.dark [class*="bg-card"], 
+.dark [class*="bg-popover"] {
+  background-color: var(--dark-bg) !important;
+}
+
+/* 加强对比度 */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: white !important;
+}
+
+.dark a:hover {
+  color: white !important;
+}
+
+/* 确保所有暗色模式下的文本颜色足够亮 */
+.dark p, .dark span, .dark div {
+  color: var(--dark-text);
+}
+
+/* 主题切换动画 */
+* {
+  transition-property: color, background-color, border-color, 
+                      text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* 初始化时的特殊类 */
+.theme-init {
+  animation: theme-fade-in 0.5s ease-in-out;
+}
+
+/* 强制主题变化 */
+.force-theme-change {
+  animation: theme-change 0.5s ease-in-out;
+}
+
+@keyframes theme-fade-in {
+  0% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+@keyframes theme-change {
+  0% { opacity: 0.8; }
+  50% { opacity: 0.9; }
+  100% { opacity: 1; }
 }

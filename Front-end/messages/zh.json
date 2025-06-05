@@ -50,7 +50,8 @@
     "popular": "热门",
     "lastUpdated": "最近更新",
     "oldestUpdated": "最早更新",
-    "selectSortOrder": "选择排序方式"
+    "selectSortOrder": "选择排序方式",
+    "select": "选择"
   },
   "about": {
     "title": "关于我",

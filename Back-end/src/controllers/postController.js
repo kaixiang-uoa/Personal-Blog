@@ -101,8 +101,32 @@ export const getPostById = asyncHandler(async (req, res) => {
   const post = await getPopulatedPostById(req.params.id);
  
   if (!post) throw createError('Post not found', 404);
-  post.viewCount += 1;
-  await post.save();
+  
+  // idempotent check - use client IP and timestamp combination as idempotent key 
+  const clientIp = req.ip || req.socket.remoteAddress;
+  const viewKey = `${post._id}:${clientIp}`;
+  const viewTimestamps = req.app.locals.viewTimestamps || {};
+  
+  const now = Date.now();
+  const lastView = viewTimestamps[viewKey] || 0;
+  
+  // if the same IP visits the same article within 5 seconds, do not count it again
+  if (now - lastView > 5000) {
+    post.viewCount += 1;
+    await post.save();
+    
+    // update timestampe timestamp
+    viewTimestamps[viewKey] = now;
+    req.app.locals.viewTimestamps = viewTimestamps;
+    
+    // automatically clean up records older than 30 minutes
+    const thirtyMinutes = 30 * 60 * 1000;
+    Object.keys(viewTimestamps).forEach(key => {
+      if (now - viewTimestamps[key] > thirtyMinutes) {
+        delete viewTimestamps[key];
+      }
+    });
+  }
 
   const transformedPost = post.toObject();
   if (transformedPost.categories && transformedPost.categories.length > 0) {
@@ -125,9 +149,33 @@ export const getPostBySlug = asyncHandler(async (req, res) => {
   const lang = req.query.lang || 'zh';
   const post = await getPopulatedPostBySlug(req.params.slug);
   if (!post) throw createError('Post not found', 404);
-  post.viewCount += 1;
-  await post.save();
-
+  
+  // idempotent check - use client IP and timestamp combination as idempotent key 
+  const clientIp = req.ip || req.socket.remoteAddress;
+  const viewKey = `${post._id}:${clientIp}`;
+  const viewTimestamps = req.app.locals.viewTimestamps || {};
+  
+  const now = Date.now();
+  const lastView = viewTimestamps[viewKey] || 0;
+  
+  // if the same IP visits the same article within 5 seconds, do not count it again
+  if (now - lastView > 5000) {
+    post.viewCount += 1;
+    await post.save();
+    
+    // update timestamp
+    viewTimestamps[viewKey] = now;
+    req.app.locals.viewTimestamps = viewTimestamps;
+    
+    // automatically clean up records older than 30 minutes
+    const thirtyMinutes = 30 * 60 * 1000;
+    Object.keys(viewTimestamps).forEach(key => {
+      if (now - viewTimestamps[key] > thirtyMinutes) {
+        delete viewTimestamps[key];
+      }
+    });
+  }
+  
   const transformedPost = post.toObject();
   if (transformedPost.categories && transformedPost.categories.length > 0) {
     transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);

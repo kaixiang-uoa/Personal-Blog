@@ -1,5 +1,5 @@
 import type { TagsData } from '@/types';
-import { getApiData } from './api';
+import { externalApi } from './api';
 import type { GetFallbackRouteParams } from '@/types';
 
 export const tagApi = {
@@ -8,7 +8,7 @@ export const tagApi = {
     if(params?.lang) queryParams.append('lang', params.lang)
     const queryString = queryParams.toString();
     const url = queryString? `/tags?${queryString}` : '/tags';
-    const data = await getApiData<TagsData>(url); 
+    const data = await externalApi.get<TagsData>(url); 
     return data
   },
 };

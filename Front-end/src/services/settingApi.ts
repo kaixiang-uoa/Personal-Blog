@@ -1,14 +1,14 @@
-import { getApiData } from './api';
+import { externalApi } from './api';
 import type { GetFallbackRouteParams } from '@/types/dto/commonDto';
 import type { SettingItem, Settings } from '@/types/models/setting';
 
 export const settingApi = {
   getAllSettings: async (): Promise<Settings> => {
-    return getApiData<Settings>('/settings');
+    return externalApi.get<Settings>('/settings');
   },
 
   getSettingsByGroup: async (group: string): Promise<SettingItem[]> => {
-    const data = await getApiData<Settings>('/settings', { group });
+    const data = await externalApi.get<Settings>('/settings', { group });
     
     // 确保返回的是数组格式
     if (Array.isArray(data)) {
@@ -25,6 +25,6 @@ export const settingApi = {
 
   // support specific language settings
   getAllSettingsWithLang: async (params?: GetFallbackRouteParams): Promise<Settings> => {
-    return getApiData<Settings>('/settings', params);
+    return externalApi.get<Settings>('/settings', params);
   },
 }; 

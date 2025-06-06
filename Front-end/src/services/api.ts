@@ -66,11 +66,64 @@ function createApiRequest(axiosInstance: AxiosInstance) {
 export const externalApi = createApiRequest(axiosInstance);
 export const internalApi = createApiRequest(internalAxiosInstance);
 
-// 为了向后兼容，保留原来的函数名
-export const getApiData = externalApi.get;
-export const postApiData = externalApi.post;
-export const getInternalApiData = internalApi.get;
-export const postInternalApiData = internalApi.post;
+/**
+ * 旧API函数的迁移指南
+ * =====================
+ * 
+ * 以下函数将在版本v1.0.0中被标记为废弃，并计划在v2.0.0中移除。
+ * 请使用新的API客户端对象来替代这些单独的函数：
+ * 
+ * 旧方法 -> 新方法映射：
+ * - getApiData -> externalApi.get
+ * - postApiData -> externalApi.post
+ * - getInternalApiData -> internalApi.get
+ * - postInternalApiData -> internalApi.post
+ * 
+ * 迁移示例:
+ * 旧: const data = await getApiData<UserData>('/users');
+ * 新: const data = await externalApi.get<UserData>('/users');
+ */
+
+/**
+ * @deprecated 请使用 externalApi.get 代替。将在v2.0.0版本中移除。
+ */
+export const getApiData = (url: string, params?: any) => {
+  // 在开发环境显示警告
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[废弃警告] getApiData 已废弃，请使用 externalApi.get 替代。');
+  }
+  return externalApi.get(url, params);
+};
+
+/**
+ * @deprecated 请使用 externalApi.post 代替。将在v2.0.0版本中移除。
+ */
+export const postApiData = (url: string, data?: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[废弃警告] postApiData 已废弃，请使用 externalApi.post 替代。');
+  }
+  return externalApi.post(url, data);
+};
+
+/**
+ * @deprecated 请使用 internalApi.get 代替。将在v2.0.0版本中移除。
+ */
+export const getInternalApiData = (url: string, params?: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[废弃警告] getInternalApiData 已废弃，请使用 internalApi.get 替代。');
+  }
+  return internalApi.get(url, params);
+};
+
+/**
+ * @deprecated 请使用 internalApi.post 代替。将在v2.0.0版本中移除。
+ */
+export const postInternalApiData = (url: string, data?: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[废弃警告] postInternalApiData 已废弃，请使用 internalApi.post 替代。');
+  }
+  return internalApi.post(url, data);
+};
 
 export default axiosInstance;
 

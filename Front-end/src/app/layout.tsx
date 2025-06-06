@@ -6,7 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ReactQueryProvider } from '@/contexts/QueryClientContext';
-import { SEOHead } from '@/app/components/SEOHead';
+import { SEOHead } from '@/components/common';
 
 const inter = Inter({ subsets: ['latin'] });
 

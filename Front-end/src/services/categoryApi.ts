@@ -1,4 +1,4 @@
-import { getApiData } from './api';
+import { externalApi } from './api';
 import type { CategoriesData,GetFallbackRouteParams } from '@/types';
 
 export const categoryApi = {
@@ -7,7 +7,7 @@ export const categoryApi = {
     if(params?.lang) queryParams.append('lang', params.lang)
     const queryString = queryParams.toString();
     const url = queryString ? `/categories?${queryString}` : '/categories';
-    const data = await getApiData<CategoriesData>(url);
+    const data = await externalApi.get<CategoriesData>(url);
     return data;
   },
 };

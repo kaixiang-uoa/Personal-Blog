@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 export const dynamicParams = false;
 import { useState, useEffect } from 'react';
-import Navbar from '../../components/Navbar';
+import { Navbar } from '@/components';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useSetting } from '@/contexts/SettingsContext';

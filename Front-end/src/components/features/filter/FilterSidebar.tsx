@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSetting } from '@/contexts/SettingsContext';
-import { SelectField } from './SelectField';
+import { SelectField } from '@/components/ui';
 import { FilterSidebarProps } from '@/types/components';
 import { SortOrder } from '@/types/models/common';
+import { validateSortOrder } from '@/utils';
 
 export default function FilterSidebar({
   tags,
@@ -22,7 +23,8 @@ export default function FilterSidebar({
   const [selectedSortOrder, setSelectedSortOrder] = useState<SortOrder>(sortOrder);
   
   // get sidebar settings from settings
-  const defaultSort = useSetting('posts.defaultSort', 'latest') as SortOrder;
+  const defaultSortSetting = useSetting('posts.defaultSort', 'latest');
+  const defaultSort = validateSortOrder(defaultSortSetting, 'latest');
   const showSidebar = useSetting('appearance.showSidebar', true);
   
   // if set to not show sidebar, do not render component
@@ -64,7 +66,9 @@ export default function FilterSidebar({
     onFilterChangeAction({ type: 'category', value: categorySlug || '' });
   };
 
-  const handleSortChange = (newSort: SortOrder) => {
+  const handleSortChange = (newSortValue: string) => {
+    // Validate the sort value before using it
+    const newSort = validateSortOrder(newSortValue, 'latest');
     setSelectedSortOrder(newSort);
     onFilterChangeAction({ type: 'sort', value: newSort });
   };
@@ -107,7 +111,7 @@ export default function FilterSidebar({
       <SelectField
         label={t('sortBy')}
         value={selectedSortOrder}
-        onChange={(value: string) => handleSortChange(value as SortOrder)}
+        onChange={(value: string) => handleSortChange(value)}
         options={[
           { value: 'latest', label: t('newest') },
           { value: 'oldest', label: t('oldest') },

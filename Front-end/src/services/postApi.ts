@@ -1,4 +1,4 @@
-import { getApiData } from './api';
+import { externalApi } from './api';
 import type { PostsData, PostData, GetAllPostsParams } from '@/types';
 
 export const postApi = {
@@ -13,12 +13,12 @@ export const postApi = {
     if(params?.lang) queryParams.append('lang', params.lang)
     const queryString = queryParams.toString();
     const url = queryString ? `/posts?${queryString}` : '/posts';
-    const data = await getApiData<PostsData>(url);
+    const data = await externalApi.get<PostsData>(url);
     return data;
   },
 
   getPostBySlug: async (slug:string): Promise<PostData> => {
-    const data = await getApiData<PostData>(`/posts/slug/${slug}`);
+    const data = await externalApi.get<PostData>(`/posts/slug/${slug}`);
     return data;
   },
 };

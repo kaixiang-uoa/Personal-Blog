@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/app/components/ui/select';
+} from './select';
 
 export function SelectField({ 
   label, 
@@ -20,28 +20,28 @@ export function SelectField({
 }: SelectFieldProps) {
   const t = useTranslations('common');
   
-  // 根据布局选择样式
+  // according to layout style
   const triggerClass = cn(
     isHorizontal 
       ? "h-10 w-full min-w-[140px] max-w-[200px] rounded-lg text-sm font-normal leading-normal"
       : "h-12 w-full rounded-xl text-base font-normal leading-normal"
   );
 
-  // 确保值不为空字符串，替换为有意义的默认值
+  // ensure value is not empty string, replace with meaningful default value
   const safeValue = value === '' ? '_empty' : value;
   
-  // 预处理选项，确保没有空值
+  // preprocess options, ensure no empty value
   const safeOptions = options.map(option => ({
     ...option,
     value: option.value === '' ? '_empty' : option.value
   }));
 
   const handleValueChange = (newValue: string) => {
-    // 如果选择的是我们的空值占位符，则返回实际的空字符串
+    // if the selected value is our empty value placeholder, return actual empty string
     onChange(newValue === '_empty' ? '' : newValue);
   };
 
-  // 设置选择组件的容器类，调整宽度以适应布局
+  // set container class for select component, adjust width to fit layout
   const selectWrapperClass = cn(
     isHorizontal ? "flex-1 min-w-[140px] max-w-[200px]" : "w-full"
   );

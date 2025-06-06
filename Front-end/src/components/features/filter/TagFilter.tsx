@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Tag } from 'lucide-react';
-import { Badge } from '@/app/components/ui/badge';
-import { ScrollArea, ScrollBar } from '@/app/components/ui/scroll-area';
+import { Tag as TagIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 export interface TagProps {
   _id: string;
   name: string;
   slug: string;
-  description?: string; // 确保这里是可选的
+  description?: string; // ensure this is optional
 }
 
 export interface TagFilterProps {
@@ -37,8 +37,8 @@ export default function TagFilter({ tags, activeTags, onTagsChangeAction }: TagF
   return (
     <div className="py-4">
       <div className="flex items-center mb-3">
-        <Tag className="h-5 w-5 mr-2 text-cyan-500" />
-        <h3 className="text-lg font-medium">热门标签</h3>
+        <TagIcon className="h-5 w-5 mr-2 text-cyan-500" />
+        <h3 className="text-lg font-medium">Popular Tags</h3>
       </div>
 
       <ScrollArea className="w-full whitespace-nowrap">

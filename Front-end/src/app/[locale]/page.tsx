@@ -3,40 +3,48 @@ import {useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-import Navbar from '../components/Navbar';
-import ArticleCard from '../components/ArticleCard';
-import FilterSidebar from '../components/FilterSidebar';
-import ArticleSkeleton from '../components/ArticleSkeleton';
+import { 
+  Navbar,
+  ArticleCard,
+  FilterSidebar,
+  ArticleSkeleton,
+  ApiErrorFallback,
+  ErrorBoundary
+} from '@/components';
 import { useSetting } from '@/contexts/SettingsContext';
 
 import { SortOrder } from '@/types';
 import { useArticles } from '@/hooks/useArticles';
 import { useCategories, useTags } from '@/hooks/useTaxonomies';
-import { isValidUrl, getStringParam, getArrayParam } from '@/utils';
+import { getStringParam, getArrayParam, getResponsiveImageUrls, validateSortOrder } from '@/utils';
 
-export default function Home() {  
+// extract article list to a separate component, so that it can be wrapped by ErrorBoundary
+function ArticlesList({ 
+  locale, 
+  currentPage, 
+  postsPerPage, 
+  tagsParam, 
+  category, 
+  search, 
+  sort 
+}: { 
+  locale: string;
+  currentPage: number;
+  postsPerPage: number;
+  tagsParam: string[];
+  category?: string;
+  search?: string;
+  sort: SortOrder;
+}) {
   const t = useTranslations('common');
-  const params = useParams();
-  const locale = params.locale as string;
-  const router = useRouter();
-  const searchParams = useSearchParams();
   
-  // Parse query parameters
-  const sort = getStringParam(searchParams.get('sort'), 'latest') as SortOrder;
-  const tagsParam = getArrayParam(searchParams.get('tag'));
-  const category = getStringParam(searchParams.get('category'));
-  const search = getStringParam(searchParams.get('search'));
-  const page = getStringParam(searchParams.get('page'), '1');
-  const currentPage = parseInt(page) || 1;
-  
-  // Get settings
-  const postsPerPage = useSetting('posts.perPage', 10); 
-  const defaultBannerUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCAvMmY596FeQcfcATBZ7OCdgRlSZliPxjcpZQUcZDqH5aEwjRN_P38-l88OIVnA9PyzIWRGnVNwbjVmCoZOZ_MnIY9KnnrpDWEWyOKr74u0BfuxcU8SCMdy_m4R1XJrfQAbbPvd_LOUHwPGiRA7iZZLHNUz2tdANkx_VRCWWEB9fN6A1KhjUB5sAv03TuX4i4LtLrekE7qhDDqrMb2yCjou6oipdZSlw5L4upEMuuXII_n8xAuCdFTVn0_RDqCdKy6rXtMwHOp5CE";
-  const homeBanner = useSetting('appearance.homeBanner', defaultBannerUrl);
-  const homeBannerMobile = useSetting('appearance.homeBannerMobile', homeBanner);
-  
-  // Use React Query hooks to fetch data
-  const { data: articlesData, isLoading: isLoadingArticles, error: articlesError } = useArticles({
+  // use React Query hooks to get data
+  const { 
+    data: articlesData, 
+    isLoading: isLoadingArticles, 
+    error: articlesError,
+    refetch
+  } = useArticles({
     page: currentPage,
     limit: Number(postsPerPage),
     tag: tagsParam.length > 0 ? tagsParam.join(',') : undefined,
@@ -45,40 +53,31 @@ export default function Home() {
     sort,
     lang: locale
   });
-  
-  const { data: categoriesData } = useCategories(locale);
-  const { data: tagsData } = useTags(locale);
 
-  // Extract data from responses
-  const articles = articlesData?.posts || [];
-  const totalPages = articlesData?.totalPages || 1;
-  const categories = categoriesData?.categories || [];
-  const tags = tagsData?.tags || [];
-  
-  const getValidBannerUrl = (url: string | null | undefined): string => {
-    if (!url) return defaultBannerUrl;
-    if (isValidUrl(url)) return url;
-    return defaultBannerUrl;
-  };
-  
-  const processedHomeBanner = getValidBannerUrl(homeBanner);
-  const processedMobileBanner = getValidBannerUrl(homeBannerMobile);
-  
-  const filteredArticles = useMemo(() => {
+  // Extract data and create filtered articles in one memo to maintain hook order
+  const { articles, filteredArticles } = useMemo(() => {
+    const articles = articlesData?.posts || [];
+    
+    // Calculate filtered articles only if we have articles
+    if (articles.length === 0) {
+      return { articles, filteredArticles: [] };
+    }
+
+    // Filter logic
     let result = [...articles];
 
     // filter by tags
     if (tagsParam.length > 0) {
       result = result.filter(article => 
         Array.isArray(article.tags) &&
-        article.tags.some(t => tagsParam.includes(t?.slug)));
+        article.tags.some((t: any) => tagsParam.includes(t?.slug)));
     }
 
     // filter by category
     if (category) {
       result = result.filter(article => 
         Array.isArray(article.categories) && 
-        article.categories.some(c => c?.slug === category))
+        article.categories.some((c: any) => c?.slug === category))
     }
 
     // search filter
@@ -104,15 +103,96 @@ export default function Home() {
         break;
     }
 
-    return result;
-  }, [articles, sort, tagsParam, category, search]);
+    return { articles, filteredArticles: result };
+  }, [
+    articlesData, 
+    tagsParam, 
+    category, 
+    search, 
+    sort
+  ]);
 
+  // loading state
+  if (isLoadingArticles) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array(6).fill(0).map((_, i) => (
+          <ArticleSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
+  // error state
+  if (articlesError) {
+    return (
+      <ApiErrorFallback 
+        error={articlesError as Error} 
+        resetErrorBoundary={() => refetch()} 
+        message="Failed to load articles. Please try again later."
+      />
+    );
+  }
+
+  // empty state
+  if (articles.length === 0) {
+    return (
+      <div className="py-12 text-center">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{t('noArticlesFound')}</h3>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {t('tryChangingFilters')}
+        </p>
+      </div>
+    );
+  }
+
+  // normal rendering of article list
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {filteredArticles.map((article) => (
+        <ArticleCard key={article._id} article={article} />
+      ))}
+    </div>
+  );
+}
+
+export default function Home() {  
+  const t = useTranslations('common');
+  const params = useParams();
+  const locale = params.locale as string;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Parse query parameters with type validation
+  const sort = validateSortOrder(searchParams.get('sort'), 'latest');
+  const tagsParam = getArrayParam(searchParams.get('tag'));
+  const category = getStringParam(searchParams.get('category'));
+  const search = getStringParam(searchParams.get('search'));
+  const page = getStringParam(searchParams.get('page'), '1');
+  const currentPage = parseInt(page) || 1;
+  
+  // Get settings
+  const postsPerPage = useSetting('posts.perPage', 10); 
+  const defaultBannerUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCAvMmY596FeQcfcATBZ7OCdgRlSZliPxjcpZQUcZDqH5aEwjRN_P38-l88OIVnA9PyzIWRGnVNwbjVmCoZOZ_MnIY9KnnrpDWEWyOKr74u0BfuxcU8SCMdy_m4R1XJrfQAbbPvd_LOUHwPGiRA7iZZLHNUz2tdANkx_VRCWWEB9fN6A1KhjUB5sAv03TuX4i4LtLrekE7qhDDqrMb2yCjou6oipdZSlw5L4upEMuuXII_n8xAuCdFTVn0_RDqCdKy6rXtMwHOp5CE";
+  const homeBanner = useSetting('appearance.homeBanner', defaultBannerUrl);
+  const homeBannerMobile = useSetting('appearance.homeBannerMobile', homeBanner);
+  
+  // use tool function to process Banner URLs
+  const { desktop: processedHomeBanner, mobile: processedMobileBanner } = getResponsiveImageUrls(
+    homeBanner,
+    homeBannerMobile,
+    defaultBannerUrl
+  );
+  
+  const { data: categoriesData } = useCategories(locale);
+  const { data: tagsData } = useTags(locale);
+  
+  // Extract data from responses
+  const categories = categoriesData?.categories || [];
+  const tags = tagsData?.tags || [];
+   
   const handleSearch = (query: string) => {
     router.push(`/${locale}?search=${encodeURIComponent(query)}`);
-  };
-
-  const handleTagsChange = (tags: string[]) => {
-    router.push(`/${locale}?tag=${tags.join(',')}`);
   };
 
   const handleFilterChange = (params: {
@@ -135,10 +215,6 @@ export default function Home() {
     router.push(`/${locale}`);
   };
 
-  const hasActiveFilters = useMemo(() => {
-    return !!search || sort !== 'latest';
-  }, [search, sort]);
-
   const handlePageChange = (page: number) => {
     router.push(`/${locale}?page=${page}`);
   };
@@ -158,7 +234,7 @@ export default function Home() {
                 activeTags={tagsParam}
                 categories={categories}
                 activeCategory={category}
-                sortOrder={sort as SortOrder}
+                sortOrder={sort}
                 onFilterChangeAction={handleFilterChange}
                 onClearFiltersAction={handleClearFilters}
                 currentLocale={locale}
@@ -202,81 +278,25 @@ export default function Home() {
           <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-5">
             Latest Posts
           </h2>
-
-          {/* article list area - modify grid layout */}
-          {isLoadingArticles ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <ArticleSkeleton key={i} />
-              ))}
-            </div>
-          ) : articlesError ? (
-            <div className="text-center text-red-400 p-4">
-              {articlesError instanceof Error ? articlesError.message : 'Failed to load articles'}
-            </div>
-          ) : filteredArticles.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredArticles.map(article => (
-                  <ArticleCard key={article.slug} article={article} />
-                ))}
+          
+          {/* use ErrorBoundary to wrap article list */}
+          <ErrorBoundary
+            fallback={
+              <div className="text-center p-4 text-red-500">
+                Something went wrong while loading articles.
               </div>
-                
-              {/* pagination component */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center p-4">
-                  <button 
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="flex size-10 items-center justify-center text-foreground disabled:text-muted-foreground"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
-                    </svg>
-                  </button>
-                    
-                  {/* page number button */}
-                  {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
-                    const pageNum = i + 1;
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`text-sm ${currentPage === pageNum 
-                          ? 'font-bold bg-muted' 
-                          : 'font-normal'} leading-normal flex size-10 items-center justify-center text-foreground rounded-full`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                    
-                  {totalPages > 5 && <span className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-foreground rounded-full">...</span>}
-                    
-                  {totalPages > 5 && (
-                    <button
-                      onClick={() => handlePageChange(totalPages)}
-                      className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-foreground rounded-full"
-                    >
-                      {totalPages}
-                    </button>
-                  )}
-                    
-                  <button 
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="flex size-10 items-center justify-center text-foreground disabled:text-muted-foreground"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path>
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center text-foreground py-10">{t('noArticlesFound')}</div>
-          )}
+            }
+          >
+            <ArticlesList
+              locale={locale}
+              currentPage={currentPage}
+              postsPerPage={postsPerPage}
+              tagsParam={tagsParam}
+              category={category}
+              search={search}
+              sort={sort}
+            />
+          </ErrorBoundary>
         </div>
       </div>
     </main>

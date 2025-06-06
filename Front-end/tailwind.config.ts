@@ -1,62 +1,80 @@
+/**
+ * Tailwind CSS configuration file
+ * used to define the project's style system, including colors, sizes, animations, etc.
+ * supports dark mode and CSS variable system
+ * @see https://tailwindcss.com/docs/configuration
+ */
 import type { Config } from 'tailwindcss';
 
 export default {
+  // specify which files Tailwind should analyze to find class names
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  // enable dark mode with class strategy, use .dark class to switch theme
+  // @see https://tailwindcss.com/docs/dark-mode
   darkMode: 'class',
   theme: {
     extend: {
+      // use CSS variable defined color system, convenient for unified management and theme switching
+      // all colors are based on HSL, convenient for adjusting transparency and derived colors
       colors: {
+        // basic background color
         background: 'hsl(var(--background))',
+        // basic text color
         foreground: 'hsl(var(--foreground))',
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'hsl(var(--card))', // card background color
+          foreground: 'hsl(var(--card-foreground))', // card text color
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          DEFAULT: 'hsl(var(--popover))', // popover background color
+          foreground: 'hsl(var(--popover-foreground))', // popover text color
         },
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'hsl(var(--primary))', // primary operation color
+          foreground: 'hsl(var(--primary-foreground))', // primary operation text color
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: 'hsl(var(--secondary))', // secondary operation color
+          foreground: 'hsl(var(--secondary-foreground))', // secondary operation text color
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'hsl(var(--muted))', // muted background color, used for secondary information
+          foreground: 'hsl(var(--muted-foreground))', // muted text color
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'hsl(var(--accent))', // accent color
+          foreground: 'hsl(var(--accent-foreground))', // accent text color
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: 'hsl(var(--destructive))', // destructive operation color
+          foreground: 'hsl(var(--destructive-foreground))', // destructive operation text color
         },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
+        border: 'hsl(var(--border))', // border color
+        input: 'hsl(var(--input))', // input border color
+        ring: 'hsl(var(--ring))', // focus ring color
+        // chart colors, used for data visualization
         chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
+          '1': 'hsl(var(--chart-1))', // 图表主色1
+          '2': 'hsl(var(--chart-2))', // 图表主色2
+          '3': 'hsl(var(--chart-3))', // 图表主色3
+          '4': 'hsl(var(--chart-4))', // 图表主色4
+          '5': 'hsl(var(--chart-5))', // 图表主色5
         },
       },
+      // unified management of rounded corners
+      // use CSS variables, convenient for global adjustment of component rounded styles
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        lg: 'var(--radius)', // large rounded corner
+        md: 'calc(var(--radius) - 2px)', // medium rounded corner
+        sm: 'calc(var(--radius) - 4px)', // small rounded corner
       },
+      // custom animation keyframes
       keyframes: {
+        // accordion expand animation
         'accordion-down': {
           from: {
             height: '0',
@@ -65,6 +83,7 @@ export default {
             height: 'var(--radix-accordion-content-height)',
           },
         },
+        // accordion collapse animation
         'accordion-up': {
           from: {
             height: 'var(--radix-accordion-content-height)',
@@ -74,11 +93,15 @@ export default {
           },
         },
       },
+      // register animation names, can be used directly in class names
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
     },
   },
+  // enabled Tailwind plugins
+  // tailwindcss-animate: provides more powerful animation capabilities
+  // @see https://github.com/jamiebuilds/tailwindcss-animate
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;

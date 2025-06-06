@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { useSetting } from './SettingsContext';
 
@@ -12,33 +12,30 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // getting theme setting from the ContextSettings
   const themeSetting = useSetting<string>('appearance.theme', 'light');
   
-  // state tracking, ensure correct application
-  const [theme, setTheme] = useState<string>('light');
+  // validate and convert theme value to valid options (only accept light or dark)
+  const validTheme = (themeSetting === 'dark') ? 'dark' : 'light';
   
   // check if in client environment
   const isClient = typeof window !== 'undefined';
   
-  // use API set theme to initialize
+  // only handle DOM operations during initialization, let next-themes handle the rest
   useEffect(() => {
     if (isClient) {
-      // only accept light or dark, if system then default to light
-      const validTheme = (themeSetting === 'dark') ? 'dark' : 'light';
-      setTheme(validTheme);
-      
-      // manually set class name, ensure dark mode is applied correctly
+      // manually set initial class, ensure dark mode is applied correctly before client rendering
+      // this can prevent theme flickering
       if (validTheme === 'dark') {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
     }
-  }, [themeSetting, isClient]);
+  }, [validTheme, isClient]);
   
-  // use Next-Themes provided ThemeProvider
+  // using validTheme directly
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme={theme}
+      defaultTheme={validTheme}
       enableSystem={false}
       themes={['light', 'dark']}
       disableTransitionOnChange={false}

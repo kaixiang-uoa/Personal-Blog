@@ -2,7 +2,7 @@
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import Navbar from '../../../components/Navbar';
+import { Navbar } from '@/components';
 import { useArticle } from '@/hooks/useArticle';
 import { Article, PostData } from '@/types';
 import { useSetting } from '@/contexts/SettingsContext';

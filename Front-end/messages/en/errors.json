@@ -1,0 +1,29 @@
+{
+  "common": {
+    "defaultError": "An unexpected error occurred",
+    "networkError": "Network error, please check your connection",
+    "serverError": "Server error, please try again later",
+    "notFound": "Resource not found",
+    "unauthorized": "Unauthorized access",
+    "forbidden": "Access forbidden",
+    "validationError": "Validation error"
+  },
+  "api": {
+    "requestFailed": "Request failed",
+    "timeout": "Request timeout",
+    "invalidResponse": "Invalid response from server",
+    "parseError": "Failed to parse response"
+  },
+  "form": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email format",
+    "minLength": "Must be at least {min} characters",
+    "maxLength": "Must be at most {max} characters",
+    "invalidFormat": "Invalid format"
+  },
+  "auth": {
+    "loginFailed": "Login failed",
+    "sessionExpired": "Session expired",
+    "invalidCredentials": "Invalid credentials"
+  }
+} 

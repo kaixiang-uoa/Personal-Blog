@@ -1,12 +1,15 @@
 /**
- * 工具函数集中导出
+ * export all utility functions in one place
  */
 
-// URL相关工具
+// URL related tools
 export * from './isValidUrl';
 
-// 字符串处理工具
+// string related tools
 export * from './string';
 
-// JSON处理工具
-export * from './json'; 
+// JSON related tools
+export * from './json';
+
+// image related tools
+export * from './images'; 

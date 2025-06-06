@@ -1,0 +1,15 @@
+{
+  "title": "About Me",
+  "contactTitle": "Contact Information",
+  "skillsTitle": "Professional Skills",
+  "educationTitle": "Education",
+  "experienceTitle": "Experience",
+  "projectsTitle": "Projects",
+  "socialTitle": "Social Links",
+  "email": "Email",
+  "phone": "Phone",
+  "location": "Location",
+  "at": "at",
+  "githubLink": "GitHub Link",
+  "website": "Website"
+} 

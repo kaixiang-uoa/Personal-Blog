@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getInternalApiData } from '@/services/api';
+import { internalApi } from '@/services/api';
 
 interface SettingsContextType {
   settings: Record<string, any>;
@@ -30,7 +30,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         
         // 后台刷新缓存
         try {
-          const data = await getInternalApiData<Record<string, any>>('/settings');
+          const data = await internalApi.get<Record<string, any>>('/settings');
           setSettings(data);
           saveToCache(data);
         } catch (error) {
@@ -41,7 +41,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       }
       
       // 没有缓存则从API获取
-      const settingsData = await getInternalApiData<Record<string, any>>('/settings');
+      const settingsData = await internalApi.get<Record<string, any>>('/settings');
       
       setSettings(settingsData);
       saveToCache(settingsData);

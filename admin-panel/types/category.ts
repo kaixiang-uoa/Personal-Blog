@@ -1,57 +1,41 @@
-import { BaseEntity } from './common';
+/**
+ * Category Type Definitions
+ * 
+ * This file contains type definitions related to categories.
+ */
+import { BaseEntity } from './common.types';
 
+/**
+ * Category interface
+ * Represents a content category
+ */
 export interface Category extends BaseEntity {
-  name: { zh: string; en: string };
-  slug: string;
-  description: { zh: string; en: string };
-  postCount: number;
-}
-
-export interface CategoryFormData {
-  name: { zh: string; en: string };
-  slug: string;
-  description?: { zh: string; en: string };
-}
-
-// API请求数据类型，与后端API匹配
-export interface CategoryApiData {
   name: string;
-  name_zh: string;
-  name_en: string;
   slug: string;
   description?: string;
-  description_zh?: string;
-  description_en?: string;
-  parent?: string;
-  featuredImage?: string;
+  parentId?: string;
+  isActive: boolean;
+  postCount?: number;
 }
 
-export interface CategoryParams {
-  id: string;
+/**
+ * Form data used for creating or updating a category
+ */
+export interface CategoryFormData {
+  name: string;
+  slug?: string;
+  description?: string;
+  parentId?: string;
+  isActive?: boolean;
 }
 
-export interface CategorySelection {
-  mode: 'select' | 'create'
-  selectedId?: string
-  newCategory?: {
-    name: { zh: string; en: string }
-    slug: string
-  }
-}
-
-export interface CategoryFormProps {
-  onSubmit: (data: CategoryFormData) => void;
-  defaultValues?: Partial<CategoryFormData>;
-}
-
-export interface CategorySelectorProps {
-  categories: Category[];
-  selectedCategories: Category[];
-  onChange: (categories: Category[]) => void;
-  multiple?: boolean;
-  displayMode?: string;
-  size?: string;
-  showSelected?: boolean;
-  placeholder?: string;
-  disabled?: boolean;
-}
+/**
+ * API data structure for category
+ */
+export interface CategoryApiData {
+  name: string;
+  slug?: string;
+  description?: string;
+  parentId?: string;
+  isActive?: boolean;
+} 

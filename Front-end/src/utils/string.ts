@@ -28,14 +28,14 @@ export function getArrayParam(param: string | string[] | null | undefined): stri
  */
 export function validateSortOrder(
   value: string | null | undefined, 
-  defaultValue: 'latest' | 'oldest' | 'popular' = 'latest'
-): 'latest' | 'oldest' | 'popular' {
+  defaultValue: 'publishedAt-desc' | 'publishedAt-asc' | 'updatedAt-desc' | 'updatedAt-asc' | 'latest' | 'oldest' | 'popular' = 'latest'
+): 'publishedAt-desc' | 'publishedAt-asc' | 'updatedAt-desc' | 'updatedAt-asc' | 'latest' | 'oldest' | 'popular' {
   if (!value) return defaultValue;
   
   // Check if value is one of the allowed sort orders
-  const validSortOrders = ['latest', 'oldest', 'popular'] as const;
+  const validSortOrders = ['publishedAt-desc', 'publishedAt-asc', 'updatedAt-desc', 'updatedAt-asc', 'latest', 'oldest', 'popular'] as const;
   return validSortOrders.includes(value as any) 
-    ? (value as 'latest' | 'oldest' | 'popular') 
+    ? (value as 'publishedAt-desc' | 'publishedAt-asc' | 'updatedAt-desc' | 'updatedAt-asc' | 'latest' | 'oldest' | 'popular') 
     : defaultValue;
 }
 

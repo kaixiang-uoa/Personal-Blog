@@ -1,7 +1,38 @@
+/**
+ * Contact Form Router
+ * 
+ * This file demonstrates the use of Swagger/OpenAPI documentation annotations.
+ * 
+ * ===== ABOUT SWAGGER DOCUMENTATION =====
+ * 
+ * The extensive comment blocks with @swagger annotations are used to automatically generate
+ * interactive API documentation. These are parsed by the Swagger/OpenAPI tools we've
+ * integrated into the application.
+ * 
+ * Benefits of these documentation comments:
+ * 
+ * 1. Self-documenting API - The documentation is always in sync with the code
+ * 2. Interactive testing - Developers can test endpoints directly from the documentation UI
+ * 3. Improved developer experience - Frontend developers and API consumers can quickly 
+ *    understand how to use each endpoint
+ * 4. Reduced onboarding time - New team members can get up to speed faster
+ * 
+ * Access the generated documentation by visiting:
+ * http://[your-api-url]/api-docs
+ * 
+ * While these comment blocks may seem verbose, they provide significant value by ensuring
+ * that our API is well-documented and easily understood. This follows best practices for
+ * API development in professional environments.
+ * 
+ * If you need to modify an endpoint, please remember to update the corresponding
+ * Swagger documentation to keep it in sync with the implementation.
+ */
+
 import express from 'express';
-import { body, validationResult } from 'express-validator';
 import nodemailer from 'nodemailer';
 import rateLimit from 'express-rate-limit';
+import { validateRequest } from '../middleware/validationMiddleware.js';
+import { contactRules } from '../utils/validationRules.js';
 
 const router = express.Router();
 
@@ -9,25 +40,93 @@ const router = express.Router();
 const contactLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5, // max 5 requests per IP per hour
-  message: { error: 'Too many requests. Please try again later.' }
+  message: { success: false, message: 'Too many requests. Please try again later.' }
 });
 
-// Validation middleware
-const validateContactForm = [
-  body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
-  body('email').trim().isEmail().withMessage('Please provide a valid email address'),
-  body('subject').trim().isLength({ min: 2 }).withMessage('Subject is required'),
-  body('message').trim().isLength({ min: 5 }).withMessage('Message is required')
-];
-
-// Handle contact form submission
-router.post('/', contactLimiter, validateContactForm, async (req, res) => {
-  // Check validation results
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
+/**
+ * @swagger
+ * /contact:
+ *   post:
+ *     summary: Submit a contact form
+ *     description: Send a message through the contact form
+ *     tags: [Contact]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - subject
+ *               - message
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Sender's name
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Sender's email address
+ *                 example: john.doe@example.com
+ *               subject:
+ *                 type: string
+ *                 description: Message subject
+ *                 example: Website Inquiry
+ *               message:
+ *                 type: string
+ *                 description: Message content
+ *                 example: I would like to know more about your services.
+ *     responses:
+ *       200:
+ *         description: Message sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Message sent successfully
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Too many requests. Please try again later.
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Error sending message. Please try again later.
+ */
+router.post('/', contactLimiter, validateRequest(contactRules.submit), async (req, res) => {
   const { name, email, subject, message } = req.body;
 
   try {

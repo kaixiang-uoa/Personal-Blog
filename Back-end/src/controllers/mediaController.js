@@ -1,5 +1,7 @@
 import Media from '../models/Media.js';
-import { success, error } from '../utils/responseHandler.js';
+import { success, error, createErrorWithCode } from '../utils/responseHandler.js';
+import { ErrorTypes } from '../middleware/errorMiddleware.js';
+import { getPaginationParams, createPaginationResponse } from '../utils/paginationHelper.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,81 +10,110 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Get all media files
+// get all media files
 export const getAllMedia = async (req, res) => {
   try {
-    const { page = 1, limit = 10, type } = req.query;
+    const { type } = req.query;
     const query = {};
     
-    // Add type to query if specified
+    // add type to query if specified
     if (type) {
       query.fileType = type;
     }
     
+    // using paginationHelper to get pagination params
+    const { page, limit, skip } = getPaginationParams(req, {
+      defaultLimit: 10,
+      maxLimit: 50
+    });
+    
     const options = {
-      page: parseInt(page, 10),
-      limit: parseInt(limit, 10),
+      skip,
+      limit,
       sort: { createdAt: -1 },
       populate: { path: 'uploadedBy', select: 'username' }
     };
     
-    const media = await Media.find(query)
-      .skip((options.page - 1) * options.limit)
-      .limit(options.limit)
-      .sort(options.sort)
-      .populate(options.populate);
-      
-    const total = await Media.countDocuments(query);
+    // parallel execution of query and count to improve performance
+    const [media, total] = await Promise.all([
+      Media.find(query)
+        .skip(options.skip)
+        .limit(options.limit)
+        .sort(options.sort)
+        .populate(options.populate),
+      Media.countDocuments(query)
+    ]);
     
-    return success(res, {
-      media,
-      pagination: {
-        total,
-        page: options.page,
-        limit: options.limit,
-        pages: Math.ceil(total / options.limit)
-      }
-    }, 200, 'media.listSuccess');
+    // using paginationHelper to create standard response format
+    const result = createPaginationResponse({ page, limit, total }, media);
+    
+    return success(res, result, 200, 'media.listSuccess');
   } catch (err) {
-    return error(res, 'media.listFailed', 500, err.message);
+    // using standard error code
+    return error(
+      res, 
+      'media.listFailed', 
+      500, 
+      err, 
+      ErrorTypes.INTERNAL, 
+      'ES001' // system error
+    );
   }
 };
 
-// Get single media file
+// get single media file
 export const getMediaById = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // input validation
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw createErrorWithCode('EV003', 'Invalid media ID format', { id });
+    }
+    
     const media = await Media.findById(id).populate('uploadedBy', 'username');
     
     if (!media) {
-      return error(res, 'media.notFound', 404);
+      // using standard resource not found error code
+      throw createErrorWithCode('ER001', null, { resource: 'media', id });
     }
     
     return success(res, media, 200);
   } catch (err) {
-    return error(res, 'media.getFailed', 500, err.message);
+    // if it is already formatted error, pass it directly
+    if (err.code && err.statusCode) {
+      return error(res, 'media.getFailed', err.statusCode, err, null, err.code);
+    }
+    
+    // database error
+    if (err.name === 'CastError') {
+      return error(res, 'media.invalidId', 400, err, ErrorTypes.VALIDATION, 'EV003');
+    }
+    
+    // other unknown error
+    return error(res, 'media.getFailed', 500, err, ErrorTypes.INTERNAL, 'ES001');
   }
 };
 
-// Upload media files
+// upload media files
 export const uploadMedia = async (req, res) => {
   try {
-    // Add debug logs
+    // add debug logs
     console.log('Upload request received:');
     console.log('Files:', req.files);
     console.log('Body:', req.body);
     console.log('Headers:', req.headers);
     
-    // Check if files were uploaded
+    // check if files were uploaded
     if (!req.files || req.files.length === 0) {
       console.log('No files found in request');
       return error(res, 'media.noFile', 400);
     }
     
-    // Handle multiple file uploads
+    // handle multiple file uploads
     const mediaFiles = [];
     
-    // Create media records for each file
+    // create media records for each file
     for (const file of req.files) {
       console.log('Processing file:', {
         originalname: file.originalname,
@@ -95,14 +126,14 @@ export const uploadMedia = async (req, res) => {
       const { originalname, filename, path: filePath, size, mimetype } = file;
       const fileType = mimetype.split('/')[0];
       
-      // Create media record, ensure field names match model definition
+      // create media record, ensure field names match model definition
       const media = await Media.create({
         filename,
         originalname,
         mimetype,
         size,
         path: filePath,
-        url: `/uploads/${filename}`,  // Add url field
+        url: `/uploads/${filename}`,  // add url field
         uploadedBy: req.user.id
       });
       
@@ -116,7 +147,7 @@ export const uploadMedia = async (req, res) => {
   }
 };
 
-// Update media file information
+// update media file information
 export const updateMedia = async (req, res) => {
   try {
     const { id } = req.params;
@@ -128,7 +159,7 @@ export const updateMedia = async (req, res) => {
       return error(res, 'media.notFound', 404);
     }
     
-    // Update fields
+    // update fields
     if (title) media.title = title;
     if (description) media.description = description;
     if (altText) media.altText = altText;
@@ -141,17 +172,17 @@ export const updateMedia = async (req, res) => {
   }
 };
 
-// Delete media file
+// delete media file
 export const deleteMedia = async (req, res) => {
   try {
     const { id } = req.params;
     const { ids } = req.body;
 
-    // Handle batch deletion
+    // handle batch deletion
     if (ids && Array.isArray(ids)) {
       const mediaItems = await Media.find({ _id: { $in: ids } });
       
-      // Delete physical files
+      // delete physical files
       for (const media of mediaItems) {
         const filePath = path.join(__dirname, '..', '..', 'uploads', path.basename(media.path));
         if (fs.existsSync(filePath)) {
@@ -159,26 +190,26 @@ export const deleteMedia = async (req, res) => {
         }
       }
       
-      // Delete database records
+      // delete database records
       await Media.deleteMany({ _id: { $in: ids } });
       
       return success(res, null, 200, 'media.deleted');
     }
     
-    // Single deletion
+    // single deletion
     const media = await Media.findById(id);
     
     if (!media) {
       return error(res, 'media.notFound', 404);
     }
     
-    // Delete physical file
+    // delete physical file
     const filePath = path.join(__dirname, '..', '..', 'uploads', path.basename(media.path));
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
     
-    // Delete database record
+    // delete database record
     await Media.findByIdAndDelete(id);
     
     return success(res, null, 200, 'media.deleted');

@@ -46,7 +46,7 @@ const defaultSettings = [
     description_zh: 'SEO关键词'
   },
   
-  // 外观设置
+  // [INCOMPLETE TRANSLATION] 外观settings
   { 
     key: 'appearance.theme', 
     value: 'system', 
@@ -80,7 +80,7 @@ const defaultSettings = [
     description_zh: '侧边栏位置 (左/右)'
   },
   
-  // Banner图片设置
+  // [INCOMPLETE TRANSLATION] Banner图片settings
   { 
     key: 'appearance.homeBanner', 
     value: '', 
@@ -106,7 +106,7 @@ const defaultSettings = [
     description_zh: '联系页面横幅图片URL'
   },
   
-  // 移动端Banner图片设置
+  // [INCOMPLETE TRANSLATION] 移动端Banner图片settings
   { 
     key: 'appearance.homeBannerMobile', 
     value: '', 
@@ -132,7 +132,7 @@ const defaultSettings = [
     description_zh: '联系页面移动端横幅图片URL'
   },
   
-  // 文章设置
+  // postsettings
   { 
     key: 'posts.perPage', 
     value: 10, 
@@ -150,7 +150,7 @@ const defaultSettings = [
     description_zh: '默认文章排序 (最新/最早/最热)'
   },
   
-  // 关于设置
+  // [INCOMPLETE TRANSLATION] 关于settings
   { 
     key: 'about.intro', 
     value: 'Welcome to my blog! I write about web development and technology.', 
@@ -168,7 +168,7 @@ const defaultSettings = [
     description_zh: '联系邮箱'
   },
   
-  // 高级设置
+  // [INCOMPLETE TRANSLATION] 高级settings
   { 
     key: 'advanced.cacheTimeout', 
     value: 3600, 

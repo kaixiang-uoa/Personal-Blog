@@ -2,8 +2,9 @@
 
 import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { useAuth } from "@/lib/auth/AuthContext"
+import { useAuth } from "@/contexts/auth-context"
 import MainLayout from "@/components/layouts/main-layout"
+import { ClientInitializer } from "@/components/client-initializer"
 
 export default function AdminLayout({
   children,
@@ -14,19 +15,24 @@ export default function AdminLayout({
   const pathname = usePathname()
   const { isAuthenticated } = useAuth()
   
-  // 验证登录状态
+  // Validate login status
   useEffect(() => {
     if (!isAuthenticated) {
-      // 记住用户想要访问的页面，登录后可以重定向回来
+      // Remember the user's desired page, redirect back after login
       sessionStorage.setItem('redirectAfterLogin', pathname);
       router.replace("/login")
     }
   }, [isAuthenticated, router, pathname])
   
-  // 如果未认证，不渲染内容
+  // If not authenticated, do not render content
   if (!isAuthenticated) {
     return null
   }
   
-  return <MainLayout>{children}</MainLayout>
+  return (
+    <>
+      <MainLayout>{children}</MainLayout>
+      <ClientInitializer />
+    </>
+  )
 }

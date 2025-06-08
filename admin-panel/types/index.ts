@@ -1,12 +1,18 @@
+/**
+ * Types Index - Centralized export of all type definitions
+ */
+
 // Common types
 export type {
   BaseEntity,
-  PostStatus,
   ApiResponse,
   PaginationParams,
   PaginatedResponse,
   Author
-} from './common';
+} from './common.types';
+
+// Export PostStatus enum
+export { PostStatus } from './post.types';
 
 // Post types
 export type {
@@ -14,14 +20,13 @@ export type {
   PostData,
   PostParams,
   PostFormData
-} from './post';
+} from './post.types';
 
 // Category types
 export type {
   Category,
-  CategoryFormData,
-  CategoryParams
-} from './category';
+  CategoryFormData
+} from './category.types';
 
 // Tag types
 export type {
@@ -29,16 +34,40 @@ export type {
   TagFormData,
   TagParams,
   TagType
-} from './tags';
+} from './tags.types';
 
 // API types
 export type {
   AuthResponse,
   ApiError,
   ApiConfig
-} from './api';
+} from './api.types';
 
-// Re-export other types
-export * from './auth';
-export * from './settings';
-export * from './form'; 
+// Auth types
+export type {
+  UserInfo,
+  LoginRequest,
+  LoginResponse
+} from './auth.types';
+
+// Settings types
+export type {
+  Settings,
+  FieldItem,
+  AboutFormData,
+  AppearanceSettingsFormProps,
+  BannerImageSelectorProps
+} from './settings.types';
+
+// Form types
+export { useTypedForm } from './form.types';
+
+// Media types
+export type {
+  Media,
+  MediaFormData
+} from './media.types';
+
+// Re-export remaining types
+export * from './ui.types';
+export * from './store.types'; 

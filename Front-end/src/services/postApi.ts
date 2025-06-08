@@ -6,8 +6,8 @@ export const postApi = {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.tag) queryParams.append('tag', params.tag);
-    if (params?.category) queryParams.append('category', params.category);
+    if (params?.tagSlug) queryParams.append('tagSlug', params.tagSlug);
+    if (params?.categorySlug) queryParams.append('categorySlug', params.categorySlug);
     if (params?.search) queryParams.append('search', params.search);
     if (params?.sort) queryParams.append('sort', params.sort);
     if(params?.lang) queryParams.append('lang', params.lang)

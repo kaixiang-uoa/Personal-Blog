@@ -2,32 +2,32 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/ui/use-toast"
 import { usePost } from "@/lib/store/post-context"
 import { useCategory } from "@/lib/store/category-context"
 import { useTag } from "@/lib/store/tag-context"
-import { Category } from "@/types/category"
+import { Category } from "@/types/category.types"
 import { ChevronLeft, Save } from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/inputs/button"
+import { Card, CardContent } from "@/components/ui/data-display/card"
+import { Input } from "@/components/ui/inputs/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import PostEditor from "@/components/post-editor"
+} from "@/components/ui/inputs/select"
+import { Textarea } from "@/components/ui/inputs/textarea"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
+import { PostEditor } from "@/components/posts/post-editor"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { postFormSchema, type PostFormSchema } from "@/lib/validation/form-validation"
 import { CategorySelector } from "@/components/categories/CategorySelector"
 import { TagSelector } from "@/components/tags/TagSelector"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/data-display/skeleton"
 
 // loading skeleton
 function PostFormSkeleton() {
@@ -153,7 +153,7 @@ function EditPostForm({ postId }: { postId: string }) {
         excerpt: post.excerpt || "",
         content: post.content || "",
         category: postData.categoryData?.[0]?._id || "",
-        tags: postData.originalTags?.map(tag => tag._id) || [],
+        tags: postData.originalTags?.map((tag: any) => tag._id) || [],
         status: post.status,
         featuredImage: post.featuredImage || "",
       };
@@ -353,14 +353,14 @@ function EditPostForm({ postId }: { postId: string }) {
                         <FormLabel>Content</FormLabel>
                         <FormControl>
                           <PostEditor
-                            value={field.value}
-                            onChange={(value) => handleInputChange("content", value)}
+                            value={field.value || ""}
+                            onChange={(value: string) => handleInputChange("content", value)}
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
-                />
+                  />
               </div>
             </CardContent>
           </Card>

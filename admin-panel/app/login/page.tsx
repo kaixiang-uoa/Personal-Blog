@@ -4,16 +4,16 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { z } from "zod"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { useToast } from "@/hooks/use-toast"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/data-display/card"
+import { Button } from "@/components/ui/inputs/button"
+import { Checkbox } from "@/components/ui/inputs/checkbox"
+import { Input } from "@/components/ui/inputs/input"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
+import { useToast } from "@/hooks/ui/use-toast"
 import AuthLayout from "@/components/layouts/auth-layout"
 import { Loader2, EyeIcon, EyeOffIcon } from "lucide-react"
-import { useAuth } from "@/lib/auth/AuthContext"
-import { useTypedForm } from "@/types/form"
+import { useAuth } from "@/contexts/auth-context"
+import { useTypedForm } from "@/types/form.types"
 
 // Login form validation schema - keep UI field names unchanged
 const formSchema = z.object({
@@ -21,6 +21,9 @@ const formSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   rememberMe: z.boolean().default(false),
 })
+
+// Type for form values
+type FormValues = z.infer<typeof formSchema>
 
 export default function LoginPage() {
   const router = useRouter()
@@ -37,7 +40,7 @@ export default function LoginPage() {
   })
 
   // Login handler function
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = form.handleSubmit(async (values: FormValues) => {
     try {
       setIsLoading(true)
       

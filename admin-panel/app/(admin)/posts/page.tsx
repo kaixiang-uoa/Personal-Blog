@@ -4,18 +4,18 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ChevronDown, ChevronUp, Filter, MoreHorizontal, PlusCircle, Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/inputs/button"
+import { Input } from "@/components/ui/inputs/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from "@/components/ui/navigation/dropdown-menu"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/data-display/table"
+import { Badge } from "@/components/ui/data-display/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/inputs/select"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,11 +25,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/feedback/alert-dialog"
+import { Skeleton } from "@/components/ui/data-display/skeleton"
+import { useToast } from "@/hooks/ui/use-toast"
 import { postService } from "@/lib/services/post-service"
-import type { ApiPost } from "@/types/post"
+import { categoryService } from "@/lib/services/category-service"
+import { DashboardData, DashboardStats, PostResponse, CategoryResponse } from "@/types/common.types"
+import { ApiPost, Post, PostStatus } from "@/types/post.types"
 
 export default function PostsPage() {
   const { toast } = useToast()
@@ -62,7 +64,7 @@ export default function PostsPage() {
         const response = await postService.getAll(params);
        
         const apiPosts = response.data as unknown as ApiPost[];
-        // 确保数据是数组并且每个元素都有必要的属性
+        // Ensure data is an array and each element has the necessary properties
         const validPosts = Array.isArray(apiPosts) ? apiPosts.filter(post => post && typeof post === 'object') : [];
         setPosts(validPosts || []);
       } catch (error) {
@@ -196,7 +198,7 @@ export default function PostsPage() {
             placeholder="Search by title, excerpt, category or tag..."
             className="w-full pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -226,7 +228,7 @@ export default function PostsPage() {
                     (sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
                 </div>
               </TableHead>
-              <TableHead className="h_idden md:table-cell">Category/Tags</TableHead>
+              <TableHead className="hidden md:table-cell">Category/Tags</TableHead>
               <TableHead onClick={() => handleSort("status")} role="button">
                 <div className="flex items-center gap-1">
                   Status

@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useEffect, useCallback } from "react"
+import { useToast } from "@/hooks/ui/use-toast"
 
 // UI Components
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/navigation/tabs"
+import { Skeleton } from "@/components/ui/data-display/skeleton"
 
 // Custom Components
 import GeneralSettingsForm from "@/components/settings/GeneralSettingsForm"
@@ -17,7 +17,53 @@ import SettingsActions from "@/components/settings/SettingsActions"
 import SettingHistoryDialog from "@/components/settings/SettingHistoryDialog"
 
 // Types and Schemas
-import { Settings } from "@/types/settings"
+// Temporarily define a Settings type due to import path issues
+interface Settings {
+  general: {
+    siteName: string;
+    siteDescription: string;
+    siteUrl: string;
+    logo: string;
+    favicon: string;
+    metaKeywords: string;
+  };
+  posts: {
+    postsPerPage: number;
+    defaultCategory: string;
+    showAuthor: boolean;
+    enableComments: boolean;
+    moderateComments: boolean;
+    excerptLength: number;
+  };
+  appearance: {
+    theme: string;
+    accentColor: string;
+    fontFamily: string;
+    enableRTL: boolean;
+    showSidebar: boolean;
+    homeBanner: string;
+    aboutBanner: string;
+    contactBanner: string;
+    homeBannerMobile: string;
+    aboutBannerMobile: string;
+    contactBannerMobile: string;
+  };
+  advanced: {
+    cacheTimeout: number;
+    apiKey: string;
+    debugMode: boolean;
+  };
+  about: {
+    intro: string;
+    intro_zh: string;
+    contact: string;
+    skills: string;
+    education: string;
+    experience: string;
+    projects: string;
+    social: string;
+  };
+}
 
 // Utils
 import { formatAboutSettingsForApi } from "@/lib/settings/utils"
@@ -35,9 +81,82 @@ export default function SettingsPage() {
   const [selectedSettingKey, setSelectedSettingKey] = useState<string | undefined>(undefined)
   const [loadingAbout, setLoadingAbout] = useState(false)
 
+  // fetch settings - declared before useEffect
+  const fetchSettings = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // fetch all settings from api
+      const response = await settingsService.getAll();
+      const data = response.data;
+
+      if (data) {
+     
+        // ensure data is of type Settings
+        const settingsData: Settings = {
+          general: {
+            siteName: String(data['general.siteName'] || ""),
+            siteDescription: String(data['general.siteDescription'] || ""),
+            siteUrl: String(data['general.siteUrl'] || ""),
+            logo: String(data['general.logo'] || ""),
+            favicon: String(data['general.favicon'] || ""),
+            metaKeywords: String(data['general.metaKeywords'] || ""),
+          },
+          posts: {
+            postsPerPage: Number(data['posts.perPage']) || 10,
+            defaultCategory: String(data['posts.defaultCategory'] || ""),
+            showAuthor: data['posts.showAuthor'] === 'true' || true,
+            enableComments: data['posts.enableComments'] === 'true' || true,
+            moderateComments: data['posts.moderateComments'] === 'true' || true,
+            excerptLength: Number(data['posts.excerptLength']) || 200,
+          },
+          appearance: {
+            theme: String(data['appearance.theme'] || "light"),
+            accentColor: String(data['appearance.accentColor'] || ""),
+            fontFamily: String(data['appearance.fontFamily'] || ""),
+            enableRTL: data['appearance.enableRTL'] === 'true' || false,
+            showSidebar: data['appearance.showSidebar'] === 'true' || true,
+            homeBanner: String(data['appearance.homeBanner'] || ""),
+            aboutBanner: String(data['appearance.aboutBanner'] || ""),
+            contactBanner: String(data['appearance.contactBanner'] || ""),
+            homeBannerMobile: String(data['appearance.homeBannerMobile'] || ""),
+            aboutBannerMobile: String(data['appearance.aboutBannerMobile'] || ""),
+            contactBannerMobile: String(data['appearance.contactBannerMobile'] || ""),
+          },
+          advanced: {
+            cacheTimeout: Number(data['advanced.cacheTimeout']) || 3600,
+            apiKey: String(data['advanced.apiKey'] || ""),
+            debugMode: data['advanced.debugMode'] === 'true' || false,
+          },
+          about: {
+            intro: String(data['about.intro'] || ""),
+            intro_zh: String(data['about.intro_zh'] || ""),
+            contact: String(data['about.contact'] || ""),
+            skills: String(data['about.skills'] || ""),
+            education: String(data['about.education'] || ""),
+            experience: String(data['about.experience'] || ""),
+            projects: String(data['about.projects'] || ""),
+            social: String(data['about.social'] || ""),
+          },
+        };
+        
+        setSettings(settingsData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch settings", error);
+      toast({
+        title: "Failed to load settings",
+        description: "Please check your network connection and try again",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
     fetchSettings()
-  }, [])
+  }, [fetchSettings])
 
   // handle tab change
   const handleTabChange = (tab: string) => {
@@ -61,14 +180,14 @@ export default function SettingsPage() {
       if (data && settings) {
         // ensure data has correct structure  
         const aboutData = {
-          intro: data['about.intro'] || "",
-          intro_zh: data['about.intro_zh'] || "",
-          contact: data['about.contact'] || "",
-          skills: data['about.skills'] || "",
-          education: data['about.education'] || "",
-          experience: data['about.experience'] || "",
-          projects: data['about.projects'] || "",
-          social: data['about.social'] || "",
+          intro: String(data['about.intro'] || ""),
+          intro_zh: String(data['about.intro_zh'] || ""),
+          contact: String(data['about.contact'] || ""),
+          skills: String(data['about.skills'] || ""),
+          education: String(data['about.education'] || ""),
+          experience: String(data['about.experience'] || ""),
+          projects: String(data['about.projects'] || ""),
+          social: String(data['about.social'] || ""),
         };
 
         console.log('reformatted aboutData:', aboutData);
@@ -85,81 +204,8 @@ export default function SettingsPage() {
     }
   }
 
-  // fetch settings
-  async function fetchSettings() {
-    try {
-      setLoading(true);
-      
-      // fetch all settings from api
-      const response = await settingsService.getAll();
-      const data = response.data;
-
-      if (data) {
-     
-        // ensure data is of type Settings
-        const settingsData: Settings = {
-          general: {
-            siteName: data['general.siteName'] || "",
-            siteDescription: data['general.siteDescription'] || "",
-            siteUrl: data['general.siteUrl'] || "",
-            logo: data['general.logo'] || "",
-            favicon: data['general.favicon'] || "",
-            metaKeywords: data['general.metaKeywords'] || "",
-          },
-          posts: {
-            postsPerPage: Number(data['posts.perPage']) || 10,
-            defaultCategory: data['posts.defaultCategory'] || "",
-            showAuthor: data['posts.showAuthor'] === 'true' || true,
-            enableComments: data['posts.enableComments'] === 'true' || true,
-            moderateComments: data['posts.moderateComments'] === 'true' || true,
-            excerptLength: Number(data['posts.excerptLength']) || 200,
-          },
-          appearance: {
-            theme: data['appearance.theme'] as any || "light",
-            accentColor: data['appearance.accentColor'] || "",
-            fontFamily: data['appearance.fontFamily'] || "",
-            enableRTL: data['appearance.enableRTL'] === 'true' || false,
-            showSidebar: data['appearance.showSidebar'] === 'true' || true,
-            homeBanner: data['appearance.homeBanner'] || "",
-            aboutBanner: data['appearance.aboutBanner'] || "",
-            contactBanner: data['appearance.contactBanner'] || "",
-            homeBannerMobile: data['appearance.homeBannerMobile'] || "",
-            aboutBannerMobile: data['appearance.aboutBannerMobile'] || "",
-            contactBannerMobile: data['appearance.contactBannerMobile'] || "",
-          },
-          advanced: {
-            cacheTimeout: Number(data['advanced.cacheTimeout']) || 3600,
-            apiKey: data['advanced.apiKey'] || "",
-            debugMode: data['advanced.debugMode'] === 'true' || false,
-          },
-          about: {
-            intro: data['about.intro'] || "",
-            intro_zh: data['about.intro_zh'] || "",
-            contact: data['about.contact'] || "",
-            skills: data['about.skills'] || "",
-            education: data['about.education'] || "",
-            experience: data['about.experience'] || "",
-            projects: data['about.projects'] || "",
-            social: data['about.social'] || "",
-          },
-        };
-        
-        setSettings(settingsData);
-      }
-    } catch (error) {
-      console.error("Failed to fetch settings", error);
-      toast({
-        title: "Failed to load settings",
-        description: "Please check your network connection and try again",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
-
   // save settings
-  const saveSettings = async (section: keyof Settings, values: any) => {
+  const saveSettings = async (section: keyof Settings, values: Record<string, unknown>) => {
     try {
       // simple validation
       if (section === 'general') {
@@ -172,7 +218,7 @@ export default function SettingsPage() {
           return;
         }
       } else if (section === 'posts') {
-        if (values.postsPerPage <= 0) {
+        if (typeof values.postsPerPage === 'number' && values.postsPerPage <= 0) {
           toast({
             title: "Validation Error",
             description: "Posts per page must be greater than 0",
@@ -186,7 +232,7 @@ export default function SettingsPage() {
       
       // 对于appearance部分，我们需要特殊处理
       if (section === 'appearance') {
-        const settingsArray: { key: string; value: any; group: string }[] = [];
+        const settingsArray: { key: string; value: unknown; group: string }[] = [];
         
         // 转换为API需要的格式，将扁平对象转换为键值对数组
         Object.entries(values).forEach(([key, value]) => {
@@ -216,8 +262,8 @@ export default function SettingsPage() {
         return;
       }
       
-      // save settings
-      const response = await settingsService.update(section, values)
+      // save settings - 修复类型问题，确保section是字符串
+      const response = await settingsService.update(String(section), values)
 
       // update local state
       if (settings) {
@@ -232,7 +278,7 @@ export default function SettingsPage() {
         description: "Settings have been updated",
       })
     } catch (error) {
-      console.error(`Failed to save ${section} settings`, error)
+      console.error(`Failed to save ${String(section)} settings`, error)
       toast({
         title: "Save Failed",
         description: "Unable to save settings, please try again",
@@ -244,7 +290,7 @@ export default function SettingsPage() {
   }
 
   // save about settings
-  const saveAboutSettings = async (values: any) => {
+  const saveAboutSettings = async (values: Record<string, unknown>) => {
     try {
       setIsSaving(true);
       // use format function to convert form data to api needed format
@@ -371,7 +417,7 @@ export default function SettingsPage() {
                 aboutBannerMobile: settings?.appearance?.aboutBannerMobile || "",
                 contactBannerMobile: settings?.appearance?.contactBannerMobile || "",
               }}
-              onSubmit={(values) => saveSettings("appearance", values)}
+              onSubmit={(values: Record<string, unknown>) => saveSettings("appearance", values)}
               loading={loading}
               isSaving={isSaving}
             />

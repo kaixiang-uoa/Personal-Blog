@@ -7,10 +7,15 @@ import connectDB from './config/db.js';
 import app from './app.js';
 import { logger } from './utils/logger.js';
 import { validateSettings } from './scripts/initSettings.js';
+import { validateEnvironmentOrExit } from './utils/envValidator.js';
 
 // Async function to start the server
 const startServer = async () => {
   try {
+    // validate necessary environment variables
+    logger.info('Starting server...');
+    validateEnvironmentOrExit();
+    
     // Connect to database
     await connectDB();
     
@@ -31,6 +36,7 @@ const startServer = async () => {
 ====================================
 🚀 Server is running!
 📡 Local: http://localhost:${PORT}
+✅ Security enhancements active
 ====================================
           `);
         })
@@ -57,6 +63,24 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error(`Uncaught exception: ${error.message}`, { stack: error.stack });
+  // give the process a little time to record the error and then exit
+  setTimeout(() => {
+    process.exit(1);
+  }, 1000);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled promise rejection', { 
+    reason: reason instanceof Error ? reason.message : reason,
+    stack: reason instanceof Error ? reason.stack : 'No stack trace available'
+  });
+  // don't exit immediately, just record, avoid interrupting other normal operations
+});
 
 // Start the server
 startServer(); 

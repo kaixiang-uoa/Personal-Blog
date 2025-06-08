@@ -1,31 +1,16 @@
 /**
- * Export all utility functions
+ * Utils Index
+ * 
+ * Central export point for all utility functions
  */
 
-// UI utilities
-export { cn } from "@/lib/utils"
+// Re-export utilities by category
+export * from './api';
+export * from './date';
+export * from './formatting';
+export * from './data';
+export * from './performance';
 
-// Date utilities
-export {
-  formatDate,
-  formatDateTime,
-  formatRelativeTime,
-  getDateRange,
-} from "./date"
-
-// Format utilities
-export {
-  formatNumber,
-  formatFileSize,
-  truncateText,
-  toSlug,
-  capitalize,
-} from "./format"
-
-// API utilities
-export {
-  objectToQueryString,
-  buildUrl,
-  handleApiError,
-  isSuccessfulResponse,
-} from "./api" 
+// Legacy performance utilities 
+export * from './performance/use-debounce';
+export * from './performance/use-memo-compare'; 

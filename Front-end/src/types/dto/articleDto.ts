@@ -15,8 +15,8 @@ export interface PostsData {
   export interface GetAllPostsParams { 
     page?: number; 
     limit?: number; 
-    tag?: string; 
-    category?: string; 
+    tagSlug?: string; 
+    categorySlug?: string; 
     search?: string; 
     sort?: SortOrder; 
     lang?: string;

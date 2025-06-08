@@ -4,32 +4,34 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Save } from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/inputs/button"
+import { Card, CardContent } from "@/components/ui/data-display/card"
+import { Input } from "@/components/ui/inputs/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
-import PostEditor from "@/components/post-editor"
+} from "@/components/ui/inputs/select"
+import { Textarea } from "@/components/ui/inputs/textarea"
+import { useToast } from "@/hooks/ui/use-toast"
+import { PostEditor } from "@/components/posts/post-editor"
 import { postService } from "@/lib/services/post-service"
-import { PostFormData } from "@/types/post"
-import type { Category } from "@/types/category"
-import type { Tag } from "@/types/tags" 
+import { PostFormData } from "@/types/post.types"
+import type { Category } from "@/types/category.types"
+import type { Tag } from "@/types/tags.types" 
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { postFormSchema, type PostFormSchema } from "@/lib/validation/form-validation"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
 import { CategorySelector } from "@/components/categories/CategorySelector";
 import { TagSelector } from "@/components/tags/TagSelector";
 import { useCategory } from "@/lib/store/category-context"
 import { useTag } from "@/lib/store/tag-context"
 
+// 定义React事件类型
+import type { ChangeEvent } from "react"
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -196,7 +198,7 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="title"
-                    render={({ field }) => (
+                    render={({ field }: { field: any }) => (
                       <FormItem>
                         <FormLabel>
                           Title
@@ -211,7 +213,7 @@ export default function NewPostPage() {
                           <Input
                             placeholder="Enter post title"
                             {...field}
-                            onChange={(e) => handleInputChange("title", e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("title", e.target.value)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -222,7 +224,7 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="slug"
-                    render={({ field }) => (
+                    render={({ field }: { field: any }) => (
                       <FormItem>
                         <FormLabel>
                           Slug
@@ -234,7 +236,7 @@ export default function NewPostPage() {
                           <Input
                             placeholder="Enter post slug"
                             {...field}
-                            onChange={(e) => handleInputChange("slug", e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("slug", e.target.value)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -245,7 +247,7 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="excerpt"
-                    render={({ field }) => (
+                    render={({ field }: { field: any }) => (
                       <FormItem>
                         <FormLabel>
                           Excerpt
@@ -256,7 +258,7 @@ export default function NewPostPage() {
                             placeholder="Enter post excerpt"
                             rows={3}
                             {...field}
-                            onChange={(e) => handleInputChange("excerpt", e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleInputChange("excerpt", e.target.value)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -267,7 +269,7 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="content"
-                    render={({ field }) => (
+                    render={({ field }: { field: any }) => (
                       <FormItem>
                         <FormLabel>
                           Content
@@ -281,7 +283,7 @@ export default function NewPostPage() {
                         <FormControl>
                           <PostEditor
                             value={field.value || ""}
-                            onChange={(value) => handleInputChange("content", value)}
+                            onChange={(value: string) => handleInputChange("content", value)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -342,12 +344,12 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="status"
-                    render={({ field }) => (
+                    render={({ field }: { field: any }) => (
                       <FormItem>
                         <FormLabel>Status</FormLabel>
                         <Select
                           value={field.value}
-                          onValueChange={(value) => {
+                          onValueChange={(value: string) => {
                             // if switch to published status, check required fields
                             if (value === "published") {
                               const { title, content } = form.getValues();
@@ -380,14 +382,14 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="featuredImage"
-                    render={({ field }) => (
+                    render={({ field }: { field: any }) => (
                       <FormItem>
                         <FormLabel>Featured Image URL</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter featured image URL"
                             {...field}
-                            onChange={(e) => handleInputChange("featuredImage", e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("featuredImage", e.target.value)}
                           />
                         </FormControl>
                         <FormMessage />

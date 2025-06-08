@@ -9,10 +9,19 @@
     "seed": "node src/config/seedData.js",
     "build": "node src/server.js",
     "start": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
+    "test:api": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=src/tests/api",
     "init-about": "node src/scripts/init-about-settings.js",
     "update-about-group": "node src/scripts/update-about-group.js",
-    "update-banner-settings": "node src/scripts/update-banner-settings.js"
+    "update-banner-settings": "node src/scripts/update-banner-settings.js",
+    "lint:comments": "node scripts/commentLinter.js",
+    "fix:comments": "node scripts/fixComments.js",
+    "translate:comments": "node scripts/commentChineseToEnglish.js",
+    "db:ensure-indexes": "node src/scripts/ensureIndexes.js",
+    "docs:copy": "node scripts/copy-docs.js",
+    "docs:open": "open ../docs/README.md"
   },
   "author": "kaixiang",
   "license": "ISC",
@@ -31,6 +40,8 @@
     "mongoose": "^8.13.3",
     "multer": "^1.4.5-lts.2",
     "nodemailer": "^6.10.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0",
     "winston": "^3.17.0"
   },
@@ -38,6 +49,9 @@
     "@eslint/js": "^9.25.1",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
-    "nodemon": "^3.1.10"
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.1"
   }
 }

@@ -47,8 +47,8 @@ function ArticlesList({
   } = useArticles({
     page: currentPage,
     limit: Number(postsPerPage),
-    tag: tagsParam.length > 0 ? tagsParam.join(',') : undefined,
-    category: category || undefined,
+    tagSlug: tagsParam.length > 0 ? tagsParam.join(',') : undefined,
+    categorySlug: category || undefined,
     search: search || undefined,
     sort,
     lang: locale
@@ -164,7 +164,7 @@ export default function Home() {
   const searchParams = useSearchParams();
   
   // Parse query parameters with type validation
-  const sort = validateSortOrder(searchParams.get('sort'), 'latest');
+  const sort = validateSortOrder(searchParams.get('sort'), 'publishedAt-desc');
   const tagsParam = getArrayParam(searchParams.get('tag'));
   const category = getStringParam(searchParams.get('category'));
   const search = getStringParam(searchParams.get('search'));

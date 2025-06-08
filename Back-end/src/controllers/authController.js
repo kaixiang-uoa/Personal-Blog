@@ -9,6 +9,13 @@ const generateToken = (id) => {
     });
 };
 
+// generate refresh token with longer expiry
+const generateRefreshToken = (id) => {
+    return jwt.sign({ id, type: 'refresh' }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '90d'
+    });
+};
+
 // user register
 export const register = async (req, res) => {
     try {
@@ -37,9 +44,13 @@ export const register = async (req, res) => {
         // generate token
         const token = generateToken(user._id);
         
+        // generate refresh token
+        const refreshToken = generateRefreshToken(user._id);
+        
         res.status(201).json({
             success: true,
             token,
+            refreshToken,
             user: {
                 id: user._id,
                 username: user.username,
@@ -88,9 +99,13 @@ export const login = async (req, res) => {
         // generate token
         const token = generateToken(user._id);
         
+        // generate refresh token
+        const refreshToken = generateRefreshToken(user._id);
+        
         res.status(200).json({
             success: true,
             token,
+            refreshToken,
             user: {
                 id: user._id,
                 username: user.username,
@@ -151,6 +166,76 @@ export const logout = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to logout',
+            error: error.message
+        });
+    }
+};
+
+// token refresh endpoint
+export const refreshToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+        
+        if (!refreshToken) {
+            return res.status(400).json({
+                success: false,
+                message: 'Refresh token is required'
+            });
+        }
+        
+        // verify refresh token
+        const decoded = jwt.verify(
+            refreshToken, 
+            process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+        );
+        
+        // check if it's a refresh token
+        if (decoded.type !== 'refresh') {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid refresh token'
+            });
+        }
+        
+        // get user
+        const user = await User.findById(decoded.id);
+        
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        
+        // generate new tokens
+        const newAccessToken = generateToken(user._id);
+        const newRefreshToken = generateRefreshToken(user._id);
+        
+        res.status(200).json({
+            success: true,
+            token: newAccessToken,
+            refreshToken: newRefreshToken,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar
+            }
+        });
+    } catch (error) {
+        // handle token verification errors
+        if (error instanceof jwt.JsonWebTokenError) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or expired refresh token',
+                error: 'TOKEN_INVALID'
+            });
+        }
+        
+        res.status(500).json({
+            success: false,
+            message: 'Failed to refresh token',
             error: error.message
         });
     }

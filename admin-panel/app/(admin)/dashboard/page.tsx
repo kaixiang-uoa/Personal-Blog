@@ -1,37 +1,27 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth/AuthContext"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from "@/contexts/auth-context"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/data-display/card"
 import { Activity, BookOpen, Edit3, Eye, FileText, MessageSquare, Bookmark, PlusCircle, TrendingUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/inputs/button"
 import Link from "next/link"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/data-display/skeleton"
 import { postService } from "@/lib/services/post-service"
 import { categoryService } from "@/lib/services/category-service"
-import { DashboardData, DashboardStats, PostResponse, CategoryResponse } from "@/types/common"
-import { Post } from "@/types/post"
+import { DashboardData, DashboardStats, PostResponse, CategoryResponse } from "@/types/common.types"
+import { Post, PostStatus } from "@/types/post.types"
 
 export default function DashboardPage() {
-  const router = useRouter()
   const { isAuthenticated } = useAuth()
-  const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<DashboardData | null>(null)
 
-  // 验证登录状态
+  // Move useEffect to conditionally render before
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace("/login")
-    }
-  }, [isAuthenticated, router])
-  
-  // 如果未认证，不渲染内容
-  if (!isAuthenticated) {
-    return null
-  }
-
-  useEffect(() => {
+    // If not authenticated, do not fetch data
+    if (!isAuthenticated) return;
+    
     async function fetchDashboardData() {
       try {
         setLoading(true)
@@ -61,7 +51,7 @@ export default function DashboardPage() {
               _id: "1",
               title: "React 18 New Features and Performance Optimization Best Practices",
               publishDate: "2023-04-15",
-              status: "published",
+              status: PostStatus.PUBLISHED,
               viewCount: 1245,
               slug: "react-18-features",
               excerpt: "Learn about React 18's new features",
@@ -77,7 +67,7 @@ export default function DashboardPage() {
               _id: "2",
               title: "Perfect Deployment Process with NextJS and Vercel",
               publishDate: "2023-04-10",
-              status: "published",
+              status: PostStatus.PUBLISHED,
               viewCount: 986,
               slug: "nextjs-vercel-deployment",
               excerpt: "Guide to deploying NextJS apps",
@@ -93,7 +83,7 @@ export default function DashboardPage() {
               _id: "3",
               title: "Advanced Tailwind CSS Techniques",
               publishDate: "2023-04-05",
-              status: "draft",
+              status: PostStatus.DRAFT,
               viewCount: 0,
               slug: "advanced-tailwind",
               excerpt: "Master Tailwind CSS",
@@ -155,7 +145,12 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData()
-  }, [])
+  }, [isAuthenticated]) // Add isAuthenticated as a dependency
+
+  // Early return if not authenticated
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <div className="space-y-6">
@@ -256,30 +251,35 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {data?.recentPosts.map((post) => (
-                <div key={post.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {post.status === "published" ? (
-                      <BookOpen className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Edit3 className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span className="font-medium hover:underline">
-                      <Link href={`/posts/${post.id}`}>{post.title}</Link>
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    {post.status === "published" ? (
-                      <span className="flex items-center text-sm text-muted-foreground">
-                        <Eye className="mr-1 h-3 w-3" />
-                        {post.viewCount}
+              {data?.recentPosts.map((post: {id: string; title: string; status: string; viewCount: number}) => {
+                // Map string status to PostStatus enum
+                const postStatus = post.status === 'published' ? PostStatus.PUBLISHED : PostStatus.DRAFT;
+                
+                return (
+                  <div key={post.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {postStatus === PostStatus.PUBLISHED ? (
+                        <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Edit3 className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className="font-medium hover:underline">
+                        <Link href={`/posts/${post.id}`}>{post.title}</Link>
                       </span>
-                    ) : (
-                      <span className="text-sm px-2 py-1 rounded-md bg-muted text-muted-foreground">Draft</span>
-                    )}
+                    </div>
+                    <div className="flex items-center">
+                      {postStatus === PostStatus.PUBLISHED ? (
+                        <span className="flex items-center text-sm text-muted-foreground">
+                          <Eye className="mr-1 h-3 w-3" />
+                          {post.viewCount}
+                        </span>
+                      ) : (
+                        <span className="text-sm px-2 py-1 rounded-md bg-muted text-muted-foreground">Draft</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

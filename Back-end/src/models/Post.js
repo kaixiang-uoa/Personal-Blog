@@ -1,7 +1,16 @@
+/**
+ * Blog post model
+ * Defines the data structure and middleware for blog posts
+ */
+
 import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
 
+/**
+ * Post schema definition
+ * Contains fields for title, content, author, status, etc.
+ */
 const PostSchema = new Schema({
     title: {
         type: String,
@@ -63,19 +72,22 @@ const PostSchema = new Schema({
     publishedAt: {
         type: Date,
         default: null
-      }
+    }
 },
 { timestamps: true }
 );
 
-// Middleware to auto-generate slug
+/**
+ * Middleware to auto-generate post slugs
+ * Creates URL-friendly slugs based on the post title
+ */
 PostSchema.pre('save', function(next) {
     if (!this.slug && this.title) {
         this.slug = this.title
             .toLowerCase()
-            // Replace non-word characters (excluding Chinese) with hyphens
+            // replace non-word characters (excluding Chinese) with hyphens
             .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
-            // Remove leading/trailing hyphens
+            // remove leading/trailing hyphens
             .replace(/^-+|-+$/g, '');
     }
     next();

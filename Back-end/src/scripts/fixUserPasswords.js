@@ -54,7 +54,7 @@ try {
     });
   }
 
-  // 如果没有管理员账号，创建一个默认账号
+  // if no admin account, create a default admin account
   if (adminUsers.length === 0) {
     console.log('⚠️ no admin account found, creating default admin account');
     

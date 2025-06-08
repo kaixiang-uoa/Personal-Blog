@@ -2,7 +2,7 @@ import Setting from '../models/Setting.js';
 import connectDB from '../config/db.js';
 import { logger } from '../utils/logger.js';
 
-// Banner设置项
+// banner settings items
 const bannerSettings = [
   { 
     key: 'appearance.homeBanner', 
@@ -28,7 +28,7 @@ const bannerSettings = [
     description_en: 'Contact page banner image URL',
     description_zh: '联系页面横幅图片URL'
   },
-  // 移动端Banner设置
+  // mobile banner settings
   { 
     key: 'appearance.homeBannerMobile', 
     value: '', 
@@ -55,21 +55,21 @@ const bannerSettings = [
   }
 ];
 
-// 更新Banner设置
+// updateBannersettings
 async function updateBannerSettings() {
   try {
-    // 连接数据库
+    // connect to database
     await connectDB();
     logger.info('Connected to MongoDB for banner settings update');
 
     let updatedCount = 0;
     
-    // 检查并更新每个Banner设置项
+    // check and update each banner setting item
     for (const setting of bannerSettings) {
       const exists = await Setting.findOne({ key: setting.key });
       
       if (!exists) {
-        // 如果设置不存在，创建它
+        // if setting does not exist, create it
         await Setting.create(setting);
         logger.info(`Created new banner setting: ${setting.key}`);
         updatedCount++;
@@ -91,5 +91,5 @@ async function updateBannerSettings() {
   }
 }
 
-// 执行更新
+// execute update
 updateBannerSettings(); 

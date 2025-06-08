@@ -3,10 +3,11 @@ import Tag from '../models/Tag.js';
 import Category from '../models/Category.js';
 import asyncHandler from 'express-async-handler';
 import { success, createError } from '../utils/responseHandler.js';
-import { populatePostQuery } from '../utils/populatePostQuery.js';
+import { populatePostQuery, populatePostListQuery } from '../utils/populatePostQuery.js';
 import { getPopulatedPostById, getPopulatedPostBySlug } from '../utils/populateUtils.js';
 import { transformLocalizedCategories } from '../utils/transformLocalizedCategories.js';
 import { transformLocalizedTags } from '../utils/transformLocalizedTags.js';
+import cacheManager from '../utils/cacheManager.js';
 
 /**
  * @desc    Get all posts, supports filtering by tags, categories, search, date, etc.
@@ -26,67 +27,88 @@ export const getAllPosts = asyncHandler(async (req, res) => {
     lang,
   } = req.query;
   
-  const query = allStatus === 'true' ? {} : { status };
+  // Generate cache key based on query parameters
+  const cacheKey = `posts:list:${JSON.stringify({
+    page, limit, status, allStatus, categorySlug, tagSlug, search, sortKey, lang
+  })}`;
+  
+  // Try to get from cache first
+  const result = await cacheManager.getOrSet(
+    cacheKey,
+    async () => {
+      const query = allStatus === 'true' ? {} : { status };
 
-  // Category filter
-  if (categorySlug) {
-    const category = await Category.findOne({ slug: categorySlug });
-    if (category) query.categories = category._id;
-  }
+      // Category filter
+      if (categorySlug) {
+        const category = await Category.findOne({ slug: categorySlug });
+        if (category) query.categories = category._id;
+      }
 
-  // Tag filter
-  if (tagSlug) {
-    const tagSlugs = tagSlug.split(',').map(s => s.trim()).filter(Boolean); 
-    const tags = await Tag.findOne({ slug:  { $in: tagSlugs } });
-    if (tags.length > 0) {
-      query.tags = { $in: tags.map(t => t._id) };
-    }
-  }
+      // Tag filter
+      if (tagSlug) {
+        const tagSlugs = tagSlug.split(',').map(s => s.trim()).filter(Boolean); 
+        const tags = await Tag.find({ slug: { $in: tagSlugs } });
+        if (tags && tags.length > 0) {
+          query.tags = { $in: tags.map(t => t._id) };
+        }
+      }
 
-  // Search keyword filter
-  if (search) {
-    query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { content: { $regex: search, $options: 'i' } },
-      { excerpt: { $regex: search, $options: 'i' } },
-    ];
-  }
+      // Search keyword filter
+      if (search) {
+        query.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { content: { $regex: search, $options: 'i' } },
+          { excerpt: { $regex: search, $options: 'i' } },
+        ];
+      }
 
-  const sortOptions = {
-    'publishedAt-desc': '-publishedAt',
-    'publishedAt-asc': 'publishedAt',
-    'updatedAt-desc': '-updatedAt',
-    'updatedAt-asc': 'updatedAt',
-  };
+      const sortOptions = {
+        'publishedAt-desc': '-publishedAt',
+        'publishedAt-asc': 'publishedAt',
+        'updatedAt-desc': '-updatedAt',
+        'updatedAt-asc': 'updatedAt',
+        'latest': '-publishedAt',
+        'oldest': 'publishedAt',
+        'popular': '-viewCount'
+      };
 
-  const sort = sortOptions[sortKey] || '-publishedAt';
-  const skip = (parseInt(page) - 1) * parseInt(limit);
+      const sort = sortOptions[sortKey] || '-publishedAt';
+      const skip = (parseInt(page) - 1) * parseInt(limit);
 
-  const posts = await populatePostQuery(
-    Post.find(query).sort(sort).skip(skip).limit(parseInt(limit))
+      // Use optimized list query that excludes content for better performance
+      const posts = await populatePostListQuery(
+        Post.find(query).sort(sort).skip(skip).limit(parseInt(limit))
+      );
+
+      // Execute count in parallel with post query for better performance
+      const total = await Post.countDocuments(query);
+
+      const transformedPosts = posts.map(post => {
+        // Check if post is already a plain object (from lean query)
+        const transformedPost = typeof post.toObject === 'function' ? post.toObject() : post;
+
+        if (transformedPost.categories && transformedPost.categories.length > 0) {
+          transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
+        }
+
+        if (transformedPost.tags && transformedPost.tags.length > 0) {
+          transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
+        }
+        return transformedPost;
+      });
+
+      return {
+        posts: transformedPosts,
+        total,
+        totalPages: Math.ceil(total / parseInt(limit)),
+        currentPage: parseInt(page),
+      };
+    },
+    // Cache for 5 minutes
+    300
   );
-
-  const total = await Post.countDocuments(query);
-
-  const transformedPosts = posts.map(post => {
-    const transformedPost = post.toObject();
-
-    if (transformedPost.categories && transformedPost.categories.length > 0) {
-      transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
-    }
-
-    if (transformedPost.tags && transformedPost.tags.length > 0) {
-      transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
-    }
-    return transformedPost;
-  });
-
-  return success(res, {
-    posts: transformedPosts,
-    total,
-    totalPages: Math.ceil(total / parseInt(limit)),
-    currentPage: parseInt(page),
-  });
+  
+  return success(res, result);
 });
 
 /**
@@ -96,48 +118,61 @@ export const getAllPosts = asyncHandler(async (req, res) => {
  */
 export const getPostById = asyncHandler(async (req, res) => {
   const lang = req.query.lang || 'zh';
-  console.log('post', req.params.id);
-
-  const post = await getPopulatedPostById(req.params.id);
- 
-  if (!post) throw createError('Post not found', 404);
+  const postId = req.params.id;
+  console.log('post', postId);
   
-  // idempotent check - use client IP and timestamp combination as idempotent key 
-  const clientIp = req.ip || req.socket.remoteAddress;
-  const viewKey = `${post._id}:${clientIp}`;
-  const viewTimestamps = req.app.locals.viewTimestamps || {};
+  // Generate cache key
+  const cacheKey = `posts:id:${postId}:${lang}`;
   
-  const now = Date.now();
-  const lastView = viewTimestamps[viewKey] || 0;
-  
-  // if the same IP visits the same article within 5 seconds, do not count it again
-  if (now - lastView > 5000) {
-    post.viewCount += 1;
-    await post.save();
+  const result = await cacheManager.getOrSet(
+    cacheKey,
+    async () => {
+      const post = await getPopulatedPostById(postId);
     
-    // update timestampe timestamp
-    viewTimestamps[viewKey] = now;
-    req.app.locals.viewTimestamps = viewTimestamps;
-    
-    // automatically clean up records older than 30 minutes
-    const thirtyMinutes = 30 * 60 * 1000;
-    Object.keys(viewTimestamps).forEach(key => {
-      if (now - viewTimestamps[key] > thirtyMinutes) {
-        delete viewTimestamps[key];
+      if (!post) throw createError('Post not found', 404);
+      
+      // idempotent check - use client IP and timestamp combination as idempotent key 
+      const clientIp = req.ip || req.socket.remoteAddress;
+      const viewKey = `${post._id}:${clientIp}`;
+      const viewTimestamps = req.app.locals.viewTimestamps || {};
+      
+      const now = Date.now();
+      const lastView = viewTimestamps[viewKey] || 0;
+      
+      // if the same IP visits the same article within 5 seconds, do not count it again
+      if (now - lastView > 5000) {
+        post.viewCount += 1;
+        await post.save();
+        
+        // update timestampe timestamp
+        viewTimestamps[viewKey] = now;
+        req.app.locals.viewTimestamps = viewTimestamps;
+        
+        // automatically clean up records older than 30 minutes
+        const thirtyMinutes = 30 * 60 * 1000;
+        Object.keys(viewTimestamps).forEach(key => {
+          if (now - viewTimestamps[key] > thirtyMinutes) {
+            delete viewTimestamps[key];
+          }
+        });
       }
-    });
-  }
 
-  const transformedPost = post.toObject();
-  if (transformedPost.categories && transformedPost.categories.length > 0) {
-    transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
-  }
+      const transformedPost = typeof post.toObject === 'function' ? post.toObject() : post;
+      if (transformedPost.categories && transformedPost.categories.length > 0) {
+        transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
+      }
 
-  if (transformedPost.tags && transformedPost.tags.length > 0) {
-    transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
-  }
+      if (transformedPost.tags && transformedPost.tags.length > 0) {
+        transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
+      }
 
-  return success(res, { post: transformedPost });
+      return { post: transformedPost };
+    },
+    // Cache for 10 minutes
+    600
+  );
+  
+  return success(res, result);
 });
 
 /**
@@ -147,44 +182,58 @@ export const getPostById = asyncHandler(async (req, res) => {
  */
 export const getPostBySlug = asyncHandler(async (req, res) => {
   const lang = req.query.lang || 'zh';
-  const post = await getPopulatedPostBySlug(req.params.slug);
-  if (!post) throw createError('Post not found', 404);
+  const slug = req.params.slug;
   
-  // idempotent check - use client IP and timestamp combination as idempotent key 
-  const clientIp = req.ip || req.socket.remoteAddress;
-  const viewKey = `${post._id}:${clientIp}`;
-  const viewTimestamps = req.app.locals.viewTimestamps || {};
+  // Generate cache key
+  const cacheKey = `posts:slug:${slug}:${lang}`;
   
-  const now = Date.now();
-  const lastView = viewTimestamps[viewKey] || 0;
-  
-  // if the same IP visits the same article within 5 seconds, do not count it again
-  if (now - lastView > 5000) {
-    post.viewCount += 1;
-    await post.save();
-    
-    // update timestamp
-    viewTimestamps[viewKey] = now;
-    req.app.locals.viewTimestamps = viewTimestamps;
-    
-    // automatically clean up records older than 30 minutes
-    const thirtyMinutes = 30 * 60 * 1000;
-    Object.keys(viewTimestamps).forEach(key => {
-      if (now - viewTimestamps[key] > thirtyMinutes) {
-        delete viewTimestamps[key];
+  const result = await cacheManager.getOrSet(
+    cacheKey,
+    async () => {
+      const post = await getPopulatedPostBySlug(slug);
+      if (!post) throw createError('Post not found', 404);
+      
+      // idempotent check - use client IP and timestamp combination as idempotent key 
+      const clientIp = req.ip || req.socket.remoteAddress;
+      const viewKey = `${post._id}:${clientIp}`;
+      const viewTimestamps = req.app.locals.viewTimestamps || {};
+      
+      const now = Date.now();
+      const lastView = viewTimestamps[viewKey] || 0;
+      
+      // if the same IP visits the same article within 5 seconds, do not count it again
+      if (now - lastView > 5000) {
+        post.viewCount += 1;
+        await post.save();
+        
+        // update timestamp
+        viewTimestamps[viewKey] = now;
+        req.app.locals.viewTimestamps = viewTimestamps;
+        
+        // automatically clean up records older than 30 minutes
+        const thirtyMinutes = 30 * 60 * 1000;
+        Object.keys(viewTimestamps).forEach(key => {
+          if (now - viewTimestamps[key] > thirtyMinutes) {
+            delete viewTimestamps[key];
+          }
+        });
       }
-    });
-  }
-  
-  const transformedPost = post.toObject();
-  if (transformedPost.categories && transformedPost.categories.length > 0) {
-    transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
-  }
+      
+      const transformedPost = typeof post.toObject === 'function' ? post.toObject() : post;
+      if (transformedPost.categories && transformedPost.categories.length > 0) {
+        transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
+      }
 
-  if (transformedPost.tags && transformedPost.tags.length > 0) {
-    transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
-  }
-  return success(res, { post: transformedPost });
+      if (transformedPost.tags && transformedPost.tags.length > 0) {
+        transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
+      }
+      return { post: transformedPost };
+    },
+    // Cache for 10 minutes
+    600
+  );
+  
+  return success(res, result);
 });
 
 /**
@@ -238,29 +287,29 @@ export const createPost = asyncHandler(async (req, res) => {
     seo,
   } = req.body;
 
-  // 如果是草稿且没有标题，使用临时标题
+  // [INCOMPLETE TRANSLATION] 如果是草稿且没有标题，使用临时标题
   const postTitle = title || '';
   
-  // 处理 slug
+  // process slug
   let slug = '';
   if (providedSlug) {
-    // 如果提供了 slug，确保它是唯一的
+    // [INCOMPLETE TRANSLATION] 如果提供了 slug，确保它是唯一的
     slug = await generateUniqueSlug(providedSlug);
   } else if (postTitle) {
-    // 如果有标题但没有 slug，从标题生成
+    // [INCOMPLETE TRANSLATION] 如果有标题但没有 slug，从标题生成
     const baseSlug = postTitle.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
     slug = await generateUniqueSlug(baseSlug);
   } else if (status === 'published') {
-    // 如果是发布状态但没有标题和 slug，生成一个临时 slug
+    // [INCOMPLETE TRANSLATION] 如果是发布status但没有标题和 slug，生成一个临时 slug
     const timestamp = Date.now();
     slug = await generateUniqueSlug(`post-${timestamp}`);
   } else {
-    // 草稿模式下，如果没有标题和 slug，生成一个临时 slug
+    // [INCOMPLETE TRANSLATION] 草稿模式下，如果没有标题和 slug，生成一个临时 slug
     const timestamp = Date.now();
     slug = `draft-${timestamp}`;
   }
 
-  // 创建文章
+  // createpost
   const post = await Post.create({
     title: postTitle,
     slug,
@@ -290,27 +339,27 @@ export const updatePost = asyncHandler(async (req, res) => {
 
   const { status, title, content, slug: providedSlug } = req.body;
 
-  // 检查是否从草稿变为发布状态
+  // [INCOMPLETE TRANSLATION] check是否从草稿变为发布status
   if (status === 'published' && post.status !== 'published') {
-    // 发布时需要验证必填字段
+    // [INCOMPLETE TRANSLATION] 发布时需要validate必填字段
     if (!title) throw createError('Title is required for published posts', 400);
     if (!content) throw createError('Content is required for published posts', 400);
     
-    // 设置发布时间
+    // [INCOMPLETE TRANSLATION] settings发布时间
     req.body.publishedAt = Date.now();
   }
 
-  // 处理 slug
+  // process slug
   if (providedSlug && providedSlug !== post.slug) {
     const slugExists = await Post.findOne({ slug: providedSlug, _id: { $ne: req.params.id } });
     if (slugExists) throw createError('This slug is already in use, please use another slug', 400);
   } else if (status === 'published' && !post.slug && !providedSlug) {
-    // 如果是发布状态但没有 slug，从标题生成
+    // [INCOMPLETE TRANSLATION] 如果是发布status但没有 slug，从标题生成
     if (title) {
       const baseSlug = title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
       req.body.slug = await generateUniqueSlug(baseSlug, req.params.id);
     } else {
-      // 如果没有标题，使用时间戳生成 slug
+      // [INCOMPLETE TRANSLATION] 如果没有标题，使用时间戳生成 slug
       const timestamp = Date.now();
       req.body.slug = await generateUniqueSlug(`post-${timestamp}`, req.params.id);
     }

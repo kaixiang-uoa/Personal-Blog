@@ -1,19 +1,19 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useToast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/inputs/button"
+import { Input } from "@/components/ui/inputs/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/data-display/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/navigation/tabs"
+import { Badge } from "@/components/ui/data-display/badge"
+import { Skeleton } from "@/components/ui/data-display/skeleton"
+import { useToast } from "@/hooks/ui/use-toast"
 import { BookmarkPlus, Edit, PlusCircle, Search, Tag as TagIcon, Trash2 } from "lucide-react"
 import { categoryService } from "@/lib/services/category-service"
 import { tagService } from "@/lib/services/tag-service"
-import { Category } from "@/types/category"
-import type { Tag } from "@/types/tags"
-import { CategoryResponse, TagResponse } from "@/types/common"
+import { Category } from "@/types/category.types"
+import type { Tag } from "@/types/tags.types"
+import { CategoryResponse, TagResponse } from "@/types/common.types"
 import { categoryFormSchema, tagFormSchema } from "@/lib/validation/form-validation"
 import { EntityFormDialog } from "@/components/posts/EntityFormDialog"
 
@@ -31,7 +31,6 @@ export default function CategoriesPage() {
   const [creatingCategory, setCreatingCategory] = useState(false)
   const [creatingTag, setCreatingTag] = useState(false)
 
-  // fetchData 封装为 useCallback，便于复用
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
@@ -74,14 +73,14 @@ export default function CategoriesPage() {
       if (typeof category.name === 'string') {
         nameStr = category.name;
       } else if (category.name && typeof category.name === 'object') {
-        nameStr = category.name.en || category.name.zh || '';
+        nameStr = (category.name as any).en || (category.name as any).zh || '';
       }
       
       let descStr = '';
       if (typeof category.description === 'string') {
         descStr = category.description;
       } else if (category.description && typeof category.description === 'object') {
-        descStr = category.description.en || category.description.zh || '';
+        descStr = (category.description as any).en || (category.description as any).zh || '';
       }
       
       const query = searchQuery.toLowerCase();
@@ -105,18 +104,18 @@ export default function CategoriesPage() {
     }
   )
 
-  // 辅助函数：显示分类/标签名称
+  // Helper function: Display category/tag name 
   const displayName = (item: any): string => {
     if (!item) return '';
     if (typeof item.name === 'string') return item.name;
-    return item.name?.en || item.name?.zh || '';
+    return (item.name as any)?.en || (item.name as any)?.zh || '';
   }
 
-  // 辅助函数：显示描述
+  // Helper function: Display description
   const displayDescription = (item: any): string => {
     if (!item) return '';
     if (typeof item.description === 'string') return item.description;
-    return item.description?.en || item.description?.zh || '';
+    return (item.description as any)?.en || (item.description as any)?.zh || '';
   }
 
   // Open new category dialog
@@ -160,7 +159,7 @@ export default function CategoriesPage() {
     try {
       setCreatingCategory(true);
       
-      // 将表单数据转换为API期望的格式
+      // Convert form data to the format expected by the API
       const apiData = {
         name: values.name.en,
         name_zh: values.name.zh,

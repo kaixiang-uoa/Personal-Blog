@@ -1,18 +1,18 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Button } from "@/components/ui/inputs/button"
+import { Input } from "@/components/ui/inputs/input"
+import { Card, CardContent, CardHeader } from "@/components/ui/data-display/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/navigation/dropdown-menu"
+import { Skeleton } from "@/components/ui/data-display/skeleton"
+import { useToast } from "@/hooks/ui/use-toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +22,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/feedback/alert-dialog"
 import {
   Dialog,
   DialogContent,
@@ -30,11 +30,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/feedback/dialog"
 import { Clipboard, Download, Eye, MoreHorizontal, Search, Trash2, Upload } from "lucide-react"
 import Image from "next/image"
 import { mediaService } from "@/lib/services/media-service"
-import type { Media } from "@/types/media"
+import type { Media } from "@/types/media.types"
 import { validateFiles, showValidationError } from "@/lib/validation/media-validation"
 
 // Add base URL constant at the top of the file
@@ -76,7 +76,8 @@ export default function MediaPage() {
         const response = await mediaService.getAll()
         if (response?.success && response.data) {
           // Extract media array from response data
-          const items = response.data.media || []
+          const items = Array.isArray(response.data) ? response.data : 
+                      (response.data as any).media ? (response.data as any).media : []
           setMediaItems(items)
         } else {
           setMediaItems([])
@@ -147,7 +148,8 @@ export default function MediaPage() {
       const response = await mediaService.upload(formData)
       if (response?.success && response.data) {
         // Extract media array from response data
-        const newMedia = response.data.media || []
+        const newMedia = Array.isArray(response.data) ? response.data : 
+                      (response.data as any).media ? (response.data as any).media : []
         setMediaItems(prevItems => [...newMedia, ...prevItems])
         toast({
           title: "Upload successful",

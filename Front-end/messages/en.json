@@ -51,7 +51,15 @@
     "lastUpdated": "Recently Updated",
     "oldestUpdated": "Oldest Updated",
     "selectSortOrder": "Select Sort Order",
-    "select": "Select"
+    "select": "Select",
+    "dataLoadingFailed": "Failed to load data",
+    "tryAgain": "Try again",
+    "notFoundError": "Resource not found",
+    "serverError": "Server error occurred",
+    "networkError": "Network connection error",
+    "unauthorizedError": "Unauthorized access",
+    "validationError": "Invalid data",
+    "defaultApiError": "Something went wrong"
   },
   "about": {
     "title": "About Me",

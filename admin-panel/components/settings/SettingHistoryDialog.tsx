@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useState, useEffect, useCallback } from "react"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/feedback/dialog"
+import { Button } from "../ui/inputs/button"
+import { Separator } from "../ui/data-display/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/navigation/tabs"
+import { ScrollArea } from "../ui/navigation/scroll-area"
 import { Loader2, Clock, RotateCcw, Eye } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { settingsService } from "@/lib/services"
@@ -36,20 +36,8 @@ export default function SettingHistoryDialog({
     pages: 0
   })
   
-  // 加载历史记录
-  useEffect(() => {
-    if (open) {
-      loadHistory()
-    }
-  }, [open, settingKey])
-  
-  // 根据是否有设置键确定标题
-  const title = settingKey 
-    ? `History for "${settingKey}"` 
-    : "Settings History"
-  
-  // 加载历史数据
-  const loadHistory = async () => {
+  // 使用useCallback包装loadHistory函数
+  const loadHistory = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -79,7 +67,19 @@ export default function SettingHistoryDialog({
     } finally {
       setLoading(false)
     }
-  }
+  }, [settingKey, pagination.limit, pagination.page, toast])
+  
+  // 加载历史记录
+  useEffect(() => {
+    if (open) {
+      loadHistory()
+    }
+  }, [open, loadHistory])
+  
+  // 根据是否有设置键确定标题
+  const title = settingKey 
+    ? `History for "${settingKey}"` 
+    : "Settings History"
   
   // 执行回滚操作
   const handleRollback = async (historyId: string) => {
@@ -158,7 +158,7 @@ export default function SettingHistoryDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'history' | 'compare')} className="mt-4">
+        <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'history' | 'compare')} className="mt-4">
           <TabsList>
             <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="compare" disabled={!selectedVersion}>Compare</TabsTrigger>

@@ -1,12 +1,13 @@
 import React from "react";
-import { EntityFormDialogProps } from "@/types/ui";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { EntityFormDialogProps } from "@/types/index";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/feedback/dialog";
+import { Button } from "@/components/ui/inputs/button";
 import { useForm, FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/inputs/form";
+import { Input } from "@/components/ui/inputs/input";
+import { Textarea } from "@/components/ui/inputs/textarea";
 
 export function EntityFormDialog({
   open,
@@ -20,14 +21,23 @@ export function EntityFormDialog({
   loading,
   submitText = "Submit",
 }: EntityFormDialogProps) {
+
   const form = useForm<FieldValues>({
     resolver: zodResolver(schema),
     defaultValues,
   });
 
+  useEffect(() => {
+    if (defaultValues) {
+      form.reset(defaultValues)
+    }
+  }, [defaultValues, form])
+
+
   const handleSubmit = async (values: FieldValues) => {
     await onSubmit(values);
   };
+
 
   const renderField = (field: any) => {
     if (field.isI18n) {
@@ -55,7 +65,7 @@ export function EntityFormDialog({
             name={`${field.name}.en`}
             render={({ field: f }) => (
               <FormItem>
-                <FormLabel>{field.label}（English）</FormLabel>
+                <FormLabel>{field.label}(English)</FormLabel>
                 <FormControl>
                   {field.type === "textarea" ? (
                     <Textarea placeholder={field.placeholder} {...f} />

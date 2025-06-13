@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/inputs/button"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/feedback/tooltip"
 
 interface EditorMenuButtonProps {
   onClick: () => void

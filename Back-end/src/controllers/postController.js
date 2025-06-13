@@ -7,7 +7,6 @@ import { populatePostQuery, populatePostListQuery } from '../utils/populatePostQ
 import { getPopulatedPostById, getPopulatedPostBySlug } from '../utils/populateUtils.js';
 import { transformLocalizedCategories } from '../utils/transformLocalizedCategories.js';
 import { transformLocalizedTags } from '../utils/transformLocalizedTags.js';
-import cacheManager from '../utils/cacheManager.js';
 
 /**
  * @desc    Get all posts, supports filtering by tags, categories, search, date, etc.
@@ -27,86 +26,73 @@ export const getAllPosts = asyncHandler(async (req, res) => {
     lang,
   } = req.query;
   
-  // Generate cache key based on query parameters
-  const cacheKey = `posts:list:${JSON.stringify({
-    page, limit, status, allStatus, categorySlug, tagSlug, search, sortKey, lang
-  })}`;
-  
-  // Try to get from cache first
-  const result = await cacheManager.getOrSet(
-    cacheKey,
-    async () => {
-      const query = allStatus === 'true' ? {} : { status };
+  const query = allStatus === 'true' ? {} : { status };
 
-      // Category filter
-      if (categorySlug) {
-        const category = await Category.findOne({ slug: categorySlug });
-        if (category) query.categories = category._id;
-      }
+  // Category filter
+  if (categorySlug) {
+    const category = await Category.findOne({ slug: categorySlug });
+    if (category) query.categories = category._id;
+  }
 
-      // Tag filter
-      if (tagSlug) {
-        const tagSlugs = tagSlug.split(',').map(s => s.trim()).filter(Boolean); 
-        const tags = await Tag.find({ slug: { $in: tagSlugs } });
-        if (tags && tags.length > 0) {
-          query.tags = { $in: tags.map(t => t._id) };
-        }
-      }
+  // Tag filter
+  if (tagSlug) {
+    const tagSlugs = tagSlug.split(',').map(s => s.trim()).filter(Boolean); 
+    const tags = await Tag.find({ slug: { $in: tagSlugs } });
+    if (tags && tags.length > 0) {
+      query.tags = { $in: tags.map(t => t._id) };
+    }
+  }
 
-      // Search keyword filter
-      if (search) {
-        query.$or = [
-          { title: { $regex: search, $options: 'i' } },
-          { content: { $regex: search, $options: 'i' } },
-          { excerpt: { $regex: search, $options: 'i' } },
-        ];
-      }
+  // Search keyword filter
+  if (search) {
+    query.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { content: { $regex: search, $options: 'i' } },
+      { excerpt: { $regex: search, $options: 'i' } },
+    ];
+  }
 
-      const sortOptions = {
-        'publishedAt-desc': '-publishedAt',
-        'publishedAt-asc': 'publishedAt',
-        'updatedAt-desc': '-updatedAt',
-        'updatedAt-asc': 'updatedAt',
-        'latest': '-publishedAt',
-        'oldest': 'publishedAt',
-        'popular': '-viewCount'
-      };
+  const sortOptions = {
+    'publishedAt-desc': '-publishedAt',
+    'publishedAt-asc': 'publishedAt',
+    'updatedAt-desc': '-updatedAt',
+    'updatedAt-asc': 'updatedAt',
+    'latest': '-publishedAt',
+    'oldest': 'publishedAt',
+    'popular': '-viewCount'
+  };
 
-      const sort = sortOptions[sortKey] || '-publishedAt';
-      const skip = (parseInt(page) - 1) * parseInt(limit);
+  const sort = sortOptions[sortKey] || '-publishedAt';
+  const skip = (parseInt(page) - 1) * parseInt(limit);
 
-      // Use optimized list query that excludes content for better performance
-      const posts = await populatePostListQuery(
-        Post.find(query).sort(sort).skip(skip).limit(parseInt(limit))
-      );
-
-      // Execute count in parallel with post query for better performance
-      const total = await Post.countDocuments(query);
-
-      const transformedPosts = posts.map(post => {
-        // Check if post is already a plain object (from lean query)
-        const transformedPost = typeof post.toObject === 'function' ? post.toObject() : post;
-
-        if (transformedPost.categories && transformedPost.categories.length > 0) {
-          transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
-        }
-
-        if (transformedPost.tags && transformedPost.tags.length > 0) {
-          transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
-        }
-        return transformedPost;
-      });
-
-      return {
-        posts: transformedPosts,
-        total,
-        totalPages: Math.ceil(total / parseInt(limit)),
-        currentPage: parseInt(page),
-      };
-    },
-    // Cache for 5 minutes
-    300
+  // Use optimized list query that excludes content for better performance
+  const posts = await populatePostListQuery(
+    Post.find(query).sort(sort).skip(skip).limit(parseInt(limit))
   );
+
+  // Execute count in parallel with post query for better performance
+  const total = await Post.countDocuments(query);
+
+  const transformedPosts = posts.map(post => {
+    // Check if post is already a plain object (from lean query)
+    const transformedPost = typeof post.toObject === 'function' ? post.toObject() : post;
+
+    if (transformedPost.categories && transformedPost.categories.length > 0) {
+      transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
+    }
+
+    if (transformedPost.tags && transformedPost.tags.length > 0) {
+      transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
+    }
+    return transformedPost;
+  });
+
+  const result = {
+    posts: transformedPosts,
+    total,
+    totalPages: Math.ceil(total / parseInt(limit)),
+    currentPage: parseInt(page),
+  };
   
   return success(res, result);
 });
@@ -117,60 +103,50 @@ export const getAllPosts = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getPostById = asyncHandler(async (req, res) => {
-  const lang = req.query.lang || 'zh';
+  const lang = req.query.lang || 'en';
   const postId = req.params.id;
   console.log('post', postId);
   
-  // Generate cache key
-  const cacheKey = `posts:id:${postId}:${lang}`;
+  const post = await getPopulatedPostById(postId);
+
+  if (!post) throw createError('Post not found', 404);
   
-  const result = await cacheManager.getOrSet(
-    cacheKey,
-    async () => {
-      const post = await getPopulatedPostById(postId);
+  // idempotent check - use client IP and timestamp combination as idempotent key 
+  const clientIp = req.ip || req.socket.remoteAddress;
+  const viewKey = `${post._id}:${clientIp}`;
+  const viewTimestamps = req.app.locals.viewTimestamps || {};
+  
+  const now = Date.now();
+  const lastView = viewTimestamps[viewKey] || 0;
+  
+  // if the same IP visits the same article within 5 seconds, do not count it again
+  if (now - lastView > 5000) {
+    post.viewCount += 1;
+    await post.save();
     
-      if (!post) throw createError('Post not found', 404);
-      
-      // idempotent check - use client IP and timestamp combination as idempotent key 
-      const clientIp = req.ip || req.socket.remoteAddress;
-      const viewKey = `${post._id}:${clientIp}`;
-      const viewTimestamps = req.app.locals.viewTimestamps || {};
-      
-      const now = Date.now();
-      const lastView = viewTimestamps[viewKey] || 0;
-      
-      // if the same IP visits the same article within 5 seconds, do not count it again
-      if (now - lastView > 5000) {
-        post.viewCount += 1;
-        await post.save();
-        
-        // update timestampe timestamp
-        viewTimestamps[viewKey] = now;
-        req.app.locals.viewTimestamps = viewTimestamps;
-        
-        // automatically clean up records older than 30 minutes
-        const thirtyMinutes = 30 * 60 * 1000;
-        Object.keys(viewTimestamps).forEach(key => {
-          if (now - viewTimestamps[key] > thirtyMinutes) {
-            delete viewTimestamps[key];
-          }
-        });
+    // update timestampe timestamp
+    viewTimestamps[viewKey] = now;
+    req.app.locals.viewTimestamps = viewTimestamps;
+    
+    // automatically clean up records older than 30 minutes
+    const thirtyMinutes = 30 * 60 * 1000;
+    Object.keys(viewTimestamps).forEach(key => {
+      if (now - viewTimestamps[key] > thirtyMinutes) {
+        delete viewTimestamps[key];
       }
+    });
+  }
 
-      const transformedPost = typeof post.toObject === 'function' ? post.toObject() : post;
-      if (transformedPost.categories && transformedPost.categories.length > 0) {
-        transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
-      }
+  const transformedPost = typeof post.toObject === 'function' ? post.toObject() : post;
+  if (transformedPost.categories && transformedPost.categories.length > 0) {
+    transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
+  }
 
-      if (transformedPost.tags && transformedPost.tags.length > 0) {
-        transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
-      }
+  if (transformedPost.tags && transformedPost.tags.length > 0) {
+    transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
+  }
 
-      return { post: transformedPost };
-    },
-    // Cache for 10 minutes
-    600
-  );
+  const result = { post: transformedPost };
   
   return success(res, result);
 });
@@ -184,54 +160,45 @@ export const getPostBySlug = asyncHandler(async (req, res) => {
   const lang = req.query.lang || 'zh';
   const slug = req.params.slug;
   
-  // Generate cache key
-  const cacheKey = `posts:slug:${slug}:${lang}`;
+  const post = await getPopulatedPostBySlug(slug);
+  if (!post) throw createError('Post not found', 404);
   
-  const result = await cacheManager.getOrSet(
-    cacheKey,
-    async () => {
-      const post = await getPopulatedPostBySlug(slug);
-      if (!post) throw createError('Post not found', 404);
-      
-      // idempotent check - use client IP and timestamp combination as idempotent key 
-      const clientIp = req.ip || req.socket.remoteAddress;
-      const viewKey = `${post._id}:${clientIp}`;
-      const viewTimestamps = req.app.locals.viewTimestamps || {};
-      
-      const now = Date.now();
-      const lastView = viewTimestamps[viewKey] || 0;
-      
-      // if the same IP visits the same article within 5 seconds, do not count it again
-      if (now - lastView > 5000) {
-        post.viewCount += 1;
-        await post.save();
-        
-        // update timestamp
-        viewTimestamps[viewKey] = now;
-        req.app.locals.viewTimestamps = viewTimestamps;
-        
-        // automatically clean up records older than 30 minutes
-        const thirtyMinutes = 30 * 60 * 1000;
-        Object.keys(viewTimestamps).forEach(key => {
-          if (now - viewTimestamps[key] > thirtyMinutes) {
-            delete viewTimestamps[key];
-          }
-        });
+  // idempotent check - use client IP and timestamp combination as idempotent key 
+  const clientIp = req.ip || req.socket.remoteAddress;
+  const viewKey = `${post._id}:${clientIp}`;
+  const viewTimestamps = req.app.locals.viewTimestamps || {};
+  
+  const now = Date.now();
+  const lastView = viewTimestamps[viewKey] || 0;
+  
+  // if the same IP visits the same article within 5 seconds, do not count it again
+  if (now - lastView > 5000) {
+    post.viewCount += 1;
+    await post.save();
+    
+    // update timestamp
+    viewTimestamps[viewKey] = now;
+    req.app.locals.viewTimestamps = viewTimestamps;
+    
+    // automatically clean up records older than 30 minutes
+    const thirtyMinutes = 30 * 60 * 1000;
+    Object.keys(viewTimestamps).forEach(key => {
+      if (now - viewTimestamps[key] > thirtyMinutes) {
+        delete viewTimestamps[key];
       }
-      
-      const transformedPost = typeof post.toObject === 'function' ? post.toObject() : post;
-      if (transformedPost.categories && transformedPost.categories.length > 0) {
-        transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
-      }
+    });
+  }
+  
+  const transformedPost = typeof post.toObject === 'function' ? post.toObject() : post;
+  if (transformedPost.categories && transformedPost.categories.length > 0) {
+    transformedPost.categories = transformLocalizedCategories(transformedPost.categories, lang);
+  }
 
-      if (transformedPost.tags && transformedPost.tags.length > 0) {
-        transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
-      }
-      return { post: transformedPost };
-    },
-    // Cache for 10 minutes
-    600
-  );
+  if (transformedPost.tags && transformedPost.tags.length > 0) {
+    transformedPost.tags = transformLocalizedTags(transformedPost.tags, lang);
+  }
+  
+  const result = { post: transformedPost };
   
   return success(res, result);
 });
@@ -287,7 +254,7 @@ export const createPost = asyncHandler(async (req, res) => {
     seo,
   } = req.body;
 
-  // [INCOMPLETE TRANSLATION] 如果是草稿且没有标题，使用临时标题
+  // [INCOMPLETE TRANSLATION] 如果是草稿且没有标题，使用临时标题 
   const postTitle = title || '';
   
   // process slug
@@ -323,6 +290,7 @@ export const createPost = asyncHandler(async (req, res) => {
     seo: seo || {},
     publishedAt: status === 'published' ? Date.now() : null,
   });
+
 
   const populatedPost = await getPopulatedPostById(post._id);
   return success(res, { post: populatedPost }, 201);

@@ -1,216 +1,170 @@
-import { apiClient } from './api-client';
-import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
-import type { 
-  Setting, 
-  SettingFormData, 
-  SettingHistory, 
-  SettingsResponse, 
-  SettingsHistoryResponse 
-} from '@/types/settings.types';
-import axios from 'axios';
+import apiClient from '@/lib/api';
+import type { ApiResponse } from '@/types/api';
+import type { Setting, SettingFormData, Settings, SettingsResponse, AboutSettings } from '@/types/settings';
 
-/**
- * Settings service with methods for managing system settings
- */
+// Helper function to safely parse JSON
+function safeParseJSON<T>(value: string | null, defaultValue: T): T {
+  if (!value) return defaultValue;
+  try {
+    return JSON.parse(value) as T;
+  } catch (err) {
+    console.error('Error parsing JSON:', err);
+    return defaultValue;
+  }
+}
+
+// Helper function to process about settings
+function processAboutSettings(data: SettingsResponse): AboutSettings {
+  return {
+    intro: data['about.intro'] || '',
+    intro_zh: data['about.intro_zh'] || '',
+    contact: safeParseJSON(data['about.contact'], {
+      email: '',
+      phone: '',
+      location: ''
+    }),
+    skills: safeParseJSON(data['about.skills'], []),
+    education: safeParseJSON(data['about.education'], []),
+    experience: safeParseJSON(data['about.experience'], []),
+    projects: safeParseJSON(data['about.projects'], []),
+    social: safeParseJSON(data['about.social'], {
+      github: '',
+      linkedin: '',
+      twitter: '',
+      website: ''
+    })
+  };
+}
+
+// Helper function to process settings response
+function processSettingsResponse(data: SettingsResponse): Settings {
+  return {
+    general: {
+      siteName: data['general.siteName'] || '',
+      siteDescription: data['general.siteDescription'] || '',
+      siteUrl: data['general.siteUrl'] || '',
+      logo: data['general.logo'] || '',
+      favicon: data['general.favicon'] || '',
+      metaKeywords: data['general.metaKeywords'] || '',
+    },
+    posts: {
+      postsPerPage: Number(data['posts.postsPerPage']) || 10,
+    },
+    appearance: {
+      homeBanner: data['appearance.homeBanner'] || '',
+      aboutBanner: data['appearance.aboutBanner'] || '',
+      contactBanner: data['appearance.contactBanner'] || '',
+      homeBannerMobile: data['appearance.homeBannerMobile'] || '',
+      aboutBannerMobile: data['appearance.aboutBannerMobile'] || '',
+      contactBannerMobile: data['appearance.contactBannerMobile'] || '',
+    },
+    advanced: {
+      cacheTimeout: Number(data['advanced.cacheTimeout']) || 3600,
+      apiKey: data['advanced.apiKey'] || '',
+      debugMode: data['advanced.debugMode'] === 'true',
+    },
+    about: processAboutSettings(data)
+  };
+}
+
 export const settingsService = {
-  /**
-   * Get all settings
-   * @returns Record of all settings
-   */
-  getAll: async (): Promise<ApiResponse<Record<string, unknown>>> => {
+  getAll: async (): Promise<ApiResponse<Settings>> => {
     try {
-      return await apiClient.get<SettingsResponse>("/settings");
-    } catch (error: unknown) {
+      const response = await apiClient.get<SettingsResponse>("/settings");
+      return {
+        success: true,
+        data: processSettingsResponse(response.data),
+        message: "Settings retrieved successfully"
+      };
+    } catch (error) {
       console.error('Error fetching settings:', error);
       throw error;
     }
   },
 
-  /**
-   * Get settings by group
-   * @param group - Settings group name
-   * @returns Settings in the specified group
-   */
-  getByGroup: async (group: string): Promise<ApiResponse<Record<string, unknown>>> => {
+  getByGroup: async (group: string): Promise<ApiResponse<Record<string, any>>> => {
     try {
-      return await apiClient.get<SettingsResponse>("/settings", { params: { group } });
-    } catch (error: unknown) {
-      console.error('Error fetching settings by group:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get a setting by its key
-   * @param key - Setting key
-   * @returns Setting details
-   */
-  getByKey: async (key: string): Promise<ApiResponse<Setting>> => {
-    try {
-      return await apiClient.get<ApiResponse<Setting>>(`/settings/${key}`);
-    } catch (error: unknown) {
-      console.error('Error fetching setting by key:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Create a new setting
-   * @param data - Setting form data
-   * @returns Created setting
-   */
-  create: async (data: SettingFormData): Promise<ApiResponse<Setting>> => {
-    try {
-      return await apiClient.post<ApiResponse<Setting>>("/settings", data);
-    } catch (error: unknown) {
-      console.error('Error creating setting:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Batch update multiple settings
-   * @param data - Array of settings to update
-   * @returns Updated settings
-   */
-  batchUpdate: async (data: SettingFormData[]): Promise<ApiResponse<Setting[]>> => {
-    try {
-      return await apiClient.post<ApiResponse<Setting[]>>("/settings/batch", { settings: data });
-    } catch (error: unknown) {
-      console.error('Error batch updating settings:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Update a setting
-   * @param key - Setting key
-   * @param data - Setting data to update
-   * @returns Updated setting
-   */
-  update: async (key: string, data: Partial<SettingFormData>): Promise<ApiResponse<Setting>> => {
-    try {
-      return await apiClient.put<ApiResponse<Setting>>(`/settings/${key}`, data);
-    } catch (error: unknown) {
-      console.error('Error updating setting:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Delete a setting
-   * @param key - Setting key
-   * @returns API response
-   */
-  delete: async (key: string): Promise<ApiResponse<void>> => {
-    try {
-      return await apiClient.delete<ApiResponse<void>>(`/settings/${key}`);
-    } catch (error: unknown) {
-      console.error('Error deleting setting:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get setting history
-   * @param params - Optional parameters for filtering and pagination
-   * @returns Paginated list of setting history records
-   */
-  getHistory: async (params?: { key?: string; page?: number; limit?: number }): Promise<PaginatedResponse<SettingHistory[]>> => {
-    try {
-      const endpoint = params?.key 
-        ? `/settings/history/${params.key}`
-        : '/settings/history/all';
-      return await apiClient.get<SettingsHistoryResponse>(endpoint, { 
-        params: { page: params?.page, limit: params?.limit } 
+      const response = await apiClient.get<SettingsResponse>("/settings", { 
+        params: { group } 
       });
-    } catch (error: unknown) {
-      console.error('Error fetching setting history:', error);
+      
+      // Process group-specific data
+      let processedData: Record<string, any> = {};
+      if (group === 'about') {
+        processedData = processAboutSettings(response.data);
+      } else {
+        processedData = response.data;
+      }
+
+      return {
+        success: true,
+        data: processedData,
+        message: `${group} settings retrieved successfully`
+      };
+    } catch (error) {
+      console.error(`Error fetching ${group} settings:`, error);
       throw error;
     }
   },
 
-  /**
-   * Get versions of a setting
-   * @param key - Setting key
-   * @param limit - Maximum number of versions to retrieve
-   * @returns List of setting versions
-   */
-  getVersions: async (key: string, limit: number = 5): Promise<ApiResponse<SettingHistory[]>> => {
-    try {
-      return await apiClient.get<ApiResponse<SettingHistory[]>>(`/settings/versions/${key}`, { params: { limit } });
-    } catch (error: unknown) {
-      console.error('Error fetching setting versions:', error);
-      throw error;
-    }
+  getByKey: async (key: string): Promise<ApiResponse<Setting>> => {
+    return apiClient.get(`/settings/${key}`);
   },
 
-  /**
-   * Rollback a setting to a previous version
-   * @param historyId - History record ID
-   * @returns Updated setting
-   */
-  rollback: async (historyId: string): Promise<ApiResponse<Setting>> => {
-    try {
-      return await apiClient.post<ApiResponse<Setting>>(`/settings/rollback/${historyId}`);
-    } catch (error: unknown) {
-      console.error('Error rolling back setting:', error);
-      throw error;
-    }
+  create: async (data: SettingFormData): Promise<ApiResponse<Setting>> => {
+    return apiClient.post("/settings", data);
   },
 
-  /**
-   * Export settings for a specific environment
-   * @param env - Environment name
-   * @returns Exported settings with metadata
-   */
+  update: async (key: string, data: Partial<SettingFormData>): Promise<ApiResponse<Setting>> => {
+    return apiClient.put(`/settings/${key}`, data);
+  },
+
+  batchUpdate: async (settings: SettingFormData[]): Promise<ApiResponse<Setting[]>> => {
+    return apiClient.post("/settings/batch", { settings });
+  },
+
+  delete: async (key: string): Promise<ApiResponse<void>> => {
+    return apiClient.delete(`/settings/${key}`);
+  },
+
   exportForEnvironment: async (env: 'development' | 'production' | 'staging'): Promise<{
     metadata: {
       exportDate: string;
       version: string;
       environment: string;
     };
-    settings: Record<string, unknown>;
+    settings: Record<string, any>;
   }> => {
-    try {
-      const response = await apiClient.get<SettingsResponse>("/settings");
-      const settingsData = response.data;
-      
-      if (!settingsData) {
-        throw new Error('No settings data available for export');
-      }
-      
-      const environmentOverrides: Record<string, unknown> = {};
-      
-      if (env === 'production') {
-        environmentOverrides['advanced.debugMode'] = false;
-        environmentOverrides['advanced.cacheTimeout'] = 3600;
-      } else if (env === 'staging') {
-        environmentOverrides['advanced.debugMode'] = true;
-        environmentOverrides['general.siteName'] = `[STAGING] ${settingsData['general.siteName'] || 'Blog'}`;
-      } else {
-        environmentOverrides['advanced.debugMode'] = true;
-        environmentOverrides['advanced.cacheTimeout'] = 0;
-      }
-      
-      return {
-        metadata: {
-          exportDate: new Date().toISOString(),
-          version: '1.0',
-          environment: env
-        },
-        settings: {
-          ...settingsData,
-          ...environmentOverrides
-        }
-      };
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.error('API Error exporting settings:', error.response?.data || error.message);
-      } else {
-        console.error('Error exporting settings:', error);
-      }
-      throw error;
+    const response = await apiClient.get("/settings") as { data: Record<string, any> };
+    const settingsData = response.data;
+    
+    if (!settingsData) {
+      throw new Error('No settings data available for export');
     }
-  }
+    
+    const environmentOverrides: Record<string, any> = {};
+    
+    if (env === 'production') {
+      environmentOverrides['advanced.debugMode'] = false;
+      environmentOverrides['advanced.cacheTimeout'] = 3600;
+    } else if (env === 'staging') {
+      environmentOverrides['advanced.debugMode'] = true;
+      environmentOverrides['general.siteName'] = `[STAGING] ${settingsData['general.siteName'] || 'Blog'}`;
+    } else {
+      environmentOverrides['advanced.debugMode'] = true;
+      environmentOverrides['advanced.cacheTimeout'] = 0;
+    }
+    
+    return {
+      metadata: {
+        exportDate: new Date().toISOString(),
+        version: '1.0',
+        environment: env
+      },
+      settings: {
+        ...settingsData,
+        ...environmentOverrides
+      }
+    };
+  },
 }; 

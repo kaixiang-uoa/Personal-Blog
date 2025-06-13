@@ -9,15 +9,21 @@ import { body, param, query } from 'express-validator';
 export const postRules = {
   // Post creation/update rules
   create: [
+    // Title is required only if status is 'published'
     body('title')
       .trim()
+      .if(body('status').equals('published'))
       .notEmpty()
       .withMessage('Title is required')
       .isLength({ max: 200 })
       .withMessage('Title must be less than 200 characters'),
     
+    // Content is required only if status is 'published'
     body('content')
-      .optional()
+      .if(body('status').equals('published'))
+      .notEmpty()
+      .withMessage('Content is required')
+      .bail()
       .isString()
       .withMessage('Content must be a string'),
     
@@ -28,8 +34,9 @@ export const postRules = {
       .isLength({ max: 500 })
       .withMessage('Excerpt must be less than 500 characters'),
     
+    // Slug is optional; if not provided or empty, backend will auto-generate
     body('slug')
-      .optional()
+      .optional({ checkFalsy: true })
       .isString()
       .withMessage('Slug must be a string')
       .matches(/^[a-z0-9-]+$/)

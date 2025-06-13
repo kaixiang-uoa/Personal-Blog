@@ -10,14 +10,6 @@ import { jest } from '@jest/globals';
 import app from '../../app.js';
 import Post from '../../models/Post.js';
 
-// Mock the cache manager
-jest.mock('../../utils/cacheManager.js', () => ({
-  getOrSet: jest.fn((key, fn) => fn()),
-  getStats: jest.fn(),
-  delete: jest.fn(),
-  clear: jest.fn(),
-}));
-
 describe('Posts API', () => {
   // Connect to test database before tests
   beforeAll(async () => {

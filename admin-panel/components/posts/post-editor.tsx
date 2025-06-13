@@ -46,7 +46,7 @@ import {
 } from "@/components/ui/feedback/popover"
 import { Input } from "@/components/ui/inputs/input"
 import { Label } from "@/components/ui/inputs/label"
-import { mediaService } from "@/lib/services"
+import { apiService } from "@/lib/api"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/navigation/tabs"
 import { useToast } from "@/hooks/ui/use-toast"
 
@@ -200,7 +200,7 @@ export function PostEditor({ value, onChange }: PostEditorProps): React.ReactEle
       const formData = new FormData()
       formData.append('files', file)
       
-      const response = await mediaService.upload(formData)
+      const response = await apiService.uploadMedia(formData)
       
       if (response.success && response.data) { 
         // Access the media object and get the full URL

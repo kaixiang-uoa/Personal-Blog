@@ -10,7 +10,6 @@ import {
     rollbackSetting
 } from '../controllers/settingController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
-import cacheManager from '../utils/cacheManager.js';
 import mongoose from 'mongoose';
 
 const router = express.Router();
@@ -32,96 +31,6 @@ router.get('/history/all', protect, restrictTo('admin'), getSettingHistory);
 router.get('/history/:key', protect, restrictTo('admin'), getSettingHistory);
 router.get('/versions/:key', protect, restrictTo('admin'), getSettingVersions);
 router.post('/rollback/:historyId', protect, restrictTo('admin'), rollbackSetting);
-
-/**
- * @swagger
- * /settings/cache/stats:
- *   get:
- *     summary: Get cache statistics
- *     description: Get current cache statistics (admin only)
- *     tags: [Settings]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Cache statistics
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 stats:
- *                   type: object
- *                   properties:
- *                     hits:
- *                       type: integer
- *                       example: 150
- *                     misses:
- *                       type: integer
- *                       example: 50
- *                     sets:
- *                       type: integer
- *                       example: 75
- *                     deletes:
- *                       type: integer
- *                       example: 10
- *                     size:
- *                       type: integer
- *                       example: 65
- *                     hitRate:
- *                       type: number
- *                       example: 0.75
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden
- */
-router.get('/cache/stats', protect, restrictTo('admin'), (req, res) => {
-  const stats = cacheManager.getStats();
-  res.status(200).json({
-    success: true,
-    stats
-  });
-});
-
-/**
- * @swagger
- * /settings/cache/clear:
- *   post:
- *     summary: Clear entire cache
- *     description: Clear the entire application cache (admin only)
- *     tags: [Settings]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Cache cleared
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: Cache cleared successfully
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden
- */
-router.post('/cache/clear', protect, restrictTo('admin'), (req, res) => {
-  cacheManager.clear();
-  res.status(200).json({
-    success: true,
-    message: 'Cache cleared successfully'
-  });
-});
 
 /**
  * @swagger

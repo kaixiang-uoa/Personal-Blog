@@ -48,7 +48,7 @@ export function PostEditor({ content, onChange, placeholder = "Enter content her
   }, [])
 
   if (!isMounted) {
-    return <div className="border rounded-md p-4 min-h-[500px]">加载编辑器...</div>
+    return <div className="border rounded-md p-4 min-h-[500px]">Loading editor...</div>
   }
 
   if (!editor) {

@@ -10,20 +10,38 @@ import { transformLocalizedCategories } from '../utils/transformLocalizedCategor
  * @access  Public
  */
 export const getAllCategories = asyncHandler(async (req, res) => {
-  // Get language preference from query parameter or default to 'zh'
   let lang = 'en';
   if(req.query.lang){
     lang = Array.isArray(req.query.lang)? req.query.lang[0] : req.query.lang;
   }
-  
-  // Get all categories
+  const fullLang = req.query.fullLang === 'true';
   const categories = await Category.find().sort({ name: 1 });
-  // Transform categories based on language preference
+  if (fullLang) {
+    // return all language fields
+    return success(res, {
+      categories: categories.map(cat => ({
+        _id: cat._id,
+        name: cat.name,
+        name_en: cat.name_en,
+        name_zh: cat.name_zh,
+        slug: cat.slug,
+        description: cat.description,
+        description_en: cat.description_en,
+        description_zh: cat.description_zh,
+        parentCategory: cat.parent || null,
+        createdAt: cat.createdAt,
+        updatedAt: cat.updatedAt,
+        featuredImage: cat.featuredImage || '',
+        __v: cat.__v
+      })),
+      count: categories.length
+    });
+  }
+  // original logic
   const transformedCategories = transformLocalizedCategories(categories, lang);
-
-  return success(res, { 
+  return success(res, {
     categories: transformedCategories,
-    count: transformedCategories.length 
+    count: transformedCategories.length
   });
 });
 
@@ -33,18 +51,34 @@ export const getAllCategories = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getCategoryById = asyncHandler(async (req, res) => {
-  // Get language preference from query parameter or default to 'zh'
   const lang = req.query.lang || 'zh';
-  
+  const fullLang = req.query.fullLang === 'true';
   const category = await Category.findById(req.params.id);
-
   if (!category) {
     throw createError('Category not found', 404);
   }
-  
-  // Transform category based on language preference
+  if (fullLang) {
+    // return all language fields
+    return success(res, {
+      category: {
+        _id: category._id,
+        name: category.name,
+        name_en: category.name_en,
+        name_zh: category.name_zh,
+        slug: category.slug,
+        description: category.description,
+        description_en: category.description_en,
+        description_zh: category.description_zh,
+        parentCategory: category.parent || null,
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt,
+        featuredImage: category.featuredImage || '',
+        __v: category.__v
+      }
+    });
+  }
+  // original logic
   const transformed = transformLocalizedCategories([category], lang)[0];
-  
   return success(res, { category: transformed });
 });
 
@@ -54,18 +88,34 @@ export const getCategoryById = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getCategoryBySlug = asyncHandler(async (req, res) => {
-  // Get language preference from query parameter or default to 'zh'
   const lang = req.query.lang || 'zh';
-  
+  const fullLang = req.query.fullLang === 'true';
   const category = await Category.findOne({ slug: req.params.slug });
-
   if (!category) {
     throw createError('Category not found', 404);
   }
-  
-  // Transform category based on language preference
+  if (fullLang) {
+    // return all language fields
+    return success(res, {
+      category: {
+        _id: category._id,
+        name: category.name,
+        name_en: category.name_en,
+        name_zh: category.name_zh,
+        slug: category.slug,
+        description: category.description,
+        description_en: category.description_en,
+        description_zh: category.description_zh,
+        parentCategory: category.parent || null,
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt,
+        featuredImage: category.featuredImage || '',
+        __v: category.__v
+      }
+    });
+  }
+  // original logic
   const transformed = transformLocalizedCategories([category], lang)[0];
-
   return success(res, { category: transformed });
 });
 

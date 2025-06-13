@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/ui/use-toast"
 import AuthLayout from "@/components/layouts/auth-layout"
 import { Loader2, EyeIcon, EyeOffIcon } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { useTypedForm } from "@/types/form.types"
+import { useTypedForm } from "@/types/index"
 
 // Login form validation schema - keep UI field names unchanged
 const formSchema = z.object({
@@ -28,9 +28,10 @@ type FormValues = z.infer<typeof formSchema>
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { login } = useAuth() // 使用 AuthContext 的 login 方法
+  const { login } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
 
   // Use custom form hook to simplify type handling
   const form = useTypedForm(formSchema, {
@@ -43,26 +44,28 @@ export default function LoginPage() {
   const onSubmit = form.handleSubmit(async (values: FormValues) => {
     try {
       setIsLoading(true)
+      setApiError(null) //reset error state
       
-      // 使用 AuthContext 提供的 login 方法
-      await login({
-        email: values.email, 
-        password: values.password,
-        rememberMe: values.rememberMe
-      })
+      // call login method
+      await login(values.email, values.password);
+      
+      // if need to remember login state
+      if (values.rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+      }
 
-      // 登录成功提示
+      // login successful toast
       toast({
         title: "Login Successful",
         description: "Welcome back!",
       })
 
-      // 检查是否有保存的重定向目标
+      // check if there is a saved redirect target
       const redirectPath = typeof window !== 'undefined' 
         ? sessionStorage.getItem('redirectAfterLogin') 
         : null;
-        
-      // 重定向到保存的页面或默认到仪表板
+  
+      // redirect to saved page or default to dashboard
       if (redirectPath) {
         sessionStorage.removeItem('redirectAfterLogin');
         router.push(redirectPath);
@@ -70,18 +73,12 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (error: any) {
-      // 错误处理
-      let errorMessage = "用户名或密码不正确，请重试"
-      
-      // 处理特定错误
-      if (error.loginError && error.originalMessage) {
-        errorMessage = error.originalMessage
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message
-      }
+      // directly show API returned error message
+      const errorMessage = error.message || "Login failed, please try again";
+      setApiError(errorMessage);
       
       toast({
-        title: "登录失败",
+        title: "Login failed",
         description: errorMessage,
         variant: "destructive",
       })
@@ -103,6 +100,11 @@ export default function LoginPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={onSubmit} className="space-y-4">
+              {apiError && (
+                <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm mb-4">
+                  {apiError}
+                </div>
+              )}
               <FormField
                 control={form.control}
                 name="email"

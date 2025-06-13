@@ -6,8 +6,8 @@ import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import Sidebar from "@/components/navigation/sidebar"
 import Header from "@/components/navigation/header"
-import { useToast } from "@/hooks/use-toast"
-import { useMobile } from "@/hooks/use-mobile"
+import { useToast } from "@/hooks/ui/use-toast"
+import { useMobile } from "@/hooks/ui/use-mobile"
 
 interface MainLayoutProps {
   children: React.ReactNode

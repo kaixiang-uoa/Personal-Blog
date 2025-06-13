@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import MainLayout from "@/components/layouts/main-layout"
 import { ClientInitializer } from "@/components/client-initializer"
+import { Skeleton } from "@/components/ui/data-display/skeleton"
 
 export default function AdminLayout({
   children,
@@ -13,18 +14,32 @@ export default function AdminLayout({
 }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   
-  // Validate login status
+  // Validate login status only after loading is complete
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Only redirect if not authenticated AND loading is complete
+    if (!isAuthenticated && !loading) {
       // Remember the user's desired page, redirect back after login
       sessionStorage.setItem('redirectAfterLogin', pathname);
       router.replace("/login")
     }
-  }, [isAuthenticated, router, pathname])
+  }, [isAuthenticated, loading, router, pathname])
   
-  // If not authenticated, do not render content
+  // Show loading state while authentication is being checked
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <div className="space-y-4 w-[300px]">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+      </div>
+    )
+  }
+  
+  // If not authenticated and not loading, do not render content
   if (!isAuthenticated) {
     return null
   }

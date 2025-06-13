@@ -9,10 +9,21 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "cleanup": "bash scripts/cleanup.sh",
+    "deep-cleanup": "bash scripts/deep-cleanup.sh",
+    "final-cleanup": "bash scripts/final-cleanup.sh",
+    "components-cleanup": "bash scripts/components-cleanup.sh",
+    "fix-service-calls": "bash scripts/fix-service-calls.sh",
+    "fix-imports": "bash scripts/fix-imports.sh",
+    "final-fixes": "bash scripts/final-fixes.sh",
+    "fix-app-files": "bash scripts/fix-app-files.sh",
+    "fix-ui-imports": "bash scripts/fix-ui-imports.sh",
+    "cleanup-backups": "bash scripts/cleanup-backups.sh",
+    "verify-cleanup": "bash scripts/verify-cleanup.sh"
   },
   "dependencies": {
-    "@hookform/resolvers": "latest",
+    "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
     "@radix-ui/react-aspect-ratio": "1.1.1",
@@ -72,7 +83,7 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.6",
-    "zod": "latest"
+    "zod": "^3.25.63"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",

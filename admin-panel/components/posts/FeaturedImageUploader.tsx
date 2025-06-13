@@ -4,8 +4,8 @@ import { useState } from "react"
 import Image from "next/image"
 import { Upload, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { mediaService } from "@/lib/services"
+import { Button } from "@/components/ui/inputs/button"
+import { apiService } from "@/lib/api"
 
 interface FeaturedImageUploaderProps {
   value?: string
@@ -40,11 +40,11 @@ export function FeaturedImageUploader({ value, onChange, className }: FeaturedIm
       const formData = new FormData()
       formData.append('files', file)
       
-      const response = await mediaService.upload(formData)
+      const response = await apiService.uploadMedia(formData)
       if (response.data && response.data.media && response.data.media.length > 0) {
-        // 获取上传文件的URL并添加后端域名前缀
+        // get upload file url and add backend domain prefix
         const fileUrl = response.data.media[0].url
-        // 如果URL不是以http开头，添加完整的后端域名
+        // if url is not start with http, add full backend domain
         const fullUrl = fileUrl.startsWith('http') ? fileUrl : `http://localhost:3001${fileUrl}`
         onChange(fullUrl)
       }
@@ -60,7 +60,7 @@ export function FeaturedImageUploader({ value, onChange, className }: FeaturedIm
     onChange('')
   }
 
-  // 确保显示图片时也使用完整URL
+  // ensure image src is full url
   const getImageSrc = (src: string) => {
     if (!src) return ''
     return src.startsWith('http') ? src : `http://localhost:3001${src}`

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/inputs/button"
 import { Input } from "@/components/ui/inputs/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/data-display/card"
@@ -9,13 +9,11 @@ import { Badge } from "@/components/ui/data-display/badge"
 import { Skeleton } from "@/components/ui/data-display/skeleton"
 import { useToast } from "@/hooks/ui/use-toast"
 import { BookmarkPlus, Edit, PlusCircle, Search, Tag as TagIcon, Trash2 } from "lucide-react"
-import { categoryService } from "@/lib/services/category-service"
-import { tagService } from "@/lib/services/tag-service"
-import { Category } from "@/types/category.types"
-import type { Tag } from "@/types/tags.types"
-import { CategoryResponse, TagResponse } from "@/types/common.types"
-import { categoryFormSchema, tagFormSchema } from "@/lib/validation/form-validation"
+import { apiService } from "@/lib/api"
+import { Category, Tag, FormField } from "@/types"
 import { EntityFormDialog } from "@/components/posts/EntityFormDialog"
+import { categoryFormSchema, tagFormSchema } from "@/lib/validators/form-validation"
+import { slugify } from "@/lib/utils"
 
 export default function CategoriesPage() {
   const { toast } = useToast()
@@ -31,91 +29,59 @@ export default function CategoriesPage() {
   const [creatingCategory, setCreatingCategory] = useState(false)
   const [creatingTag, setCreatingTag] = useState(false)
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true)
-      const categoriesResponse = await categoryService.getAll()
-      const tagsResponse = await tagService.getAll()
-      if (categoriesResponse?.success && categoriesResponse.data) {
-        const categoryData = categoriesResponse.data as unknown as CategoryResponse
-        setCategories(categoryData.categories)
-      } else {
-        setCategories([])
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fix type assertion: data is an object containing categories/count or tags/count
+        const categoriesRes = await apiService.getCategories() as unknown as import("@/types").ApiResponse<{ categories: (Category & { postCount?: number })[], count: number }>;
+        const tagsRes = await apiService.getTags() as unknown as import("@/types").ApiResponse<{ tags: (Tag & { postCount?: number })[], count: number }>;
+        // Print the fetched data structure for debugging
+        if (categoriesRes.success && Array.isArray(categoriesRes.data?.categories)) {
+          setCategories(categoriesRes.data.categories)
+        }
+        if (tagsRes.success && Array.isArray(tagsRes.data?.tags)) {
+          setTags(tagsRes.data.tags)
+        }
+      } catch (error) {
+        console.error('Failed to fetch data:', error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch categories and tags",
+          variant: "destructive"
+        })
+      } finally {
+        setLoading(false)
       }
-      if (tagsResponse?.success && tagsResponse.data) {
-        const tagData = tagsResponse.data as unknown as TagResponse
-        setTags(tagData.tags)
-      } else {
-        setTags([])
-      }
-    } catch (error) {
-      console.error("Failed to fetch data", error)
-      toast({
-        title: "Failed to fetch data",
-        description: "Please check your network connection and try again",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
     }
+    fetchData()
   }, [toast])
 
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
-
-  // Filter categories and tags based on search
-  const filteredCategories = categories.filter(
-    (category) => {
-      if (!category) return false;
-      
-      let nameStr = '';
-      if (typeof category.name === 'string') {
-        nameStr = category.name;
-      } else if (category.name && typeof category.name === 'object') {
-        nameStr = (category.name as any).en || (category.name as any).zh || '';
-      }
-      
-      let descStr = '';
-      if (typeof category.description === 'string') {
-        descStr = category.description;
-      } else if (category.description && typeof category.description === 'object') {
-        descStr = (category.description as any).en || (category.description as any).zh || '';
-      }
-      
-      const query = searchQuery.toLowerCase();
-      return nameStr.toLowerCase().includes(query) || descStr.toLowerCase().includes(query);
-    }
+  // Filter categories based on search query
+  const filteredCategories = categories.filter(category => 
+    (category.name?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
+    (category.name_en?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
+    (category.name_zh?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
+    (category.slug?.toLowerCase() ?? '').includes(searchQuery.toLowerCase())
   )
 
-  const filteredTags = tags.filter(
-    (tag) => {
-      if (!tag) return false;
-      
-      let nameStr = '';
-      if (typeof tag.name === 'string') {
-        nameStr = tag.name;
-      } else if (tag.name && typeof tag.name === 'object') {
-        nameStr = tag.name.en || tag.name.zh || '';
-      }
-      
-      const query = searchQuery.toLowerCase();
-      return nameStr.toLowerCase().includes(query);
-    }
+  // Filter tags based on search query
+  const filteredTags = tags.filter(tag =>
+    (tag.name?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
+    (tag.name_en?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
+    (tag.name_zh?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
+    (tag.slug?.toLowerCase() ?? '').includes(searchQuery.toLowerCase())
   )
 
-  // Helper function: Display category/tag name 
-  const displayName = (item: any): string => {
-    if (!item) return '';
-    if (typeof item.name === 'string') return item.name;
-    return (item.name as any)?.en || (item.name as any)?.zh || '';
+  // Display name logic
+  const displayName = (item: Category | Tag) => {
+    if (!item) return ''
+    return item.name_en || item.name || item.name_zh || ''
   }
 
-  // Helper function: Display description
-  const displayDescription = (item: any): string => {
-    if (!item) return '';
-    if (typeof item.description === 'string') return item.description;
-    return (item.description as any)?.en || (item.description as any)?.zh || '';
+  // Display description logic
+  const displayDescription = (item: Category) => {
+    if (!item) return ''
+    return item.description || ''
   }
 
   // Open new category dialog
@@ -131,7 +97,7 @@ export default function CategoriesPage() {
   }
 
   // Category form fields
-  const categoryFields = [
+  const categoryFields: FormField[] = [
     { 
       name: "name", 
       label: "Category Name", 
@@ -152,48 +118,60 @@ export default function CategoriesPage() {
       isI18n: true,
       placeholder: "Brief description of this category" 
     }
-  ];
+  ]
 
   // Handle category form submission
   const handleCategorySubmit = async (values: any) => {
     try {
-      setCreatingCategory(true);
-      
-      // Convert form data to the format expected by the API
-      const apiData = {
-        name: values.name.en,
-        name_zh: values.name.zh,
-        name_en: values.name.en,
-        slug: values.slug,
-        description: values.description?.en || "",
-        description_zh: values.description?.zh || "",
-        description_en: values.description?.en || "",
-      };
-      
-      if (editingCategory) {
-        await categoryService.update(editingCategory._id, apiData)
-        toast({
-          title: "Updated successfully",
-          description: `Category "${values.name.en}" has been updated`,
-        })
-      } else {
-        await categoryService.create(apiData)
-        toast({
-          title: "Created successfully",
-          description: `Category "${values.name.en}" has been created`,
-        })
+      setCreatingCategory(true)
+      // Auto-generate slug if not provided, use the first language's name as the slug
+      if (!values.slug && values.name) {
+        values.slug = slugify(values.name.en || values.name.zh || '')
       }
-      await fetchData()
+      // Convert form values to backend schema
+      const payload = {
+        name: values.name.en, // main field as string
+        name_en: values.name.en,
+        name_zh: values.name.zh,
+        slug: values.slug,
+        description: values.description?.zh || '',
+        description_en: values.description?.en || '',
+        description_zh: values.description?.zh || '',
+        // Add other fields if needed
+      }
+      if (editingCategory) {
+        const response = await apiService.updateCategory(editingCategory._id, payload) as unknown as import("@/types").ApiResponse<Category & { postCount?: number }>
+        console.log("response", response)
+        if (response.success) {
+          setCategories(categories.map(cat => 
+            cat._id === editingCategory._id ? { ...cat, ...payload } : cat
+          ))
+          toast({
+            title: "Success",
+            description: "Category updated successfully"
+          })
+        }
+      } else {
+        const response = await apiService.createCategory(payload) as unknown as import("@/types").ApiResponse<Category & { postCount?: number }>
+        if (response.success && response.data) {
+          const newCategory = (response.data as any).category ? (response.data as any).category : response.data;
+          setCategories([...categories, newCategory])
+          toast({
+            title: "Success",
+            description: "Category created successfully"
+          })
+        }
+      }
       setCategoryDialogOpen(false)
     } catch (error) {
-      console.error("Failed to save category", error)
+      console.error('Failed to save category:', error)
       toast({
-        title: "Save failed",
-        description: "Unable to save the category, please try again",
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to save category",
+        variant: "destructive"
       })
     } finally {
-      setCreatingCategory(false);
+      setCreatingCategory(false)
     }
   }
 
@@ -210,7 +188,7 @@ export default function CategoriesPage() {
   }
 
   // Tag form fields
-  const tagFields = [
+  const tagFields: FormField[] = [
     { 
       name: "name", 
       label: "Tag Name", 
@@ -224,85 +202,151 @@ export default function CategoriesPage() {
       type: "text" as const,
       placeholder: "Enter tag slug" 
     }
-  ];
+  ]
 
   // Handle tag form submission
   const handleTagSubmit = async (values: any) => {
     try {
-      setCreatingTag(true);
-      
-      // 将表单数据转换为API期望的格式
-      const apiData = {
-        name: values.name.en,
-        name_zh: values.name.zh,
-        name_en: values.name.en,
-        slug: values.slug,
-      };
-      
-      if (editingTag) {
-        await tagService.update(editingTag._id, apiData)
-        toast({
-          title: "Updated successfully",
-          description: `Tag "${values.name.en}" has been updated`,
-        })
-      } else {
-        await tagService.create(apiData)
-        toast({
-          title: "Created successfully",
-          description: `Tag "${values.name.en}" has been created`,
-        })
+      setCreatingTag(true)
+      // Auto-generate slug if not provided, use the first language's name as the slug
+      if (!values.slug && values.name) {
+        values.slug = slugify(values.name.en || values.name.zh || '')
       }
-      await fetchData()
+      // Convert form values to backend schema
+      const payload = {
+        name: values.name.en, // main field as string
+        name_en: values.name.en,
+        name_zh: values.name.zh,
+        slug: values.slug,
+        description: values.description?.zh || '',
+        description_en: values.description?.en || '',
+        description_zh: values.description?.zh || '',
+      }
+      if (editingTag) {
+        const response = await apiService.updateTag(editingTag._id, payload) as unknown as import("@/types").ApiResponse<Tag & { postCount?: number }>
+        if (response.success) {
+          setTags(tags.map(tag => 
+            tag._id === editingTag._id ? { ...tag, ...payload } : tag
+          ))
+          toast({
+            title: "Success",
+            description: "Tag updated successfully"
+          })
+        }
+      } else {
+        const response = await apiService.createTag(payload) as unknown as import("@/types").ApiResponse<Tag & { postCount?: number }>
+        if (response.success && response.data) {
+          const newTag = (response.data as any).tag ? (response.data as any).tag : response.data;
+          setTags([...tags, newTag])
+          toast({
+            title: "Success",
+            description: "Tag created successfully"
+          })
+        }
+      }
       setTagDialogOpen(false)
     } catch (error) {
-      console.error("Failed to save tag", error)
+      console.error('Failed to save tag:', error)
       toast({
-        title: "Save failed",
-        description: "Unable to save the tag, please try again",
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to save tag",
+        variant: "destructive"
       })
     } finally {
-      setCreatingTag(false);
+      setCreatingTag(false)
     }
   }
 
-  // Handle category deletion
+  // Delete category
   const handleDeleteCategory = async (category: Category) => {
+    if (!confirm(`Are you sure you want to delete the category "${displayName(category)}"?`)) {
+      return
+    }
+    
     try {
-      await categoryService.delete(category._id)
-      toast({
-        title: "Deleted successfully",
-        description: `Category "${displayName(category)}" has been deleted`,
-      })
-      await fetchData()
+      const response = await apiService.deleteCategory(category._id) as unknown as import("@/types").ApiResponse<null>
+      if (response.success) {
+        setCategories(categories.filter(cat => cat._id !== category._id))
+        toast({
+          title: "Success",
+          description: "Category deleted successfully"
+        })
+      }
     } catch (error) {
-      console.error("Failed to delete category", error)
+      console.error('Failed to delete category:', error)
       toast({
-        title: "Delete failed",
-        description: "Unable to delete the category, please try again",
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive"
       })
     }
   }
 
-  // Handle tag deletion
   const handleDeleteTag = async (tag: Tag) => {
+    if (!confirm(`Are you sure you want to delete the tag "${displayName(tag)}"?`)) {
+      return
+    }
+    
     try {
-      await tagService.delete(tag._id)
-      toast({
-        title: "Deleted successfully",
-        description: `Tag "${displayName(tag)}" has been deleted`,
-      })
-      await fetchData()
+      const response = await apiService.deleteTag(tag._id) as unknown as import("@/types").ApiResponse<null>
+      if (response.success) {
+        setTags(tags.filter(t => t._id !== tag._id))
+        toast({
+          title: "Success",
+          description: "Tag deleted successfully"
+        })
+      }
     } catch (error) {
-      console.error("Failed to delete tag", error)
+      console.error('Failed to delete tag:', error)
       toast({
-        title: "Delete failed",
-        description: "Unable to delete the tag, please try again",
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete tag",
+        variant: "destructive"
       })
     }
   }
+
+  // The postCount field exists in mock data but not in types/Category. Use intersection type here; consider updating type definitions later.
+  const getPostCount = (item: Category & { postCount?: number }) => item.postCount ?? 0
+
+  // Tool function: convert Category to form defaultValues structure
+  const getCategoryDefaultValues = (category: Category | null) => {
+    if (!category) {
+      return {
+        name: { zh: "", en: "" },
+        slug: "",
+        description: { zh: "", en: "" }
+      };
+    }
+    return {
+      name: {
+        zh: category.name_zh || "",
+        en: category.name_en || ""
+      },
+      slug: category.slug || "",
+      description: {
+        zh: (category as any).description_zh || category.description || "",
+        en: (category as any).description_en || category.description || ""
+      }
+    };
+  };
+
+  // Tool function: convert Tag to form defaultValues structure
+  const getTagDefaultValues = (tag: Tag | null) => {
+    if (!tag) {
+      return {
+        name: { zh: "", en: "" },
+        slug: ""
+      };
+    }
+    return {
+      name: {
+        zh: (tag as any).name_zh || tag.name || "",
+        en: (tag as any).name_en || tag.name || ""
+      },
+      slug: tag.slug || ""
+    };
+  };
 
   return (
     <div className="space-y-6">
@@ -321,7 +365,7 @@ export default function CategoriesPage() {
       </div>
 
       <div className="flex flex-col gap-4">
-        {/* 搜索框独立一行 */}
+        {/* Search bar */}
         <div className="w-full relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -333,7 +377,7 @@ export default function CategoriesPage() {
           />
         </div>
         
-        {/* 标签页独立一行 */}
+        {/* Tabs for categories and tags */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
             <TabsTrigger value="categories">Categories</TabsTrigger>
@@ -358,7 +402,7 @@ export default function CategoriesPage() {
                 ))
               ) : filteredCategories.length > 0 ? (
                 filteredCategories.map((category) => (
-                  <Card key={category._id || `category-fallback-${Math.random().toString(36).substr(2, 9)}`} className="flex flex-col">
+                  <Card key={category._id} className="flex flex-col">
                     <CardHeader className="pb-2 flex-shrink-0">
                       <CardTitle className="text-xl flex items-center justify-between">
                         {displayName(category)}
@@ -376,7 +420,7 @@ export default function CategoriesPage() {
                       <CardDescription>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground">/{category.slug}</span>
-                          <Badge variant="outline">{category.postCount} posts</Badge>
+                          <Badge variant="outline">{getPostCount(category)} posts</Badge>
                         </div>
                       </CardDescription>
                     </CardHeader>
@@ -414,7 +458,7 @@ export default function CategoriesPage() {
                 ))
               ) : filteredTags.length > 0 ? (
                 filteredTags.map((tag) => (
-                  <Card key={tag._id || `tag-${tag.slug}-${Math.random().toString(36).substr(2, 9)}`} className="h-[120px]">
+                  <Card key={tag._id} className="h-[120px]">
                     <CardHeader className="p-4">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{displayName(tag)}</CardTitle>
@@ -439,7 +483,7 @@ export default function CategoriesPage() {
                     <CardContent className="p-4 pt-0">
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary">{tag.slug}</Badge>
-                        <Badge variant="outline">{tag.postCount || 0} posts</Badge>
+                        <Badge variant="outline">{getPostCount(tag)} posts</Badge>
                       </div>
                     </CardContent>
                   </Card>
@@ -460,54 +504,32 @@ export default function CategoriesPage() {
         </Tabs>
       </div>
 
-      {/* Category Form Dialog */}
+      {/* Category form dialog */}
       <EntityFormDialog
         open={categoryDialogOpen}
         onOpenChange={setCategoryDialogOpen}
         title={editingCategory ? "Edit Category" : "New Category"}
-        description={editingCategory
-          ? "Modify category information. Changes will immediately update all associated posts."
-          : "Create a new post category. Categories are used for basic classification of posts."}
-        defaultValues={editingCategory 
-          ? {
-              name: editingCategory.name,
-              slug: editingCategory.slug,
-              description: editingCategory.description
-            }
-          : {
-              name: { zh: "", en: "" },
-              slug: "",
-              description: { zh: "", en: "" }
-            }}
+        description={editingCategory ? "Update category details" : "Create a new category"}
+        defaultValues={getCategoryDefaultValues(editingCategory)}
         schema={categoryFormSchema}
         onSubmit={handleCategorySubmit}
         fields={categoryFields}
         loading={creatingCategory}
-        submitText={editingCategory ? "Save Changes" : "Create Category"}
+        submitText={editingCategory ? "Update" : "Create"}
       />
-
-      {/* Tag Form Dialog */}
+      
+      {/* Tag form dialog */}
       <EntityFormDialog
         open={tagDialogOpen}
         onOpenChange={setTagDialogOpen}
         title={editingTag ? "Edit Tag" : "New Tag"}
-        description={editingTag
-          ? "Modify tag information. Changes will immediately update all associated posts."
-          : "Create a new post tag. Tags allow for more granular post classification."}
-        defaultValues={editingTag
-          ? {
-              name: editingTag.name,
-              slug: editingTag.slug
-            }
-          : {
-              name: { zh: "", en: "" },
-              slug: ""
-            }}
+        description={editingTag ? "Update tag details" : "Create a new tag"}
+        defaultValues={getTagDefaultValues(editingTag)}
         schema={tagFormSchema}
         onSubmit={handleTagSubmit}
         fields={tagFields}
         loading={creatingTag}
-        submitText={editingTag ? "Save Changes" : "Create Tag"}
+        submitText={editingTag ? "Update" : "Create"}
       />
     </div>
   )

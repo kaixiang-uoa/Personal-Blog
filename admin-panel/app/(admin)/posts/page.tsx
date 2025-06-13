@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ChevronDown, ChevronUp, Filter, MoreHorizontal, PlusCircle, Search } from "lucide-react"
 import { Button } from "@/components/ui/inputs/button"
@@ -28,62 +27,59 @@ import {
 } from "@/components/ui/feedback/alert-dialog"
 import { Skeleton } from "@/components/ui/data-display/skeleton"
 import { useToast } from "@/hooks/ui/use-toast"
-import { postService } from "@/lib/services/post-service"
-import { categoryService } from "@/lib/services/category-service"
-import { DashboardData, DashboardStats, PostResponse, CategoryResponse } from "@/types/common.types"
-import { ApiPost, Post, PostStatus } from "@/types/post.types"
+import { apiService } from "@/lib/api"
+import { Post, PostStatus, PostQueryParams } from "@/types/posts"
 
 export default function PostsPage() {
   const { toast } = useToast()
-  const [posts, setPosts] = useState<ApiPost[]>([])
+  const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [sortField, setSortField] = useState<keyof ApiPost>("createdAt")
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
+  const [statusFilter, setStatusFilter] = useState<PostStatus>(PostStatus.ALL)
+  const [sortField, setSortField] = useState("createdAt")
+  const [sortDirection, setSortDirection] = useState("desc")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [postToDelete, setPostToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchPosts() {
+      setLoading(true);
       try {
-        setLoading(true)
-        
-        const params: any = { 
-          limit: 20, 
-          sort: 'createdAt:desc',
-          lang: 'en'
+        const queryParams: PostQueryParams = {
+          allStatus: statusFilter === PostStatus.ALL,
+          ...(statusFilter !== PostStatus.ALL && { status: statusFilter }),
         };
-        
-        if (statusFilter === "all") {
-          params.allStatus = 'true';
-        } else {
-          params.status = statusFilter;
+
+        const response = await apiService.getPosts(queryParams);
+        if (!response?.data?.posts) {
+          console.warn('No posts data received from API');
+          setPosts([]);
+          return;
         }
-        
-        const response = await postService.getAll(params);
-       
-        const apiPosts = response.data as unknown as ApiPost[];
-        // Ensure data is an array and each element has the necessary properties
-        const validPosts = Array.isArray(apiPosts) ? apiPosts.filter(post => post && typeof post === 'object') : [];
-        setPosts(validPosts || []);
+
+        const postsArray = Array.isArray(response.data.posts) 
+          ? response.data.posts 
+          : [];
+
+        setPosts(postsArray);
       } catch (error) {
-        console.error("Failed to fetch posts", error);
+        console.error('Failed to fetch posts:', error);
         toast({
-          title: "Failed to fetch posts",
-          description: "Please check your network connection and try again",
-          variant: "destructive",
+          title: "Error",
+          description: "Failed to load posts",
+          variant: "destructive"
         });
+        setPosts([]);
       } finally {
         setLoading(false);
       }
     }
 
     fetchPosts();
-  }, [toast, statusFilter]);
+  }, [statusFilter]);
 
-  // Handle sorting
-  const handleSort = (field: keyof ApiPost) => {
+  // handle sort
+  const handleSort = (field: string) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc")
     } else {
@@ -92,86 +88,90 @@ export default function PostsPage() {
     }
   }
 
-  // Filter and sort posts
+  // filtered and sorted posts
   const filteredAndSortedPosts = posts
-    .filter((post) => {
-      // Status filter
-      if (statusFilter !== "all" && post.status !== statusFilter) {
-        return false
-      }
-
-      // Search filter
+    .filter(post => {
+      // search filter
       if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        return (
-          post.title.toLowerCase().includes(searchLower) ||
-          post.excerpt.toLowerCase().includes(searchLower) ||
-          post.categories?.some((category: { name: string; slug: string }) => 
-            typeof category === 'object' && category !== null
-              ? (typeof category.name === 'string' 
-                  ? category.name.toLowerCase().includes(searchLower)
-                  : false)
-              : false
-          ) ||
-          post.tags?.some((tag: { name: string; slug: string }) => 
-            typeof tag === 'object' && tag !== null
-              ? (typeof tag.name === 'string'
-                  ? tag.name.toLowerCase().includes(searchLower)
-                  : false)
-              : false
-          )
-        )
+        const query = searchQuery.toLowerCase();
+        const title = post.title?.toLowerCase() || '';
+        const excerpt = post.excerpt?.toLowerCase() || '';
+        // search in title and excerpt
+        if (title.includes(query) || excerpt.includes(query)) {
+          return true;
+        }
+        
+        // search in category
+        const categoryMatch = Array.isArray(post.categories) && post.categories.some(
+          cat => typeof cat === 'object' && cat?.name?.toLowerCase().includes(query)
+        );
+        
+        // search in tag
+        const tagMatch = Array.isArray(post.tags) && post.tags.some(
+          tag => typeof tag === 'object' && tag?.name?.toLowerCase().includes(query)
+        );
+        
+        return categoryMatch || tagMatch;
       }
-
-      return true
+      return true;
     })
     .sort((a, b) => {
-      // Handle empty values
-      if (!a[sortField] && !b[sortField]) return 0
-      if (!a[sortField]) return 1
-      if (!b[sortField]) return -1
-
-      // Sorting logic
-      if (typeof a[sortField] === "number" && typeof b[sortField] === "number") {
-        return sortDirection === "asc"
-          ? (a[sortField] as number) - (b[sortField] as number)
-          : (b[sortField] as number) - (a[sortField] as number)
+      if (sortField === 'title') {
+        return sortDirection === 'asc' 
+          ? (a.title || '').localeCompare(b.title || '')
+          : (b.title || '').localeCompare(a.title || '');
       }
+      
+      if (sortField === 'status') {
+        return sortDirection === 'asc'
+          ? (a.status || '').localeCompare(b.status || '')
+          : (b.status || '').localeCompare(a.status || '');
+      }
+      
+      if (sortField === 'publishDate') {
+        const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+      
+      if (sortField === 'viewCount') {
+        const viewsA = a.viewCount || 0;
+        const viewsB = b.viewCount || 0;
+        return sortDirection === 'asc' ? viewsA - viewsB : viewsB - viewsA;
+      }
+      
+      // default sort by createdAt
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+    });
 
-      // String sorting
-      return sortDirection === "asc"
-        ? String(a[sortField]).localeCompare(String(b[sortField]))
-        : String(b[sortField]).localeCompare(String(a[sortField]))
-    })
-
-  // Handle post deletion
+  // handle delete post
   const handleDeleteConfirm = async () => {
-    if (!postToDelete) return
-
+    if (!postToDelete) return;
+    
     try {
-      await postService.delete(postToDelete)
-
-      // Update local state
-      setPosts(posts.filter((post) => post._id !== postToDelete))
-
+      await apiService.deletePost(postToDelete);
+      console.log(postToDelete)
+      setPosts(posts.filter(post => post._id !== postToDelete));
       toast({
-        title: "Deleted successfully",
-        description: "The post has been deleted",
-      })
+        title: "Success",
+        description: "Post deleted successfully",
+      });
     } catch (error) {
-      console.error("Failed to delete post", error)
+      console.error('Failed to delete post:', error);
       toast({
-        title: "Delete failed",
-        description: "Failed to delete the post, please try again",
-        variant: "destructive",
-      })
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive"
+      });
     } finally {
-      setPostToDelete(null)
-      setDeleteDialogOpen(false)
+      setPostToDelete(null);
+      setDeleteDialogOpen(false);
     }
   }
 
-  // Trigger delete dialog
+  // trigger delete dialog
   const handleDeleteClick = (post_id: string) => {
     setPostToDelete(post_id)
     setDeleteDialogOpen(true)
@@ -189,7 +189,7 @@ export default function PostsPage() {
         </Button>
       </div>
 
-      {/* Filter and search */}
+      {/* filter and search */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -198,25 +198,29 @@ export default function PostsPage() {
             placeholder="Search by title, excerpt, category or tag..."
             className="w-full pl-8"
             value={searchQuery}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select 
+            value={statusFilter} 
+            onValueChange={(value: string) => setStatusFilter(value as PostStatus)}
+            defaultValue={PostStatus.ALL}
+          >
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value={PostStatus.ALL}>All Statuses</SelectItem>
+              <SelectItem value={PostStatus.PUBLISHED}>Published</SelectItem>
+              <SelectItem value={PostStatus.DRAFT}>Draft</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      {/* Posts table */}
+      {/* posts table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -259,7 +263,7 @@ export default function PostsPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              // Loading state
+              // loading state
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={`post-skeleton-row-${index}`}>
                   <TableCell>
@@ -281,7 +285,7 @@ export default function PostsPage() {
                 </TableRow>
               ))
             ) : filteredAndSortedPosts.length > 0 ? (
-              // Posts list
+              // posts list
               filteredAndSortedPosts.map((post, postIndex) => (
                 <TableRow key={post._id || `post-row-${postIndex}`}>
                   <TableCell>
@@ -295,20 +299,14 @@ export default function PostsPage() {
                       {/* category */}
                       {Array.isArray(post.categories) && post.categories.length > 0 ? (
                         <div className="flex flex-wrap gap-1 mb-1">
-                          {post.categories.map((category: { _id: string, name: string, slug: string }) => {
-                            const categoryName = typeof category === 'object' && category !== null
-                              ? category.name || category.slug
-                              : String(category);
-                              
-                            return (
-                              <Badge 
-                                key={`${post._id}-cat-${category._id || category.slug}`}
-                                variant="outline"
-                              >
-                                {categoryName}
-                              </Badge>
-                            );
-                          })}
+                          {post.categories.map((category, catIndex) => (
+                            <Badge 
+                              key={`${post._id}-cat-${catIndex}`}
+                              variant="outline"
+                            >
+                              {typeof category === 'object' ? category.name || category.slug || "Category" : "Category"}
+                            </Badge>
+                          ))}
                         </div>
                       ) : (
                         <Badge variant="outline">Uncategorized</Badge>
@@ -316,21 +314,15 @@ export default function PostsPage() {
                       {/* tags */}
                       <div className="flex flex-wrap gap-1">
                         {Array.isArray(post.tags) && post.tags.length > 0 ? (
-                          post.tags.map((tag: { _id: string, name: string, slug: string }) => {
-                            const tagName = typeof tag === 'object' && tag !== null
-                              ? tag.name || tag.slug
-                              : String(tag);
-                              
-                            return (
-                              <Badge 
-                                key={`${post._id}-tag-${tag._id || tag.slug}`}
-                                variant="secondary"
-                                className="text-xs"
-                              >
-                                {tagName}
-                              </Badge>
-                            );
-                          })
+                          post.tags.map((tag, tagIndex) => (
+                            <Badge 
+                              key={`${post._id}-tag-${tagIndex}`}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {typeof tag === 'object' ? tag.name || tag.slug || "Tag" : "Tag"}
+                            </Badge>
+                          ))
                         ) : (
                           <Badge variant="secondary" className="text-xs">No tags</Badge>
                         )}
@@ -367,8 +359,8 @@ export default function PostsPage() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
                           onClick={() => handleDeleteClick(post._id)}
+                          className="text-destructive"
                         >
                           Delete
                         </DropdownMenuItem>
@@ -378,10 +370,10 @@ export default function PostsPage() {
                 </TableRow>
               ))
             ) : (
-              // No results
-              <TableRow key="no-results-row">
-                <TableCell colSpan={6} className="h-24 text-center">
-                  No posts found matching your criteria
+              // empty state
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6">
+                  No posts found. Try adjusting your search or filter.
                 </TableCell>
               </TableRow>
             )}
@@ -389,19 +381,18 @@ export default function PostsPage() {
         </Table>
       </div>
 
-      {/* Delete confirmation dialog */}
+      {/* delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-            <AlertDialogDescription>This action will permanently delete this post and cannot be undone. Are you sure?</AlertDialogDescription>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this post from our servers.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

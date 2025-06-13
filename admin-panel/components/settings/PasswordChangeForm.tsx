@@ -6,13 +6,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, EyeIcon, EyeOffIcon } from "lucide-react"
 import { z } from "zod"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { passwordChangeSchema } from "@/lib/validation/security-schemas"
-import { toast } from "@/hooks/use-toast"
-import { userService } from "@/lib/services/user-service"
+import { Button } from "@/components/ui/inputs/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/data-display/card"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
+import { Input } from "@/components/ui/inputs/input"
+import { passwordChangeSchema } from "@/lib/validators/security-schemas"
+import { toast } from "@/hooks/ui/use-toast"
+import { apiService } from "@/lib/api"
 
 export default function PasswordChangeForm() {
   const [isSaving, setIsSaving] = useState(false)
@@ -20,7 +20,7 @@ export default function PasswordChangeForm() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
-  // 创建表单实例
+  // create form instance
   const form = useForm<z.infer<typeof passwordChangeSchema>>({
     resolver: zodResolver(passwordChangeSchema),
     defaultValues: {
@@ -30,21 +30,21 @@ export default function PasswordChangeForm() {
     }
   })
 
-  // 处理表单提交
+  // handle form submit
   const onSubmit = async (values: z.infer<typeof passwordChangeSchema>) => {
     try {
       setIsSaving(true)
       
-      // 调用修改密码API
-      await userService.updatePassword({
+      // call change password api
+      await apiService.put("/users/profile", {
         currentPassword: values.currentPassword,
         newPassword: values.newPassword
       });
       
-      // 重置表单
+      // reset form
       form.reset()
       
-      // 显示成功消息
+      // show success message
       toast({
         title: "Password Changed",
         description: "Your password has been updated successfully",

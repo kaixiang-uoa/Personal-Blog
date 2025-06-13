@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { Bell, Menu, Search, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Menu, Search, User } from "lucide-react"
+import { Button } from "@/components/ui/inputs/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import {
   DropdownMenu,
@@ -11,11 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { authService } from "@/lib/services/auth-service"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/navigation/dropdown-menu"
+import { Input } from "@/components/ui/inputs/input"
+import { apiService } from "@/lib/api"
+import { useToast } from "@/hooks/ui/use-toast"
 
 interface HeaderProps {
   sidebarOpen: boolean
@@ -47,24 +46,24 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
 
   const handleLogout = async () => {
     try {
-      await authService.logout()
+      await apiService.logout()
       toast({
-        title: "登出成功",
-        description: "您已成功退出登录",
+        title: "Logout Success",
+        description: "You have successfully logged out",
       })
       
-      // 清除可能存在的重定向路径
+      // clearing redirect after login
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('redirectAfterLogin');
       }
       
-      // 使用 replace 而非 push，防止用户通过后退按钮返回已登录状态
+      // using replace instead of push to prevent user from going back to login state
       router.replace("/login")
     } catch (error) {
-      console.error("登出失败:", error)
+      console.error("Logout failed:", error)
       toast({
-        title: "登出失败",
-        description: "退出登录时发生错误，请重试",
+        title: "Logout failed",
+        description: "Error occurred while logging out, please try again",
         variant: "destructive",
       })
     }
@@ -85,12 +84,6 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center">3</Badge>
-          <span className="sr-only">Notifications</span>
-        </Button>
-
         <ThemeToggle />
 
         <DropdownMenu>

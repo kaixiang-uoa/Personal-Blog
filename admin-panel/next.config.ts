@@ -13,13 +13,21 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: 'localhost',
         port: '3001',
-        pathname: '/uploads/**',
+        pathname: '/api/v1/uploads/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '/uploads/**',
+      }
     ],
     // Improve image loading performance
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
     minimumCacheTTL: 60,
+    // 允许未优化的图片
+    unoptimized: process.env.NODE_ENV === 'development',
   },
 
   // Enable React strict mode to help find potential issues

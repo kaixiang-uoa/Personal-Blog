@@ -3,12 +3,12 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/inputs/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { X, LayoutDashboard, FileText, BookmarkPlus, ImageIcon, Settings, LogOut } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
-import { authService } from "@/lib/services/auth-service"
-import { useToast } from "@/hooks/use-toast"
+import { apiService } from "@/lib/api"
+import { useToast } from "@/hooks/ui/use-toast"
 
 interface SidebarProps {
   open: boolean
@@ -51,7 +51,7 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
 
   const handleLogout = async () => {
     try {
-      await authService.logout()
+      await apiService.logout()
       toast({
         title: "登出成功",
         description: "您已成功退出登录",

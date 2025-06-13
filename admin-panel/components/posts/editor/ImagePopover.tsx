@@ -1,12 +1,12 @@
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/inputs/button"
+import { Input } from "@/components/ui/inputs/input"
+import { Label } from "@/components/ui/inputs/label"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/feedback/popover"
 import { Image as ImageIcon } from "lucide-react"
 
 interface ImagePopoverProps {

@@ -1,202 +1,129 @@
-"use client"
+'use client';
 
-/**
- * Authentication Context - Provides app-wide user authentication state management
- */
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { authService } from '@/lib/services/auth-service';
-import { TokenManager } from '@/lib/services/token-manager';
-import type { UserInfo } from '@/types/auth.types';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { apiService } from '@/lib/api';
+import { User } from '@/types';
+import { AuthContextType, AuthResponse } from '@/types/auth';
 
+// Create the context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Token refresh interval (milliseconds)
-const TOKEN_REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+// auth provider component
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-// Authentication context type
-interface AuthContextType {
-  isAuthenticated: boolean;
-  user: UserInfo | null;
-  login: (credentials: { email: string; password: string; rememberMe: boolean }) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
-  isLoading: boolean; // Loading state
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
-
-/**
- * Authentication Provider Component - Manages authentication state and provides auth methods
- */
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<UserInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Token refresh function
-  const refreshAuth = useCallback(async () => {
-    if (!isAuthenticated) return;
-    
-    // Refresh token if it's about to expire
-    if (TokenManager.isTokenExpiredOrExpiring() && TokenManager.hasRefreshToken()) {
-      console.log('Token is expiring soon, refreshing...');
-      const success = await authService.refreshToken();
-      
-      if (success) {
-        // Refresh successful, update user data
-        const userData = TokenManager.getUserData();
-        if (userData) {
-          setUser(userData);
+  // check if already logged in
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setLoading(false);
+          return;
         }
-      } else {
-        // Refresh failed, log out user
-        console.warn('Token refresh failed, logging out user');
-        handleAuthFailure();
+
+        // verify token validity
+        const response = await apiService.get<User>('/auth/me');
+        
+        if (response && response.success && response.data) {
+          // API returns user data in response.data, no need to access .user
+          setUser(response.data);
+        } else {
+          // token invalid, clear local storage
+          localStorage.removeItem('token');
+        }
+      } catch (error) {
+        localStorage.removeItem('token');
+      } finally {
+        setLoading(false);
       }
     }
-  }, [isAuthenticated]);
 
-  // Initialize: Check authentication status on load
-  useEffect(() => {
-    const token = TokenManager.getToken();
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-    
-    // Check if token is expired
-    if (TokenManager.isTokenExpiredOrExpiring()) {
-      // Try to use refresh token
-      if (TokenManager.hasRefreshToken()) {
-        refreshAuth().finally(() => setIsLoading(false));
-      } else {
-        // No refresh token, force logout
-        handleAuthFailure();
-        setIsLoading(false);
-      }
-    } else {
-      // Token is valid, check user info
-      checkAuth();
-    }
-  }, [refreshAuth]);
+    checkAuth();
+  }, []);
 
-  // Set up periodic token refresh
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    
-    // Refresh token periodically
-    const refreshInterval = setInterval(refreshAuth, TOKEN_REFRESH_INTERVAL);
-    
-    return () => {
-      clearInterval(refreshInterval);
-    };
-  }, [isAuthenticated, refreshAuth]);
-
-  // Validate if the current token is valid
-  const checkAuth = async () => {
+  // login method
+  const login = async (email: string, password: string): Promise<AuthResponse | undefined> => {
     try {
-      // Get current user info
-      const userData = await authService.getCurrentUserInfo();
-      if (userData && userData.success && userData.data) {
-        setIsAuthenticated(true);
-        setUser(userData.data);
-      } else {
-        handleAuthFailure();
-      }
-    } catch (error) {
-      console.error('Authentication check failed:', error);
-      handleAuthFailure();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle authentication failure
-  const handleAuthFailure = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-    TokenManager.clearAllAuthData();
-    
-    // Only redirect on non-login pages
-    if (typeof window !== 'undefined' && 
-        !window.location.pathname.includes('/login') && 
-        !window.location.pathname.includes('/register') && 
-        !window.location.pathname.includes('/forgot-password')) {
-      window.location.href = '/login';
-    }
-  };
-
-  // Login method
-  const login = async (credentials: { email: string; password: string; rememberMe: boolean }) => {
-    try {
-      const response = await authService.login(credentials);
-      if (response.success && response.token) {
-        // Save authentication information
-        setIsAuthenticated(true);
-        setUser(response.user as UserInfo);
-        // TokenManager handles token storage in authService
-        return;
-      }
+      setLoading(true);
       
-      // Login failed but no exception was thrown
-      setIsAuthenticated(false);
-      setUser(null);
-    } catch (error) {
-      setIsAuthenticated(false);
-      setUser(null);
+      try {
+        // use apiService's login method, convert return result to any to access properties
+        const responseData = (await apiService.login({ email, password })) as any;
+        
+        // if success, save token and user info
+        if (responseData && responseData.success) {
+          // get token and user info from response
+          const { token, user, refreshToken } = responseData;
+          
+          // save token to local storage
+          localStorage.setItem('token', token);
+          
+          // save refreshToken if exists
+          if (refreshToken) {
+            localStorage.setItem('refreshToken', refreshToken);
+          }
+          
+          // update user state
+          setUser({
+            _id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role
+          });
+          
+          return responseData as AuthResponse;
+        } else {
+          throw new Error(responseData?.message || 'Login failed');
+        }
+      } catch (apiError: any) {
+        // get error message from API response
+        if (apiError.response?.status === 429) {
+          throw new Error('Too many requests, please try again later');
+        } else if (apiError.response?.status === 401) {
+          // use API returned error message
+          throw new Error(apiError.response.data.message || 'Email or password is incorrect');
+        } else if (apiError.response?.data?.message) {
+          throw new Error(apiError.response.data.message);
+        } else {
+          throw apiError;
+        }
+      }
+    } catch (error: any) {
       throw error;
-    }
-  };
-
-  // Logout method
-  const logout = async () => {
-    try {
-      await authService.logout();
     } finally {
-      setIsAuthenticated(false);
-      setUser(null);
-      TokenManager.clearAllAuthData();
+      setLoading(false);
     }
   };
 
-  // Refresh token method
-  const refreshToken = async () => {
-    try {
-      setIsLoading(true);
-      const success = await authService.refreshToken();
-      
-      if (success) {
-        setIsAuthenticated(true);
-        const userData = TokenManager.getUserData();
-        if (userData) {
-          setUser(userData);
-        }
-      } else {
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Failed to refresh token:', error);
-      setIsAuthenticated(false);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+  // logout method
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken'); // clear refresh token
+    setUser(null);
+    
+    // Use router for navigation instead of direct window location change
+    // This maintains better application state
+    router.push('/login');
   };
-
-  if (isLoading) {
-    return null; // Or return a loading indicator
-  }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, refreshToken, isLoading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      isAuthenticated: !!user,
+      login, 
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-/**
- * Authentication hook - Access auth context in components
- */
+// using auth context hook
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

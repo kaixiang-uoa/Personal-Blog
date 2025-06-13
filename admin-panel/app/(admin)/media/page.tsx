@@ -33,20 +33,27 @@ import {
 } from "@/components/ui/feedback/dialog"
 import { Clipboard, Download, Eye, MoreHorizontal, Search, Trash2, Upload } from "lucide-react"
 import Image from "next/image"
-import { mediaService } from "@/lib/services/media-service"
-import type { Media } from "@/types/media.types"
-import { validateFiles, showValidationError } from "@/lib/validation/media-validation"
+import { Media, ApiResponse, PaginatedResponse } from "@/types"
+import { apiService } from "@/lib/api"
 
-// Add base URL constant at the top of the file
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-// Helper function to get full URL
-const getFullUrl = (path: string) => {
+// base url constant
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+// helper function to get full url
+const getFullUrl = (path: string): string => {
   if (path.startsWith('http')) return path;
-  return `${API_BASE_URL}${path}`;
+  // ensure path starts with /
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  
+  // try different url formats
+  const baseUrl = API_BASE_URL.replace('/api/v1', ''); // remove /api/v1
+  const fullUrl = `${baseUrl}${normalizedPath}`;
+  return fullUrl;
 };
 
-// Format file size helper
+
+// helper function to format file size
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 B"
   const k = 1024
@@ -54,6 +61,41 @@ function formatFileSize(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
 }
+
+// test if url is accessible
+const testUrl = async (url: string) => {
+  try {
+    // try to access image directly
+    const response = await fetch(url);
+    const contentType = response.headers.get('content-type');
+    
+    // if json response, read error information
+    if (contentType?.includes('application/json')) {
+      const errorData = await response.json();
+      return {
+        status: response.status,
+        ok: response.ok,
+        contentType,
+        url,
+        errorData,
+        headers: Object.fromEntries(response.headers.entries())
+      };
+    }
+
+    return {
+      status: response.status,
+      ok: response.ok,
+      contentType,
+      url,
+      headers: Object.fromEntries(response.headers.entries())
+    };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      url
+    };
+  }
+};
 
 export default function MediaPage() {
   const { toast } = useToast()
@@ -66,50 +108,62 @@ export default function MediaPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<Media | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [urlTestResult, setUrlTestResult] = useState<any>(null);
 
+  // fetch media files
   useEffect(() => {
-    async function fetchMediaItems() {
+    const fetchMedia = async () => {
       try {
-        setLoading(true)
-        
-        // Fetch media items from API
-        const response = await mediaService.getAll()
-        if (response?.success && response.data) {
-          // Extract media array from response data
-          const items = Array.isArray(response.data) ? response.data : 
-                      (response.data as any).media ? (response.data as any).media : []
-          setMediaItems(items)
-        } else {
-          setMediaItems([])
+        setLoading(true);
+        const response = await apiService.getMedia<PaginatedResponse<Media>>();
+        if (response.data?.data) {
+          setMediaItems(response.data.data);
         }
       } catch (error) {
-        console.error("Failed to fetch media items", error)
         toast({
-          title: "Failed to fetch media",
-          description: "Please check your network connection and try again",
+          title: "Error",
+          description: "Failed to fetch media files",
           variant: "destructive",
-        })
-        setMediaItems([])
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchMediaItems()
-  }, [toast])
+    fetchMedia();
+  }, [toast]);
 
-  // Filter media items by search query
+  // test url after fetching media files
+  useEffect(() => {
+    const testFirstImage = async () => {
+      if (mediaItems.length > 0) {
+        const url = getFullUrl(mediaItems[0].url);
+        const result = await testUrl(url);
+        setUrlTestResult(result);
+        
+        // if test fails, try other url formats
+        if (!result.ok) {
+          const alternativeUrl = `${API_BASE_URL}/media${mediaItems[0].url}`;
+          const altResult = await testUrl(alternativeUrl);
+        }
+      }
+    };
+
+    testFirstImage();
+  }, [mediaItems]);
+
+  // filter media items based on search query
   const filteredItems = mediaItems.filter((item) => {
     if (!item || !item.filename) return false;
     return item.filename.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  // Toggle item selection
+  // toggle item selection
   const toggleSelectItem = (id: string) => {
     setSelectedItems((prev) => (prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]))
   }
 
-  // Toggle select all items
+  // toggle select all items
   const toggleSelectAll = () => {
     if (selectedItems.length === filteredItems.length) {
       setSelectedItems([])
@@ -118,112 +172,118 @@ export default function MediaPage() {
     }
   }
 
-  // Open media detail dialog
+  // open media detail dialog
   const openDetailDialog = (item: Media) => {
     setSelectedItem(item)
     setDetailDialogOpen(true)
   }
 
-  // Handle file input change
+  // handle file input change
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files || files.length === 0) return
-
-    // Validate files
-    const validationResult = validateFiles(files)
-    if (!validationResult.isValid) {
-      showValidationError(validationResult.error!)
-      return
-    }
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     try {
-      setUploading(true)
-      const formData = new FormData()
+      setUploading(true);
       
-      // Use 'files' as field name to match multer configuration
+      // file validation
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4'];
+      
       for (let i = 0; i < files.length; i++) {
-        formData.append("files", files[i])
+        const file = files[i];
+        if (file.size > maxSize) {
+          throw new Error(`File ${file.name} is too large. Maximum size is 10MB.`);
+        }
+        if (!allowedTypes.includes(file.type)) {
+          throw new Error(`File ${file.name} is not a supported type.`);
+        }
       }
 
-      const response = await mediaService.upload(formData)
-      if (response?.success && response.data) {
-        // Extract media array from response data
-        const newMedia = Array.isArray(response.data) ? response.data : 
-                      (response.data as any).media ? (response.data as any).media : []
-        setMediaItems(prevItems => [...newMedia, ...prevItems])
+      // create FormData
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+
+      // upload file
+      const response = await apiService.uploadMedia<ApiResponse>(formData);
+      
+      if (response.data) {
+        // refresh media list
+        const mediaResponse = await apiService.getMedia<PaginatedResponse<Media>>();
+        if (mediaResponse.data?.data) {
+          setMediaItems(mediaResponse.data.data);
+        }
+        
         toast({
           title: "Upload successful",
           description: `${files.length} file(s) have been uploaded`,
-        })
+        });
+        setUploadDialogOpen(false);
       } else {
-        throw new Error("Upload failed: Invalid response")
+        throw new Error('Upload failed');
       }
-    } catch (error: any) {
-      console.error("Upload failed:", error)
-      
-      // More detailed error handling
-      let errorMessage = "Unable to upload files"
-      if (error.response) {
-        console.error("Error response:", error.response.data)
-        if (error.response.status === 400) {
-          errorMessage = error.response.data?.message || "Invalid file format or size"
-        } else if (error.response.status === 413) {
-          errorMessage = "File size exceeds server limit"
-        } else if (error.response.status === 415) {
-          errorMessage = "Unsupported media type"
-        }
-      }
-      
+    } catch (error) {
       toast({
         title: "Upload failed",
-        description: errorMessage,
+        description: error instanceof Error ? error.message : "Unable to upload files",
         variant: "destructive",
-      })
+      });
     } finally {
-      setUploading(false)
-      setUploadDialogOpen(false)
+      setUploading(false);
     }
-  }
+  };
 
-  // Handle file drop
+  // handle file drop
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     if (e.dataTransfer.files) {
-      const files = Array.from(e.dataTransfer.files)
-      const formData = new FormData()
-      files.forEach(file => formData.append("files", file))
       handleFileChange({ target: { files: e.dataTransfer.files } } as React.ChangeEvent<HTMLInputElement>)
     }
   }, [])
 
-  // Handle drag over
+  // handle drag over
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
   }, [])
 
-  // Handle media deletion
+  // handle media delete
   const handleDeleteMedia = async () => {
-    if (selectedItems.length === 0) return
+    if (selectedItems.length === 0) return;
 
     try {
-      await mediaService.delete(selectedItems)
-      setMediaItems(mediaItems.filter((item) => !selectedItems.includes(item._id)))
-      setSelectedItems([])
+      setLoading(true);
+      
+      // delete all selected files
+      await Promise.all(
+        selectedItems.map(id => apiService.deleteMedia<ApiResponse>(id))
+      );
+
+      // refresh media list
+      const response = await apiService.getMedia<PaginatedResponse<Media>>();
+      if (response.data?.data) {
+        setMediaItems(response.data.data);
+      }
+
+      setSelectedItems([]);
       toast({
         title: "Deleted successfully",
         description: `${selectedItems.length} item(s) have been deleted`,
-      })
+      });
     } catch (error) {
-      console.error("Failed to delete media", error)
       toast({
         title: "Delete failed",
-        description: "Unable to delete items, please try again",
+        description: "Unable to delete selected items",
         variant: "destructive",
-      })
+      });
+    } finally {
+      setLoading(false);
+      setDeleteDialogOpen(false);
     }
-  }
+  };
 
-  // Copy URL to clipboard
+  // copy url to clipboard
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     toast({
@@ -231,7 +291,6 @@ export default function MediaPage() {
       description: "URL copied to clipboard",
     })
   }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -244,7 +303,7 @@ export default function MediaPage() {
           {selectedItems.length > 0 && (
             <Button
               variant="destructive"
-              onClick={handleDeleteMedia}
+              onClick={() => setDeleteDialogOpen(true)}
               className="flex items-center gap-1"
             >
               <Trash2 className="h-4 w-4" />
@@ -292,12 +351,22 @@ export default function MediaPage() {
                 <CardContent className="p-2 space-y-1">
                   <div className="relative aspect-square bg-muted rounded-md overflow-hidden">
                     {item.mimetype.startsWith('image/') ? (
-                      <Image 
-                        src={getFullUrl(item.url) || "/placeholder.svg"} 
-                        alt={item.filename} 
-                        fill 
-                        className="object-cover" 
-                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <img
+                          src={getFullUrl(item.url)}
+                          alt={item.filename}
+                          className="object-cover w-full h-full rounded"
+                          loading="lazy"
+                          onError={(e) => {
+                            console.error('Image load error:', {
+                              error: e,
+                              url: item.url,
+                              fullUrl: getFullUrl(item.url),
+                              baseUrl: API_BASE_URL
+                            });
+                          }}
+                        />
+                      </div>
                     ) : item.mimetype.startsWith('application/pdf') ? (
                       <div className="flex items-center justify-center h-full bg-muted">
                         <span className="text-2xl text-muted-foreground">PDF</span>
@@ -469,10 +538,14 @@ export default function MediaPage() {
                 {selectedItem.mimetype.startsWith('image/') ? (
                   <div className="relative h-64 w-full">
                     <Image
-                      src={getFullUrl(selectedItem.url) || "/placeholder.svg"}
+                      src={getFullUrl(selectedItem.url)}
                       alt={selectedItem.filename}
                       fill
                       className="object-contain"
+                      onError={(e) => {
+                        console.error('Image load error:', e);
+                        console.log('Failed URL:', getFullUrl(selectedItem.url));
+                      }}
                     />
                   </div>
                 ) : selectedItem.mimetype.startsWith('application/pdf') ? (

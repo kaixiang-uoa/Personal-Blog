@@ -5,14 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
 import { z } from "zod"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/inputs/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/data-display/card"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
+import { Input } from "@/components/ui/inputs/input"
+import { Textarea } from "@/components/ui/inputs/textarea"
 import { Separator } from "@/components/ui/separator"
-import { Skeleton } from "@/components/ui/skeleton"
-import { generalFormSchema } from "@/lib/validation/settings-schemas"
+import { Skeleton } from "@/components/ui/data-display/skeleton"
+import { generalFormSchema } from "@/lib/validators/settings-schemas"
 
 interface GeneralSettingsFormProps {
   defaultValues: z.infer<typeof generalFormSchema>

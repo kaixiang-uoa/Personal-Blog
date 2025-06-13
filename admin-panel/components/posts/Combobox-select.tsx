@@ -1,20 +1,16 @@
 import React, { useState } from "react";
-import { ComboboxSelectProps, I18nString } from "@/types/ui";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { ComboboxSelectProps } from "@/types";
+import { Button } from "@/components/ui/inputs/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/feedback/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/navigation/command";
 import { Check, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// 安全地获取数组，处理null和undefined情况
+// safe array, handle null and undefined
 function safeArray<T>(arr: T[] | null | undefined): T[] {
   return Array.isArray(arr) ? arr : [];
 }
 
-// 类型守卫函数，用于检查是否为I18nString
-function isI18nString(value: string | I18nString): value is I18nString {
-  return typeof value === 'object' && value !== null && 'zh' in value && 'en' in value;
-}
 
 export function ComboboxSelect<T>({
   items,
@@ -36,17 +32,17 @@ export function ComboboxSelect<T>({
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
 
-  // 安全获取数组
+  // safe array
   const safeItems = safeArray(items);
   const safeSelectedItems = safeArray(selectedItems);
 
-  // 安全获取标签文本
+  // safe label
   const getSafeLabel = (item: T): string => {
     try {
       const label = getItemLabel(item);
       if (!label) return '';
       
-      // 简化处理，直接返回字符串值
+      // simplify, return string value
       return String(label);
     } catch (e) {
       console.error('Error getting label for item:', e);
@@ -60,9 +56,7 @@ export function ComboboxSelect<T>({
     
     try {
       const itemLabel = getSafeLabel(item);
-      // 空字符串不过滤
       if (!search) return true;
-      // 不区分大小写的匹配
       return itemLabel.toLowerCase().includes(search.toLowerCase());
     } catch (e) {
       console.error('Error filtering item:', e);

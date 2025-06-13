@@ -7,15 +7,18 @@ import { validationResult } from 'express-validator';
 /**
  * Validation error handler
  * Standardizes validation error responses across the API
- * 
+ *
+ * This middleware runs all provided express-validator validations.
+ * Conditional validation (e.g., only require title if status is 'published')
+ * should be handled in the validation rules, not here.
+ *
  * @returns {Function} Express middleware function
  */
 export const validate = (validations) => {
   return async (req, res, next) => {
-    // Execute all validations
+    // Run all validations
     for (let validation of validations) {
-      const result = await validation.run(req);
-      if (result.errors.length) break;
+      await validation.run(req);
     }
 
     // Check for validation errors
@@ -42,7 +45,7 @@ export const validate = (validations) => {
 
 /**
  * Creates a validation chain for a specific route
- * 
+ *
  * @param {Array} validations - Array of express-validator validations
  * @returns {Function} Express middleware
  */

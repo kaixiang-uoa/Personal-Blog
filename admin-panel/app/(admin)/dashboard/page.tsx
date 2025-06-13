@@ -7,147 +7,115 @@ import { Activity, BookOpen, Edit3, Eye, FileText, MessageSquare, Bookmark, Plus
 import { Button } from "@/components/ui/inputs/button"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/data-display/skeleton"
-import { postService } from "@/lib/services/post-service"
-import { categoryService } from "@/lib/services/category-service"
-import { DashboardData, DashboardStats, PostResponse, CategoryResponse } from "@/types/common.types"
-import { Post, PostStatus } from "@/types/post.types"
+import { apiService } from "@/lib/api"
+import { DashboardData } from "@/types/index"
+import { PostQueryParams, PostStatus } from "@/types/posts"
+import { Badge } from "@/components/ui/data-display/badge"
 
 export default function DashboardPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<DashboardData | null>(null)
 
-  // Move useEffect to conditionally render before
+  // Fetch dashboard data
   useEffect(() => {
-    // If not authenticated, do not fetch data
+    // Don't fetch data if not authenticated
     if (!isAuthenticated) return;
     
     async function fetchDashboardData() {
       try {
-        setLoading(true)
+        setLoading(true);
         
-        // Get data
-        const statsResponse = await postService.getDashboardStats()
-        const statsData = statsResponse.data as DashboardStats || { 
-          postCount: 0, 
-          viewCount: 0, 
-          commentCount: 0, 
-          categoryCount: 0 
-        }
-
-        // Try to get post data, use mock data if it fails
-        let postsData: Post[] = []
+        // Use existing API endpoints to build dashboard data
+        let postCount = 0;
+        let viewCount = 0;
+        let commentCount = 0; // Default to 0 for now
+        let categoryCount = 0;
+        let recentPosts: DashboardData['recentPosts'] = [];
+        
         try {
-          const response = await postService.getAll({ limit: 5, sort: 'createdAt:desc' })
-          // Correctly extract posts array from API response
-          if (response?.success && response.data) {
-            const postResponse = response.data as unknown as PostResponse
-            postsData = postResponse.posts
+          // Get posts data from API
+          const params: PostQueryParams = {
+            limit: 10,
+            allStatus: true
+          }
+          const postsResponse = await apiService.getPosts(params);
+          // Check if we have valid data
+          if (postsResponse && postsResponse.data) {
+            const postsData = postsResponse.data;
+            postCount = postsData.total || 0;
+            
+            // Calculate total view count from posts
+            if (postsData.posts && Array.isArray(postsData.posts)) {
+              viewCount = postsData.posts.reduce((sum: number, post: any) => {
+                return sum + (post.viewCount || 0);
+              }, 0);
+              
+              // Format recent posts for display
+              recentPosts = postsData.posts.map((post: any) => ({
+                id: post._id,
+                title: post.title,
+                publishDate: post.publishedAt,
+                status: post.status,
+                viewCount: post.viewCount || 0
+              }));
+            }
           }
         } catch (error) {
-          console.warn('Failed to fetch recent posts, using mock data', error)
-          postsData = [
-            {
-              _id: "1",
-              title: "React 18 New Features and Performance Optimization Best Practices",
-              publishDate: "2023-04-15",
-              status: PostStatus.PUBLISHED,
-              viewCount: 1245,
-              slug: "react-18-features",
-              excerpt: "Learn about React 18's new features",
-              content: "",
-              category: "",
-              tags: [],
-              featured: false,
-              featuredImage: "",
-              createdAt: "2023-04-15",
-              updatedAt: "2023-04-15"
-            },
-            {
-              _id: "2",
-              title: "Perfect Deployment Process with NextJS and Vercel",
-              publishDate: "2023-04-10",
-              status: PostStatus.PUBLISHED,
-              viewCount: 986,
-              slug: "nextjs-vercel-deployment",
-              excerpt: "Guide to deploying NextJS apps",
-              content: "",
-              category: "",
-              tags: [],
-              featured: false,
-              featuredImage: "",
-              createdAt: "2023-04-10",
-              updatedAt: "2023-04-10"
-            },
-            {
-              _id: "3",
-              title: "Advanced Tailwind CSS Techniques",
-              publishDate: "2023-04-05",
-              status: PostStatus.DRAFT,
-              viewCount: 0,
-              slug: "advanced-tailwind",
-              excerpt: "Master Tailwind CSS",
-              content: "",
-              category: "",
-              tags: [],
-              featured: false,
-              featuredImage: "",
-              createdAt: "2023-04-05",
-              updatedAt: "2023-04-05"
-            }
-          ]
+          console.log("Posts API error:", error);
         }
-
-        // Try to get category data, use statsData if it already contains it
-        let categoriesCount = statsData.categoryCount || 0
-        if (!categoriesCount) {
-          try {
-            const response = await categoryService.getAll()
-            if (response?.success && response.data) {
-              const categoryResponse = response.data as unknown as CategoryResponse
-              categoriesCount = categoryResponse.count
-            }
-          } catch (error) {
-            console.warn('Failed to fetch category data', error)
+        
+        try {
+          // Get categories count
+          const categoriesResponse = await apiService.getCategories();
+          
+          // Check if we have valid data
+          if (categoriesResponse && categoriesResponse.data) {
+            const categoriesData = categoriesResponse.data;
+            categoryCount = categoriesData.total || 
+                           (categoriesData.categories && Array.isArray(categoriesData.categories) 
+                            ? categoriesData.categories.length 
+                            : 0);
           }
+        } catch (error) {
+          console.log("Categories API error:", error);
         }
         
-        // Build dashboard data
-        const dashboardData: DashboardData = {
-          postCount: statsData.postCount || 0,
-          viewCount: statsData.viewCount || 0,
-          commentCount: statsData.commentCount || 0,
-          categoryCount: categoriesCount,
-          recentPosts: Array.isArray(postsData) ? postsData.map((post) => ({
-            id: post._id,
-            title: post.title,
-            publishDate: post.publishDate || post.createdAt || new Date().toISOString(),
-            status: post.status,
-            viewCount: post.viewCount || 0
-          })) : []
+        // Comments functionality is not implemented yet
+        // This is commented out for future expansion when comments API is available
+        /*
+        try {
+          // Attempt to get comment count if API endpoint exists
+          const commentsResponse = await apiService.get('/comments', { limit: 1 });
+          
+          // Check if we have valid data
+          if (commentsResponse && commentsResponse.data) {
+            commentCount = commentsResponse.data.total || 0;
+          }
+        } catch (error) {
+          console.log("Comments API not implemented yet:", error);
         }
-
-        setData(dashboardData)
-      } catch (error) {
-        console.error("Failed to fetch dashboard data", error)
+        */
         
-        // Use fallback data on error
+        // Set the dashboard data with values from API
         setData({
-          postCount: 0,
-          viewCount: 0,
-          commentCount: 0,
-          categoryCount: 0,
-          recentPosts: []
-        })
+          postCount,
+          viewCount,
+          commentCount,
+          categoryCount,
+          recentPosts
+        });
+      } catch (error) {
+        console.error("Error building dashboard data:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchDashboardData()
-  }, [isAuthenticated]) // Add isAuthenticated as a dependency
+    fetchDashboardData();
+  }, [isAuthenticated])
 
-  // Early return if not authenticated
+  // Return early if not authenticated
   if (!isAuthenticated) {
     return null
   }
@@ -155,7 +123,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Welcome back, Admin</h2>
+        <h2 className="text-2xl font-bold tracking-tight">
+          {user ? `Welcome back, ${user.username}` : 'Welcome back'}
+        </h2>
         <div className="mt-2 sm:mt-0">
           <Button asChild>
             <Link href="/posts/new" className="flex items-center gap-1">
@@ -251,41 +221,42 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {data?.recentPosts.map((post: {id: string; title: string; status: string; viewCount: number}) => {
-                // Map string status to PostStatus enum
-                const postStatus = post.status === 'published' ? PostStatus.PUBLISHED : PostStatus.DRAFT;
-                
-                return (
-                  <div key={post.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {postStatus === PostStatus.PUBLISHED ? (
-                        <BookOpen className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Edit3 className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      <span className="font-medium hover:underline">
-                        <Link href={`/posts/${post.id}`}>{post.title}</Link>
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      {postStatus === PostStatus.PUBLISHED ? (
-                        <span className="flex items-center text-sm text-muted-foreground">
-                          <Eye className="mr-1 h-3 w-3" />
-                          {post.viewCount}
-                        </span>
-                      ) : (
-                        <span className="text-sm px-2 py-1 rounded-md bg-muted text-muted-foreground">Draft</span>
-                      )}
-                    </div>
+              {data?.recentPosts.map((post) => (
+                <div
+                  key={post.id}
+                  className="flex items-center justify-between py-2 border-b last:border-b-0"
+                >
+                  <div className="flex items-center gap-3">
+                    {post.status === PostStatus.PUBLISHED ? (
+                      <BookOpen className="h-4 w-4 text-blue-500" />
+                    ) : (
+                      <Edit3 className="h-4 w-4 text-gray-400" />
+                    )}
+                    <span className="font-medium hover:underline">
+                      <Link href={`/posts/${post.id}`}>{post.title}</Link>
+                    </span>
                   </div>
-                );
-              })}
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center text-sm text-muted-foreground">
+                      <Eye className="mr-1 h-4 w-4" />
+                      {post.viewCount || 0}
+                    </span>
+                    <span>
+                      {post.status === PostStatus.PUBLISHED ? (
+                        <Badge variant="default">Published</Badge>
+                      ) : (
+                        <Badge variant="outline">Draft</Badge>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* TODO: Add dashboard performance charts */}
+      {/* Performance charts can be added later after basic functionality is stable */}
     </div>
   )
 }

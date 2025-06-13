@@ -1,12 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Save } from "lucide-react"
-import Link from "next/link"
+import { toast } from "sonner"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { postFormSchema, type PostFormSchema } from "@/lib/validators/form-validation"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
+import { CategorySelector } from "@/components/categories/CategorySelector";
+import { TagSelector } from "@/components/posts/TagSelector"
+import { PostEditor } from "@/components/posts/editor/PostEditor"
 import { Button } from "@/components/ui/inputs/button"
 import { Card, CardContent } from "@/components/ui/data-display/card"
 import { Input } from "@/components/ui/inputs/input"
+import { Textarea } from "@/components/ui/inputs/textarea"
+import { apiService } from "@/lib/api"
+import React, { useState, useEffect } from "react"
+import { ChevronLeft, Save } from "lucide-react"
+import Link from "next/link"
 import {
   Select,
   SelectContent,
@@ -14,31 +24,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/inputs/select"
-import { Textarea } from "@/components/ui/inputs/textarea"
-import { useToast } from "@/hooks/ui/use-toast"
-import { PostEditor } from "@/components/posts/post-editor"
-import { postService } from "@/lib/services/post-service"
-import { PostFormData } from "@/types/post.types"
-import type { Category } from "@/types/category.types"
-import type { Tag } from "@/types/tags.types" 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { postFormSchema, type PostFormSchema } from "@/lib/validation/form-validation"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
-import { CategorySelector } from "@/components/categories/CategorySelector";
-import { TagSelector } from "@/components/tags/TagSelector";
-import { useCategory } from "@/lib/store/category-context"
-import { useTag } from "@/lib/store/tag-context"
+import { ComboboxSelect } from "@/components/posts/Combobox-select";
+import { Post, PostStatus} from "@/types/posts"
+import { Category, Tag } from "@/types/index"
 
 // 定义React事件类型
 import type { ChangeEvent } from "react"
 
+// 复用 Post 类型并扩展为表单数据类型
+interface PostFormData extends Omit<Post, '_id' | 'createdAt' | 'updatedAt' | 'publishedAt' | 'viewCount'> {
+  categories?: string[];
+}
+
 export default function NewPostPage() {
   const router = useRouter()
-  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const { state: categoryState, fetchCategories } = useCategory()
-  const { state: tagState, fetchTags } = useTag()
+  const [categories, setCategories] = useState<Category[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [selectedCategory, setSelectedCategory] = useState<Category[]>([])
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [availableCategories, setAvailableCategories] = useState<Category[]>([])
@@ -72,29 +74,33 @@ export default function NewPostPage() {
     }
   }
 
-  // Load categories and tags using context API
+  // Load categories and tags
   useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
-
-  useEffect(() => {
-    fetchTags()
-  }, [fetchTags])
-
-  // handle categories data structure
-  useEffect(() => {
-    // analysis categoryState.categories data structure
-    if (categoryState.categories) {
-      if (Array.isArray(categoryState.categories)) {
-        setAvailableCategories(categoryState.categories);
-      } else if (typeof categoryState.categories === 'object' && categoryState.categories !== null) {
-        const catObj = categoryState.categories as any;
-        if (Array.isArray(catObj.categories)) {
-          setAvailableCategories(catObj.categories);
-        }
+    async function fetchCategories() {
+      try {
+        const response = await apiService.getCategories();
+        setCategories(response.data || []);
+        setAvailableCategories(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
       }
     }
-  }, [categoryState.categories]);
+    
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    async function fetchTags() {
+      try {
+        const response = await apiService.getTags();
+        setTags(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch tags:', error);
+        }
+      }
+    
+    fetchTags();
+  }, []);
 
   // Submit form
   const onSubmit = async (data: PostFormSchema) => {
@@ -103,19 +109,16 @@ export default function NewPostPage() {
       // if published status, check required fields again
       if (data.status === "published") {
         if (!data.title || !data.content) {
-          toast({
-            title: "无法发布",
-            description: "发布文章需要填写标题和内容",
-            variant: "destructive",
+          toast.error("Cannot publish", {
+            description: "Title and content are required for publishing"
           });
           setIsLoading(false);
           return;
         }
       }
-      
       // use type assertion to create PostFormData
-      const postData = {
-        status: data.status,
+      const postData: PostFormData = {
+        status: data.status as PostStatus,
         featured: false,
         title: data.title || '',
         slug: data.slug || '',
@@ -123,26 +126,23 @@ export default function NewPostPage() {
         content: data.content || '',
         tags: data.tags || [],
         featuredImage: data.featuredImage || ''
-      } as PostFormData;
-      
+      };
+
       // add category
       if (data.category) {
         postData.categories = [data.category];
       }
       
-      await postService.create(postData);
-      toast({
-        title: "Success",
-        description: "Post created successfully",
-      })
+      await apiService.createPost(postData);
+      toast.success("Success", {
+        description: "Post created successfully"
+      });
       router.push("/posts")
     } catch (error) {
       console.error("Failed to create post", error)
-      toast({
-        title: "Creation Failed",
-        description: "An error occurred while creating the post. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Creation Failed", {
+        description: "An error occurred while creating the post. Please try again."
+      });
     } finally {
       setIsLoading(false)
     }
@@ -282,8 +282,8 @@ export default function NewPostPage() {
                         </FormLabel>
                         <FormControl>
                           <PostEditor
-                            value={field.value || ""}
-                            onChange={(value: string) => handleInputChange("content", value)}
+                            content={field.value}
+                            onChange={(value: any) => handleInputChange("content", value)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -297,50 +297,7 @@ export default function NewPostPage() {
 
           <div>
             <Card>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <div className="w-full">
-                          <CategorySelector
-                            categories={availableCategories}
-                            selectedCategories={selectedCategory}
-                            onChange={handleCategorySelect}
-                            multiple={false}
-                            showSelected={true}
-                            placeholder="Select category..."
-                          />
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="tags"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>Tags</FormLabel>
-                        <div className="w-full">
-                          <TagSelector
-                            tags={tagState.tags}
-                            selectedTags={selectedTags}
-                            onChange={handleTagSelect}
-                            multiple={true}
-                            maxDisplay={10}
-                            showCount={true}
-                            inputPlaceholder="Search or add tags..."
-                          />
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <CardContent className="p-6 space-y-4">
                   <FormField
                     control={form.control}
                     name="status"
@@ -348,28 +305,14 @@ export default function NewPostPage() {
                       <FormItem>
                         <FormLabel>Status</FormLabel>
                         <Select
-                          value={field.value}
-                          onValueChange={(value: string) => {
-                            // if switch to published status, check required fields
-                            if (value === "published") {
-                              const { title, content } = form.getValues();
-                              if (!title || !content) {
-                                toast({
-                                  title: "Cannot publish",
-                                  description: "Published articles require title and content",
-                                  variant: "destructive",
-                                });
-                                // if validation fails, keep as draft
-                                return;
-                              }
-                            }
-                            // set new status
-                            field.onChange(value);
-                          }}
+                        onValueChange={(value) => handleInputChange("status", value)}
+                        defaultValue={field.value}
                         >
+                        <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
+                            <SelectValue placeholder="Select post status" />
                           </SelectTrigger>
+                        </FormControl>
                           <SelectContent>
                             <SelectItem value="draft">Draft</SelectItem>
                             <SelectItem value="published">Published</SelectItem>
@@ -379,15 +322,75 @@ export default function NewPostPage() {
                       </FormItem>
                     )}
                   />
+                
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }: { field: any }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <FormControl>
+                        <ComboboxSelect
+                          items={availableCategories}
+                          selectedItems={selectedCategory}
+                          onSelect={(category: Category) => handleCategorySelect([category])}
+                          getItemLabel={(item: Category) => item?.name || ''}
+                          getItemValue={(item: Category) => item?._id || ''}
+                          placeholder="Select category"
+                          width={200}
+                          className="w-full"
+                          multiple={false}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="tags"
+                  render={({ field }: { field: any }) => (
+                    <FormItem>
+                      <FormLabel>Tags</FormLabel>
+                      <FormControl>
+                        <ComboboxSelect
+                          items={tags}
+                          selectedItems={selectedTags}
+                          onSelect={(tag: Tag) => handleTagSelect([...selectedTags, tag])}
+                          onCreate={async (name: string) => {
+                            try {
+                              const response = await apiService.createTag({ name });
+                              const newTag = response.data;
+                              setTags([...tags, newTag]);
+                              return newTag;
+                            } catch (error) {
+                              console.error('Failed to create tag:', error);
+                              throw error;
+                            }
+                          }}
+                          getItemLabel={(item: Tag) => item?.name || ''}
+                          getItemValue={(item: Tag) => item?._id || ''}
+                          placeholder="Select tags"
+                          width={200}
+                          className="w-full"
+                          multiple={true}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                   <FormField
                     control={form.control}
                     name="featuredImage"
                     render={({ field }: { field: any }) => (
                       <FormItem>
-                        <FormLabel>Featured Image URL</FormLabel>
+                      <FormLabel>Featured Image</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter featured image URL"
+                          placeholder="Featured image URL"
                             {...field}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("featuredImage", e.target.value)}
                           />
@@ -396,7 +399,6 @@ export default function NewPostPage() {
                       </FormItem>
                     )}
                   />
-                </div>
               </CardContent>
             </Card>
           </div>

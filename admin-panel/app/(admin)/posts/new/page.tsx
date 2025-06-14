@@ -1,49 +1,63 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { postFormSchema, type PostFormSchema } from "@/lib/validators/form-validation"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
-import { CategorySelector } from "@/components/categories/CategorySelector";
-import { TagSelector } from "@/components/posts/TagSelector"
-import { PostEditor } from "@/components/posts/editor/PostEditor"
-import { Button } from "@/components/ui/inputs/button"
-import { Card, CardContent } from "@/components/ui/data-display/card"
-import { Input } from "@/components/ui/inputs/input"
-import { Textarea } from "@/components/ui/inputs/textarea"
-import { apiService } from "@/lib/api"
-import React, { useState, useEffect } from "react"
-import { ChevronLeft, Save } from "lucide-react"
-import Link from "next/link"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ChevronLeft, Save } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, type ChangeEvent } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import { ComboboxSelect } from "@/components/posts/Combobox-select";
+import { PostEditor } from "@/components/posts/editor/PostEditor";
+import { Card, CardContent } from "@/components/ui/data-display/card";
+import { Button } from "@/components/ui/inputs/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/inputs/form";
+import { Input } from "@/components/ui/inputs/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/inputs/select"
-import { ComboboxSelect } from "@/components/posts/Combobox-select";
-import { Post, PostStatus} from "@/types/posts"
-import { Category, Tag } from "@/types/index"
+} from "@/components/ui/inputs/select";
+import { Textarea } from "@/components/ui/inputs/textarea";
+import { apiService } from "@/lib/api";
+import {
+  postFormSchema,
+  type PostFormSchema,
+} from "@/lib/validators/form-validation";
+import { Category, Tag } from "@/types/index";
+import { Post, PostStatus } from "@/types/posts";
 
 // 定义React事件类型
-import type { ChangeEvent } from "react"
 
 // 复用 Post 类型并扩展为表单数据类型
-interface PostFormData extends Omit<Post, '_id' | 'createdAt' | 'updatedAt' | 'publishedAt' | 'viewCount'> {
+interface PostFormData
+  extends Omit<
+    Post,
+    "_id" | "createdAt" | "updatedAt" | "publishedAt" | "viewCount"
+  > {
   categories?: string[];
 }
 
 export default function NewPostPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [categories, setCategories] = useState<Category[]>([])
-  const [tags, setTags] = useState<Tag[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<Category[]>([])
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([])
-  const [availableCategories, setAvailableCategories] = useState<Category[]>([])
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<Category[]>(
+    [],
+  );
 
   // using react-hook-form
   const form = useForm<PostFormSchema>({
@@ -58,21 +72,21 @@ export default function NewPostPage() {
       status: "draft",
       featuredImage: "",
     },
-  })
+  });
 
   // Handle input changes
   const handleInputChange = (field: string, value: any) => {
-    form.setValue(field as any, value)
+    form.setValue(field as any, value);
 
     // If title changes, generate slug
     if (field === "title" && value) {
       const slug = value
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-      form.setValue("slug", slug)
+        .replace(/\s+/g, "-");
+      form.setValue("slug", slug);
     }
-  }
+  };
 
   // Load categories and tags
   useEffect(() => {
@@ -82,10 +96,10 @@ export default function NewPostPage() {
         setCategories(response.data || []);
         setAvailableCategories(response.data || []);
       } catch (error) {
-        console.error('Failed to fetch categories:', error);
+        console.error("Failed to fetch categories:", error);
       }
     }
-    
+
     fetchCategories();
   }, []);
 
@@ -95,22 +109,22 @@ export default function NewPostPage() {
         const response = await apiService.getTags();
         setTags(response.data || []);
       } catch (error) {
-        console.error('Failed to fetch tags:', error);
-        }
+        console.error("Failed to fetch tags:", error);
       }
-    
+    }
+
     fetchTags();
   }, []);
 
   // Submit form
   const onSubmit = async (data: PostFormSchema) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       // if published status, check required fields again
       if (data.status === "published") {
         if (!data.title || !data.content) {
           toast.error("Cannot publish", {
-            description: "Title and content are required for publishing"
+            description: "Title and content are required for publishing",
           });
           setIsLoading(false);
           return;
@@ -120,33 +134,34 @@ export default function NewPostPage() {
       const postData: PostFormData = {
         status: data.status as PostStatus,
         featured: false,
-        title: data.title || '',
-        slug: data.slug || '',
-        excerpt: data.excerpt || '',
-        content: data.content || '',
+        title: data.title || "",
+        slug: data.slug || "",
+        excerpt: data.excerpt || "",
+        content: data.content || "",
         tags: data.tags || [],
-        featuredImage: data.featuredImage || ''
+        featuredImage: data.featuredImage || "",
       };
 
       // add category
       if (data.category) {
         postData.categories = [data.category];
       }
-      
+
       await apiService.createPost(postData);
       toast.success("Success", {
-        description: "Post created successfully"
+        description: "Post created successfully",
       });
-      router.push("/posts")
+      router.push("/posts");
     } catch (error) {
-      console.error("Failed to create post", error)
+      console.error("Failed to create post", error);
       toast.error("Creation Failed", {
-        description: "An error occurred while creating the post. Please try again."
+        description:
+          "An error occurred while creating the post. Please try again.",
       });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleCategorySelect = (categories: Category[]) => {
     setSelectedCategory(categories);
@@ -159,7 +174,10 @@ export default function NewPostPage() {
 
   const handleTagSelect = (tags: Tag[]) => {
     setSelectedTags(tags);
-    form.setValue("tags", tags.map(t => t._id));
+    form.setValue(
+      "tags",
+      tags.map((t) => t._id),
+    );
     form.setValue("tagObjects", tags);
   };
 
@@ -190,7 +208,10 @@ export default function NewPostPage() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        >
           <div className="md:col-span-2">
             <Card>
               <CardContent className="p-6">
@@ -206,14 +227,18 @@ export default function NewPostPage() {
                             <span className="text-red-500 ml-1">*</span>
                           )}
                           {form.watch("status") === "draft" && (
-                            <span className="text-gray-400 text-xs ml-2">(Required when published)</span>
+                            <span className="text-gray-400 text-xs ml-2">
+                              (Required when published)
+                            </span>
                           )}
                         </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter post title"
                             {...field}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("title", e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              handleInputChange("title", e.target.value)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -229,14 +254,18 @@ export default function NewPostPage() {
                         <FormLabel>
                           Slug
                           {form.watch("status") === "draft" && (
-                            <span className="text-gray-400 text-xs ml-2">(Optional, will be generated from title)</span>
+                            <span className="text-gray-400 text-xs ml-2">
+                              (Optional, will be generated from title)
+                            </span>
                           )}
                         </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter post slug"
                             {...field}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("slug", e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              handleInputChange("slug", e.target.value)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -251,14 +280,18 @@ export default function NewPostPage() {
                       <FormItem>
                         <FormLabel>
                           Excerpt
-                          <span className="text-gray-400 text-xs ml-2">(Optional)</span>
+                          <span className="text-gray-400 text-xs ml-2">
+                            (Optional)
+                          </span>
                         </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Enter post excerpt"
                             rows={3}
                             {...field}
-                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleInputChange("excerpt", e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                              handleInputChange("excerpt", e.target.value)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -277,13 +310,17 @@ export default function NewPostPage() {
                             <span className="text-red-500 ml-1">*</span>
                           )}
                           {form.watch("status") === "draft" && (
-                            <span className="text-gray-400 text-xs ml-2">(Required when published)</span>
+                            <span className="text-gray-400 text-xs ml-2">
+                              (Required when published)
+                            </span>
                           )}
                         </FormLabel>
                         <FormControl>
                           <PostEditor
                             content={field.value}
-                            onChange={(value: any) => handleInputChange("content", value)}
+                            onChange={(value: any) =>
+                              handleInputChange("content", value)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -298,31 +335,33 @@ export default function NewPostPage() {
           <div>
             <Card>
               <CardContent className="p-6 space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }: { field: any }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select
-                        onValueChange={(value) => handleInputChange("status", value)}
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }: { field: any }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          handleInputChange("status", value)
+                        }
                         defaultValue={field.value}
-                        >
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select post status" />
                           </SelectTrigger>
                         </FormControl>
-                          <SelectContent>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="published">Published</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                
+                        <SelectContent>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="published">Published</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="category"
@@ -333,9 +372,11 @@ export default function NewPostPage() {
                         <ComboboxSelect
                           items={availableCategories}
                           selectedItems={selectedCategory}
-                          onSelect={(category: Category) => handleCategorySelect([category])}
-                          getItemLabel={(item: Category) => item?.name || ''}
-                          getItemValue={(item: Category) => item?._id || ''}
+                          onSelect={(category: Category) =>
+                            handleCategorySelect([category])
+                          }
+                          getItemLabel={(item: Category) => item?.name || ""}
+                          getItemValue={(item: Category) => item?._id || ""}
                           placeholder="Select category"
                           width={200}
                           className="w-full"
@@ -357,20 +398,24 @@ export default function NewPostPage() {
                         <ComboboxSelect
                           items={tags}
                           selectedItems={selectedTags}
-                          onSelect={(tag: Tag) => handleTagSelect([...selectedTags, tag])}
+                          onSelect={(tag: Tag) =>
+                            handleTagSelect([...selectedTags, tag])
+                          }
                           onCreate={async (name: string) => {
                             try {
-                              const response = await apiService.createTag({ name });
+                              const response = await apiService.createTag({
+                                name,
+                              });
                               const newTag = response.data;
                               setTags([...tags, newTag]);
                               return newTag;
                             } catch (error) {
-                              console.error('Failed to create tag:', error);
+                              console.error("Failed to create tag:", error);
                               throw error;
                             }
                           }}
-                          getItemLabel={(item: Tag) => item?.name || ''}
-                          getItemValue={(item: Tag) => item?._id || ''}
+                          getItemLabel={(item: Tag) => item?.name || ""}
+                          getItemValue={(item: Tag) => item?._id || ""}
                           placeholder="Select tags"
                           width={200}
                           className="w-full"
@@ -382,28 +427,30 @@ export default function NewPostPage() {
                   )}
                 />
 
-                  <FormField
-                    control={form.control}
-                    name="featuredImage"
-                    render={({ field }: { field: any }) => (
-                      <FormItem>
+                <FormField
+                  control={form.control}
+                  name="featuredImage"
+                  render={({ field }: { field: any }) => (
+                    <FormItem>
                       <FormLabel>Featured Image</FormLabel>
-                        <FormControl>
-                          <Input
+                      <FormControl>
+                        <Input
                           placeholder="Featured image URL"
-                            {...field}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange("featuredImage", e.target.value)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          {...field}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            handleInputChange("featuredImage", e.target.value)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
           </div>
         </form>
       </Form>
     </div>
-  )
+  );
 }

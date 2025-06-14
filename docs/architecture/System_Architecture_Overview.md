@@ -1,8 +1,8 @@
-# 系统架构概览
+# System Architecture Overview
 
-本文档描述了个人博客系统的整体架构设计，包括前端、后端、数据库和外部服务的组织结构和交互方式。
+This document describes the overall architecture design of the personal blog system, including the organization and interaction of frontend, backend, database, and external services.
 
-## 架构图
+## Architecture Diagram
 
 ```mermaid
 graph TB
@@ -86,109 +86,109 @@ graph TB
     style External fill:#ffb,stroke:#333,stroke-width:2px
 ```
 
-## 架构组件说明
+## Architecture Components
 
-### 前端层 (Frontend)
+### Frontend Layer
 
-- **Next.js**: 使用React框架构建的SSR/SSG前端应用
-  - **静态资源**: 图片、CSS等静态文件
-  - **国际化**: 使用Next-Intl实现多语言支持
-  - **UI组件**: 使用Shadcn/UI和Tailwind CSS构建的组件库
+- **Next.js**: SSR/SSG frontend application built with React
+  - **Static Assets**: Images, CSS, and other static files
+  - **Internationalization**: Multi-language support using Next-Intl
+  - **UI Components**: Component library built with Shadcn/UI and Tailwind CSS
 
-### 管理后台 (Admin Panel)
+### Admin Panel
 
-- **React管理面板**: 使用React构建的SPA管理界面
-  - **认证模块**: 管理员登录和权限控制
-  - **仪表盘**: 数据统计和概览
-  - **内容管理**: 文章、分类和标签管理
-  - **媒体管理**: 图片和文件上传管理
-  - **服务层**: 与后端API交互的服务模块
+- **React Admin Panel**: SPA management interface built with React
+  - **Authentication Module**: Admin login and permission control
+  - **Dashboard**: Data statistics and overview
+  - **Content Management**: Post, category, and tag management
+  - **Media Management**: Image and file upload management
+  - **Service Layer**: Service modules for backend API interaction
 
-### 后端层 (Backend)
+### Backend Layer
 
-- **Express服务器**: Node.js基础上的Web应用框架
-  - **认证中间件**: JWT认证和授权
-  - **国际化支持**: 多语言API响应
-  - **API路由**: RESTful API端点
-  - **中间件层**: 请求处理、日志记录、错误处理等
+- **Express Server**: Web application framework based on Node.js
+  - **Authentication Middleware**: JWT authentication and authorization
+  - **Internationalization Support**: Multi-language API responses
+  - **API Routes**: RESTful API endpoints
+  - **Middleware Layer**: Request processing, logging, error handling, etc.
 
-### 数据层 (Data Layer)
+### Data Layer
 
-- **MongoDB**: NoSQL文档数据库
-- **文件系统**: 媒体文件存储
+- **MongoDB**: NoSQL document database
+- **File System**: Media file storage
 
-### 外部服务 (External Services)
+### External Services
 
-- **邮件服务**: 通知和通讯功能
-- **CDN**: 静态资源分发
-- **Vercel**: 应用托管和部署
+- **Email Service**: Notification and communication features
+- **CDN**: Static resource distribution
+- **Vercel**: Application hosting and deployment
 
-## 数据流
+## Data Flow
 
-1. 用户通过前端界面发起请求
-2. 请求经过Next.js服务端处理或直接到达Express后端
-3. Express后端进行认证和权限验证
-4. 请求由相应的控制器处理，可能涉及数据库操作
-5. 响应返回给前端，由React进行渲染
-6. 静态资源通过CDN加载，提高性能
+1. User initiates request through frontend interface
+2. Request is processed by Next.js server or directly reaches Express backend
+3. Express backend performs authentication and permission verification
+4. Request is handled by appropriate controller, potentially involving database operations
+5. Response is returned to frontend for React rendering
+6. Static resources are loaded through CDN for better performance
 
-## 技术栈详解
+## Technology Stack Details
 
-### 前端技术栈
+### Frontend Stack
 
-- **Next.js**: React框架，支持SSR/SSG
-- **TypeScript**: 类型安全的JavaScript
-- **Tailwind CSS**: 实用优先的CSS框架
-- **React Query**: 数据获取和缓存
-- **Next-Intl**: 国际化支持
-- **Axios**: HTTP客户端
-- **Shadcn/UI**: 组件库
+- **Next.js**: React framework with SSR/SSG support
+- **TypeScript**: Type-safe JavaScript
+- **Tailwind CSS**: Utility-first CSS framework
+- **React Query**: Data fetching and caching
+- **Next-Intl**: Internationalization support
+- **Axios**: HTTP client
+- **Shadcn/UI**: Component library
 
-### 后端技术栈
+### Backend Stack
 
-- **Node.js**: JavaScript运行时
-- **Express.js**: Web应用框架
-- **MongoDB**: NoSQL数据库
-- **Mongoose**: MongoDB对象模型
-- **JWT**: 用户认证
-- **Winston**: 日志记录
-- **Jest**: 测试框架
+- **Node.js**: JavaScript runtime
+- **Express.js**: Web application framework
+- **MongoDB**: NoSQL database
+- **Mongoose**: MongoDB object modeling
+- **JWT**: User authentication
+- **Winston**: Logging
+- **Jest**: Testing framework
 
-## 部署架构
+## Deployment Architecture
 
-本系统采用Vercel+MongoDB Atlas的部署方案：
+The system uses Vercel + MongoDB Atlas deployment solution:
 
-1. 前端应用部署在Vercel平台
-2. 后端API部署在Vercel无服务器函数
-3. 数据库使用MongoDB Atlas云服务
-4. 媒体文件存储在专用存储服务
+1. Frontend application deployed on Vercel platform
+2. Backend API deployed as Vercel serverless functions
+3. Database using MongoDB Atlas cloud service
+4. Media files stored in dedicated storage service
 
-## 安全考虑
+## Security Considerations
 
-系统实施了多层次的安全措施：
+The system implements multiple layers of security measures:
 
-1. JWT基于角色的访问控制
-2. 请求参数验证和清理
-3. CORS策略实施
-4. 敏感数据加密
-5. 请求速率限制
+1. JWT role-based access control
+2. Request parameter validation and sanitization
+3. CORS policy implementation
+4. Sensitive data encryption
+5. Request rate limiting
 
-## 性能优化
+## Performance Optimization
 
-为保证系统性能，实施了以下优化：
+The following optimizations are implemented to ensure system performance:
 
-1. 数据库查询优化和索引
-2. API响应缓存
-3. 资源按需加载
-4. 图像优化和CDN分发
-5. 代码分割和懒加载
+1. Database query optimization and indexing
+2. API response caching
+3. On-demand resource loading
+4. Image optimization and CDN distribution
+5. Code splitting and lazy loading
 
-## 扩展性设计
+## Scalability Design
 
-系统设计考虑了未来扩展的可能性：
+The system design considers future expansion possibilities:
 
-1. 模块化架构便于功能扩展
-2. 国际化框架支持添加新语言
-3. 主题系统支持定制外观
-4. 插件系统(计划中)允许功能扩展
-5. API版本化支持平滑升级 
+1. Modular architecture for easy feature extension
+2. Internationalization framework supporting new languages
+3. Theme system for appearance customization
+4. Plugin system (planned) for feature extension
+5. API versioning for smooth upgrades

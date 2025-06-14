@@ -68,6 +68,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 本项目曾进行过架构优化，采用了"小而精"的设计理念，删除了过度工程化的组件。具体优化内容见ARCHITECTURE.md。
 
 主要优化点：
+
 - 简化API调用层
 - 集中类型定义
 - 优化UI组件结构

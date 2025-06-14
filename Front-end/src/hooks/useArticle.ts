@@ -8,7 +8,7 @@ export function useArticle(slug: string, enabled: boolean = true) {
   return useQuery({
     queryKey: ['article', slug],
     queryFn: () => postApi.getPostBySlug(slug),
-    enabled, // 允许控制查询是否启用
+    enabled, // Controls whether the query is enabled
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 } 

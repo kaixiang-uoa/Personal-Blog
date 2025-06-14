@@ -1,10 +1,9 @@
-"use client"
+"use client";
 
-
-export default function PostsLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-          {children}
-    </>
-  )
-} 
+export default function PostsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <>{children}</>;
+}

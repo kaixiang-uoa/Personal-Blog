@@ -1,7 +1,9 @@
-import { CategorySelectorProps, Category } from '@/types';
-import { ComboboxSelect } from '@/components/posts/Combobox-select';
-import { Badge } from '@/components/ui/data-display/badge';
-import { X } from 'lucide-react';
+import { X } from "lucide-react";
+
+import { ComboboxSelect } from "@/components/posts/Combobox-select";
+import { Badge } from "@/components/ui/data-display/badge";
+import { CategorySelectorProps, Category } from "@/types";
+
 
 export function CategorySelector({
   categories = [],
@@ -10,7 +12,7 @@ export function CategorySelector({
   multiple = true,
   showSelected = true,
   placeholder = "Select categories...",
-  disabled = false
+  disabled = false,
 }: CategorySelectorProps) {
   const handleSelect = (item: Category) => {
     if (multiple) {
@@ -71,4 +73,4 @@ export function CategorySelector({
       />
     </div>
   );
-} 
+}

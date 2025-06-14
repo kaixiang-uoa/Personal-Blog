@@ -1,8 +1,8 @@
-# 数据库 ER 图
+# Database ER Diagram
 
-本文档描述了个人博客系统的数据库实体关系图，展示了各实体之间的关系和字段结构。
+This document describes the Entity-Relationship diagram of the personal blog system, showing the relationships between entities and their field structures.
 
-## ER 图
+## ER Diagram
 
 ```mermaid
 erDiagram
@@ -112,155 +112,179 @@ erDiagram
     }
 ```
 
-## 实体说明
+## Entity Descriptions
 
-### 用户 (User)
+### User
 
-用户表存储系统中的所有用户信息，包括管理员和普通用户。
+The User table stores all user information in the system, including administrators and regular users.
 
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| _id | ObjectId | 唯一标识符 |
-| username | String | 用户名，唯一 |
-| email | String | 电子邮件，唯一 |
-| password | String | 加密密码 |
-| role | String | 用户角色（admin/author/user） |
-| displayName | String | 显示名称 |
-| avatar | String | 头像URL |
-| createdAt | Date | 创建时间 |
-| updatedAt | Date | 更新时间 |
+| Field | Type | Description |
+|-------|------|-------------|
+| _id | ObjectId | Unique identifier |
+| username | String | Username, unique |
+| email | String | Email address, unique |
+| password | String | Encrypted password |
+| role | String | User role (admin/author/user) |
+| displayName | String | Display name |
+| avatar | String | Avatar URL |
+| createdAt | Date | Creation time |
+| updatedAt | Date | Update time |
 
-### 文章 (Post)
+### Post
 
-文章表存储博客的所有文章。
+The Post table stores all blog articles.
 
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| _id | ObjectId | 唯一标识符 |
-| title | String | 文章标题 |
-| slug | String | URL友好的标识，唯一 |
-| content | String | 文章内容（Markdown） |
-| excerpt | String | 文章摘要 |
-| author | ObjectId | 引用User |
-| status | String | 状态（draft/published/archived） |
-| categories | [ObjectId] | 引用Category数组 |
-| tags | [ObjectId] | 引用Tag数组 |
-| featuredImage | String | 特色图片URL |
-| viewCount | Number | 浏览次数 |
-| commentCount | Number | 评论数量 |
-| allowComments | Boolean | 是否允许评论 |
-| publishedAt | Date | 发布时间 |
-| createdAt | Date | 创建时间 |
-| updatedAt | Date | 更新时间 |
+| Field | Type | Description |
+|-------|------|-------------|
+| _id | ObjectId | Unique identifier |
+| title | String | Article title |
+| slug | String | URL-friendly identifier, unique |
+| content | String | Article content (Markdown) |
+| excerpt | String | Article excerpt |
+| author | ObjectId | References User |
+| status | String | Status (draft/published/archived) |
+| categories | [ObjectId] | References Category array |
+| tags | [ObjectId] | References Tag array |
+| featuredImage | String | Featured image URL |
+| viewCount | Number | View count |
+| commentCount | Number | Comment count |
+| allowComments | Boolean | Whether comments are allowed |
+| publishedAt | Date | Publication time |
+| createdAt | Date | Creation time |
+| updatedAt | Date | Update time |
 
-### 评论 (Comment)
+### Comment
 
-评论表存储文章的评论信息。
+The Comment table stores article comments.
 
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| _id | ObjectId | 唯一标识符 |
-| content | String | 评论内容 |
-| author | ObjectId | 引用User |
-| post | ObjectId | 引用Post |
-| parentComment | ObjectId | 引用Comment（回复） |
-| isApproved | Boolean | 是否审核通过 |
-| createdAt | Date | 创建时间 |
-| updatedAt | Date | 更新时间 |
+| Field | Type | Description |
+|-------|------|-------------|
+| _id | ObjectId | Unique identifier |
+| content | String | Comment content |
+| author | ObjectId | References User |
+| post | ObjectId | References Post |
+| parentComment | ObjectId | References Comment (reply) |
+| isApproved | Boolean | Whether approved |
+| createdAt | Date | Creation time |
+| updatedAt | Date | Update time |
 
-### 分类 (Category)
+### Category
 
-分类表存储博客的文章分类。
+The Category table stores blog article categories.
 
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| _id | ObjectId | 唯一标识符 |
-| name | String | 分类名称 |
-| name_en | String | 英文分类名称 |
-| name_zh | String | 中文分类名称 |
-| slug | String | URL友好的标识，唯一 |
-| description | String | 分类描述 |
-| description_en | String | 英文分类描述 |
-| description_zh | String | 中文分类描述 |
-| parentCategory | ObjectId | 引用Category（父分类） |
-| createdAt | Date | 创建时间 |
-| updatedAt | Date | 更新时间 |
+| Field | Type | Description |
+|-------|------|-------------|
+| _id | ObjectId | Unique identifier |
+| name | String | Category name |
+| name_en | String | English category name |
+| name_zh | String | Chinese category name |
+| slug | String | URL-friendly identifier, unique |
+| description | String | Category description |
+| description_en | String | English category description |
+| description_zh | String | Chinese category description |
+| parentCategory | ObjectId | References Category (parent) |
+| createdAt | Date | Creation time |
+| updatedAt | Date | Update time |
 
-### 标签 (Tag)
+### Tag
 
-标签表存储博客的文章标签。
+The Tag table stores blog article tags.
 
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| _id | ObjectId | 唯一标识符 |
-| name | String | 标签名称 |
-| slug | String | URL友好的标识，唯一 |
-| createdAt | Date | 创建时间 |
-| updatedAt | Date | 更新时间 |
+| Field | Type | Description |
+|-------|------|-------------|
+| _id | ObjectId | Unique identifier |
+| name | String | Tag name |
+| slug | String | URL-friendly identifier, unique |
+| createdAt | Date | Creation time |
+| updatedAt | Date | Update time |
 
-### 媒体 (Media)
+### Media
 
-媒体表存储上传的图片和文件。
+The Media table stores uploaded images and files.
 
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| _id | ObjectId | 唯一标识符 |
-| filename | String | 保存的文件名 |
-| originalname | String | 原始文件名 |
-| path | String | 文件路径 |
-| type | String | 文件类型（image/document/etc） |
-| mimetype | String | MIME类型 |
-| size | Number | 文件大小（字节） |
-| uploadedBy | ObjectId | 引用User |
-| createdAt | Date | 创建时间 |
-| updatedAt | Date | 更新时间 |
+| Field | Type | Description |
+|-------|------|-------------|
+| _id | ObjectId | Unique identifier |
+| filename | String | Saved filename |
+| originalname | String | Original filename |
+| path | String | File path |
+| type | String | File type (image/document/etc) |
+| mimetype | String | MIME type |
+| size | Number | File size (bytes) |
+| uploadedBy | ObjectId | References User |
+| createdAt | Date | Creation time |
+| updatedAt | Date | Update time |
 
-### 设置 (Setting)
+### Setting
 
-设置表存储系统配置信息。
+The Setting table stores system configuration information.
 
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| _id | ObjectId | 唯一标识符 |
-| key | String | 设置键名，唯一 |
-| value | String | 设置值 |
-| group | String | 设置分组 |
-| type | String | 值类型（string/number/boolean/json） |
-| description | String | 设置描述 |
-| createdAt | Date | 创建时间 |
-| updatedAt | Date | 更新时间 |
+| Field | Type | Description |
+|-------|------|-------------|
+| _id | ObjectId | Unique identifier |
+| key | String | Setting key, unique |
+| value | String | Setting value |
+| group | String | Setting group |
+| type | String | Value type (string/number/boolean/json) |
+| description | String | Setting description |
+| createdAt | Date | Creation time |
+| updatedAt | Date | Update time |
 
-### 设置历史 (SettingHistory)
+### SettingHistory
 
-设置历史表记录设置的变更历史。
+The SettingHistory table records setting change history.
 
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| _id | ObjectId | 唯一标识符 |
-| key | String | 设置键名 |
-| oldValue | String | 旧值 |
-| newValue | String | 新值 |
-| changedBy | ObjectId | 引用User |
-| createdAt | Date | 创建时间 |
+| Field | Type | Description |
+|-------|------|-------------|
+| _id | ObjectId | Unique identifier |
+| key | String | Setting key |
+| oldValue | String | Old value |
+| newValue | String | New value |
+| changedBy | ObjectId | References User |
+| createdAt | Date | Creation time |
 
-## 索引策略
+## Indexing Strategy
 
-为优化数据库性能，系统为以下字段创建了索引：
+To optimize database performance, the system creates indexes for the following fields:
 
 - User: `username`, `email`
-- Post: `slug`, `author`, `status`, `categories`, `tags`, `publishedAt`, `viewCount`
+- Post: `slug`, `author`, `status`
 - Category: `slug`, `parentCategory`
 - Tag: `slug`
-- Comment: `post`, `author`, `parentComment`
-- Media: `type`, `uploadedBy`
+- Media: `uploadedBy`, `type`
 - Setting: `key`, `group`
+- SettingHistory: `key`, `changedBy`
 
-## 数据库优化
+## Relationships
 
-为提高查询效率，实施了以下优化：
+1. **User-Post**: One-to-Many
+   - A user can create multiple posts
+   - Each post belongs to one user
 
-1. 使用`lean()`查询减少文档水合的开销
-2. 投影查询只返回必要字段
-3. 复合索引支持常见查询模式
-4. 文本索引支持全文搜索
-5. 查询监控中间件识别慢查询 
+2. **User-Comment**: One-to-Many
+   - A user can write multiple comments
+   - Each comment belongs to one user
+
+3. **Post-Comment**: One-to-Many
+   - A post can have multiple comments
+   - Each comment belongs to one post
+
+4. **Post-Category**: Many-to-Many
+   - A post can belong to multiple categories
+   - A category can contain multiple posts
+
+5. **Post-Tag**: Many-to-Many
+   - A post can have multiple tags
+   - A tag can be used in multiple posts
+
+6. **Post-Media**: One-to-Many
+   - A post can contain multiple media files
+   - Each media file belongs to one post
+
+7. **Category-Category**: Self-Referential
+   - A category can have a parent category
+   - A category can have multiple child categories
+
+8. **Setting-User**: One-to-Many
+   - A user can change multiple settings
+   - Each setting change is recorded with the user who made it 

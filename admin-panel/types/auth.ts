@@ -1,4 +1,4 @@
-import { User } from './index';
+import { User } from "./index";
 
 export interface AuthResponse {
   user: User;
@@ -11,4 +11,4 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<AuthResponse | undefined>;
   logout: () => void;
-} 
+}

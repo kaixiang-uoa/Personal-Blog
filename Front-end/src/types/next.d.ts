@@ -1,4 +1,4 @@
-// 覆盖 Next.js 的默认类型
+// Override Next.js default types
 declare module 'next' {
   export interface PageProps {
     params?: {

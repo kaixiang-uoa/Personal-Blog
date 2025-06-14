@@ -1,10 +1,10 @@
-import { Tag, Category } from './index';
+import { Tag, Category } from "./index";
 
 // Post status enum
 export enum PostStatus {
-  ALL = 'all',
-  DRAFT = 'draft',
-  PUBLISHED = 'published'
+  ALL = "all",
+  DRAFT = "draft",
+  PUBLISHED = "published",
 }
 
 // Post type
@@ -30,8 +30,8 @@ export interface TagSelectorProps {
   selectedTags?: Tag[];
   onChange: (tags: Tag[]) => void;
   multiple?: boolean;
-  displayMode?: 'default' | 'minimal';
-  size?: 'default' | 'sm';
+  displayMode?: "default" | "minimal";
+  size?: "default" | "sm";
   showSelected?: boolean;
   placeholder?: string;
   disabled?: boolean;
@@ -42,8 +42,8 @@ export interface CategorySelectorProps {
   selectedCategories?: Category[];
   onChange: (categories: Category[]) => void;
   multiple?: boolean;
-  displayMode?: 'default' | 'minimal';
-  size?: 'default' | 'sm';
+  displayMode?: "default" | "minimal";
+  size?: "default" | "sm";
   showSelected?: boolean;
   placeholder?: string;
   disabled?: boolean;

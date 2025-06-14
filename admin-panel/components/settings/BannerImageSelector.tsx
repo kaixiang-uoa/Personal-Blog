@@ -1,24 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/data-display/card"
-import { Input } from "@/components/ui/inputs/input"
-import { Label } from "@/components/ui/inputs/label"
-import { Button } from "@/components/ui/inputs/button"
-import { ImageIcon } from "lucide-react"
+import { ImageIcon } from "lucide-react";
+import { useState } from "react";
+
+import { Card, CardContent } from "@/components/ui/data-display/card";
+import { Button } from "@/components/ui/inputs/button";
+import { Input } from "@/components/ui/inputs/input";
+import { Label } from "@/components/ui/inputs/label";
 
 interface BannerImageSelectorProps {
-  label: string
-  value: string
-  onChange: (url: string) => void
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
 }
 
 export default function BannerImageSelector({
   label,
   value,
-  onChange
+  onChange,
 }: BannerImageSelectorProps) {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div className="space-y-2">
@@ -30,11 +31,7 @@ export default function BannerImageSelector({
       >
         <CardContent className="p-0">
           {value ? (
-            <img
-              src={value}
-              alt={label}
-              className="w-full h-40 object-cover"
-            />
+            <img src={value} alt={label} className="w-full h-40 object-cover" />
           ) : (
             <div className="w-full h-40 bg-muted flex items-center justify-center">
               <ImageIcon className="h-8 w-8 text-muted-foreground" />
@@ -45,8 +42,8 @@ export default function BannerImageSelector({
               <Button
                 variant="secondary"
                 onClick={() => {
-                  const url = window.prompt("Enter image URL")
-                  if (url) onChange(url)
+                  const url = window.prompt("Enter image URL");
+                  if (url) onChange(url);
                 }}
               >
                 Change Image
@@ -62,5 +59,5 @@ export default function BannerImageSelector({
         onChange={(e) => onChange(e.target.value)}
       />
     </div>
-  )
-} 
+  );
+}

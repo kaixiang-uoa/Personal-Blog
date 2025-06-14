@@ -1,42 +1,38 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/inputs/button"
-import { Input } from "@/components/ui/inputs/input"
-import { Label } from "@/components/ui/inputs/label"
+import { Image as ImageIcon } from "lucide-react";
+import { useState } from "react";
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/feedback/popover"
-import { Image as ImageIcon } from "lucide-react"
+} from "@/components/ui/feedback/popover";
+import { Button } from "@/components/ui/inputs/button";
+import { Input } from "@/components/ui/inputs/input";
+import { Label } from "@/components/ui/inputs/label";
 
 interface ImagePopoverProps {
-  editor: any
+  editor: any;
 }
 
 export function ImagePopover({ editor }: ImagePopoverProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [imageUrl, setImageUrl] = useState("")
+  const [isOpen, setIsOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
 
   const insertImage = () => {
-    if (!imageUrl || !editor) return
-    
+    if (!imageUrl || !editor) return;
+
     (editor.chain().focus() as any)
-      .setImage({ src: imageUrl, alt: 'Image' })
-      .run()
-    
-    setImageUrl("")
-    setIsOpen(false)
-  }
+      .setImage({ src: imageUrl, alt: "Image" })
+      .run();
+
+    setImageUrl("");
+    setIsOpen(false);
+  };
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0"
-        >
+        <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
           <ImageIcon className="h-4 w-4" />
           <span className="sr-only">图片</span>
         </Button>
@@ -45,16 +41,18 @@ export function ImagePopover({ editor }: ImagePopoverProps) {
         <div className="space-y-2">
           <Label htmlFor="image-url">图片URL</Label>
           <div className="flex gap-2">
-            <Input 
+            <Input
               id="image-url"
-              value={imageUrl} 
+              value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://example.com/image.jpg"
             />
-            <Button size="sm" onClick={insertImage}>插入</Button>
+            <Button size="sm" onClick={insertImage}>
+              插入
+            </Button>
           </div>
         </div>
       </PopoverContent>
     </Popover>
-  )
-} 
+  );
+}

@@ -1,39 +1,61 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { z } from "zod"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/data-display/card"
-import { Button } from "@/components/ui/inputs/button"
-import { Input } from "@/components/ui/inputs/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
-import { useToast } from "@/hooks/ui/use-toast"
-import AuthLayout from "@/components/layouts/auth-layout"
-import { Loader2, EyeIcon, EyeOffIcon } from "lucide-react"
-import { apiService } from "@/lib/api"
-import { useTypedForm } from "@/types/index"
+import { Loader2, EyeIcon, EyeOffIcon } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { z } from "zod";
+
+import AuthLayout from "@/components/layouts/auth-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/data-display/card";
+import { Button } from "@/components/ui/inputs/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/inputs/form";
+import { Input } from "@/components/ui/inputs/input";
+import { useToast } from "@/hooks/ui/use-toast";
+import { apiService } from "@/lib/api";
+import { useTypedForm } from "@/types/index";
 
 // Registration form validation schema
-const formSchema = z.object({
-  username: z.string().min(3, { message: "Username must be at least 3 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" })
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, { 
-      message: "Password must contain at least one uppercase letter, one lowercase letter, and one number" 
-    }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const formSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, { message: "Username must be at least 3 characters" }),
+    email: z.string().email({ message: "Please enter a valid email address" }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" })
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+        message:
+          "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Use custom form hook
   const form = useTypedForm(formSchema, {
@@ -41,45 +63,45 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-  })
+  });
 
   // Registration handler function
   const onSubmit = form.handleSubmit(async (values) => {
     try {
-      setIsLoading(true)
-      
+      setIsLoading(true);
+
       // Call registration API
       await apiService.register({
         username: values.username,
         email: values.email,
-        password: values.password
-      })
+        password: values.password,
+      });
 
       // Registration successful
       toast({
         title: "Registration Successful",
         description: "Your account has been created. You can now log in.",
-      })
+      });
 
       // Redirect to login page
-      router.push("/login")
+      router.push("/login");
     } catch (error: any) {
       // Extract error message
-      let errorMessage = "Registration failed. Please try again."
-      
+      let errorMessage = "Registration failed. Please try again.";
+
       if (error.response && error.response.data?.message) {
-        errorMessage = error.response.data.message
+        errorMessage = error.response.data.message;
       }
-      
+
       toast({
         title: "Registration Failed",
         description: errorMessage,
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  })
+  });
 
   return (
     <AuthLayout>
@@ -88,8 +110,12 @@ export default function RegisterPage() {
           <div className="mx-auto h-10 w-10 rounded-md bg-primary flex items-center justify-center mb-2">
             <span className="font-bold text-xl text-primary-foreground">B</span>
           </div>
-          <CardTitle className="text-2xl text-center">Create an Account</CardTitle>
-          <CardDescription className="text-center">Enter your information to register</CardDescription>
+          <CardTitle className="text-2xl text-center">
+            Create an Account
+          </CardTitle>
+          <CardDescription className="text-center">
+            Enter your information to register
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -101,7 +127,11 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your username" {...field} disabled={isLoading} />
+                      <Input
+                        placeholder="Enter your username"
+                        {...field}
+                        disabled={isLoading}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,7 +144,12 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Enter your email" {...field} disabled={isLoading} />
+                      <Input
+                        type="email"
+                        placeholder="Enter your email"
+                        {...field}
+                        disabled={isLoading}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -128,11 +163,11 @@ export default function RegisterPage() {
                     <FormLabel>Password</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input 
-                          type={showPassword ? "text" : "password"} 
-                          placeholder="Create a password" 
-                          {...field} 
-                          disabled={isLoading} 
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Create a password"
+                          {...field}
+                          disabled={isLoading}
                         />
                       </FormControl>
                       <Button
@@ -162,11 +197,11 @@ export default function RegisterPage() {
                     <FormLabel>Confirm Password</FormLabel>
                     <div className="relative">
                       <FormControl>
-                        <Input 
-                          type={showConfirmPassword ? "text" : "password"} 
-                          placeholder="Confirm your password" 
-                          {...field} 
-                          disabled={isLoading} 
+                        <Input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm your password"
+                          {...field}
+                          disabled={isLoading}
                         />
                       </FormControl>
                       <Button
@@ -174,7 +209,9 @@ export default function RegisterPage() {
                         variant="ghost"
                         size="sm"
                         className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         disabled={isLoading}
                       >
                         {showConfirmPassword ? (
@@ -200,7 +237,7 @@ export default function RegisterPage() {
               </Button>
             </form>
           </Form>
-          
+
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
@@ -211,9 +248,11 @@ export default function RegisterPage() {
           </div>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Blog Management System</p>
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Blog Management System
+          </p>
         </CardFooter>
       </Card>
     </AuthLayout>
-  )
-} 
+  );
+}

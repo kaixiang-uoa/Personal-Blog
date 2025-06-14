@@ -4,11 +4,20 @@ import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 
 /**
- * Logo component
- * display website logo and name
- * support custom logo and site name from settings
+ * Logo Component
+ * 
+ * Displays the website logo and name, supporting customization through settings.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <Logo />
+ * ```
+ * 
+ * @returns {JSX.Element} A link component containing the logo and site name
  */
 export default function Logo() {
+  // Get site name and logo from settings with fallback values
   const siteName = useSetting('general.siteName', "DevBlog");
   const logo = useSetting('general.logo', '');
 
@@ -16,6 +25,7 @@ export default function Logo() {
     <Link href="/" className="flex items-center gap-4 text-foreground">
       <div className="size-4">
         {logo ? (
+          // Use Next.js Image component for optimized image loading
           <Image
             src={logo}
             alt={siteName}
@@ -23,6 +33,7 @@ export default function Logo() {
             height={16}
           />
         ) : (
+          // Fallback SVG logo when no custom logo is set
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g clipPath="url(#clip0_6_543)">
               <path

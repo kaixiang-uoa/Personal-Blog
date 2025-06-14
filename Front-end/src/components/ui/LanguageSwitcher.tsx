@@ -3,11 +3,27 @@
 import { useLocale } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 
+/**
+ * LanguageSwitcher Component
+ * 
+ * A button component that allows users to switch between English and Chinese languages.
+ * Uses Next.js internationalization features to handle locale switching.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <LanguageSwitcher />
+ * ```
+ */
 export default function LanguageSwitcher() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
 
+  /**
+   * Switches the application language and updates the URL accordingly
+   * @param {string} newLocale - The new locale to switch to ('en' or 'zh')
+   */
   const switchLocale = (newLocale: string) => {
     // Get the path without the locale prefix
     const pathWithoutLocale = pathname.replace(`/${locale}`, '') || '/';
@@ -19,7 +35,7 @@ export default function LanguageSwitcher() {
     router.push(newPath);
   };
 
-  // current language text display
+  // Display text based on current language
   const currentLanguageText = locale === 'en' ? 'EN' : '中文';
 
   return (

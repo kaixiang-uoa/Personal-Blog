@@ -7,6 +7,31 @@ import { FilterSidebarProps } from '@/types/components';
 import { SortOrder } from '@/types/models/common';
 import { validateSortOrder } from '@/utils';
 
+/**
+ * FilterSidebar Component
+ * 
+ * A flexible sidebar component that provides filtering capabilities for articles,
+ * supporting categories, tags, and sorting options. Can be displayed in both
+ * vertical and horizontal layouts.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <FilterSidebar
+ *   tags={tags}
+ *   activeTags={['react', 'typescript']}
+ *   categories={categories}
+ *   activeCategory="web-development"
+ *   currentLocale="en"
+ *   sortOrder="latest"
+ *   isHorizontal={false}
+ *   onFilterChangeAction={handleFilterChange}
+ * />
+ * ```
+ * 
+ * @param {FilterSidebarProps} props - The component props
+ * @returns {JSX.Element | null} A filter sidebar component or null if sidebar is disabled
+ */
 export default function FilterSidebar({
   tags,
   activeTags,
@@ -18,15 +43,22 @@ export default function FilterSidebar({
   onFilterChangeAction,
 }: FilterSidebarProps) {
   const t = useTranslations('common');
+  // State management for selected filters
   const [selectedTags, setSelectedTags] = useState<string[]>(activeTags || []);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(activeCategory || null);
   const [selectedSortOrder, setSelectedSortOrder] = useState<SortOrder>(sortOrder);
   
-  // Get sidebar settings from settings
+  // Get sidebar configuration from settings
   const defaultSortSetting = useSetting('posts.defaultSort', 'latest');
   const defaultSort = validateSortOrder(defaultSortSetting, 'latest');
   const showSidebar = useSetting('appearance.showSidebar', true);
 
+  /**
+   * Get localized name for a given item based on current locale
+   * @param {Object} item - The item containing name properties
+   * @param {string} locale - The current locale
+   * @returns {string} The localized name
+   */
   const getLocalizedName = useCallback((
     item: { name: string; name_en?: string; name_zh?: string },
     locale: string
@@ -36,16 +68,28 @@ export default function FilterSidebar({
     return item.name;
   }, []);
 
+  /**
+   * Handle tag selection change
+   * @param {string} tagSlug - The selected tag slug
+   */
   const handleTagChange = useCallback((tagSlug: string) => {
     setSelectedTags([tagSlug]);
     onFilterChangeAction({ type: 'tags', value: [tagSlug] });
   }, [onFilterChangeAction]);
 
+  /**
+   * Handle category selection change
+   * @param {string | null} categorySlug - The selected category slug
+   */
   const handleCategoryChange = useCallback((categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
     onFilterChangeAction({ type: 'category', value: categorySlug || '' });
   }, [onFilterChangeAction]);
 
+  /**
+   * Handle sort order change
+   * @param {string} newSortValue - The new sort value
+   */
   const handleSortChange = useCallback((newSortValue: string) => {
     // Validate the sort value before using it
     const newSort = validateSortOrder(newSortValue, 'latest');
@@ -53,17 +97,17 @@ export default function FilterSidebar({
     onFilterChangeAction({ type: 'sort', value: newSort });
   }, [onFilterChangeAction]);
 
-  // Update selected category when activeCategory changes
+  // Sync selected category with activeCategory prop
   useEffect(() => {
     setSelectedCategory(activeCategory || null);
   }, [activeCategory]);
 
-  // Update selected tags when activeTags changes
+  // Sync selected tags with activeTags prop
   useEffect(() => {
     setSelectedTags(activeTags || []);
   }, [activeTags]);
 
-  // Update sort order when defaultSort changes
+  // Sync sort order with default sort from settings
   useEffect(() => {
     // If no sort selected or reset to default, use default sort from settings
     if (!sortOrder || sortOrder === defaultSort) {
@@ -71,18 +115,19 @@ export default function FilterSidebar({
     }
   }, [defaultSort, sortOrder, onFilterChangeAction]);
 
-  // If set to not show sidebar, return null after all hooks are called
+  // Return null if sidebar is disabled in settings
   if (!showSidebar) {
     return null;
   }
 
-  // Adjust container style to ensure components are displayed side by side in horizontal layout
+  // Determine container class based on layout mode
   const containerClass = isHorizontal 
     ? "flex flex-row flex-wrap md:flex-nowrap items-center space-x-3 w-full"
     : "flex flex-col space-y-3 w-full";
 
   return (
     <div className={containerClass}>
+      {/* Category selection dropdown */}
       <SelectField
         label={t('categories')}
         value={selectedCategory || ''}
@@ -97,6 +142,7 @@ export default function FilterSidebar({
         isHorizontal={isHorizontal}
       />
 
+      {/* Tag selection dropdown */}
       <SelectField
         label={t('tags')}
         value={selectedTags[0] || ''}
@@ -111,6 +157,7 @@ export default function FilterSidebar({
         isHorizontal={isHorizontal}
       />
 
+      {/* Sort order selection dropdown */}
       <SelectField
         label={t('sortBy')}
         value={selectedSortOrder}

@@ -1,5 +1,12 @@
-import { z } from "zod"
-import { generalFormSchema, postsFormSchema, appearanceFormSchema, aboutFormSchema, advancedFormSchema } from "@/lib/validators/settings-schemas"
+import { z } from "zod";
+
+import {
+  generalFormSchema,
+  postsFormSchema,
+  appearanceFormSchema,
+  aboutFormSchema,
+  advancedFormSchema,
+} from "@/lib/validators/settings-schemas";
 
 // Raw API response types
 export interface RawSettingValue {
@@ -15,53 +22,53 @@ export interface SettingsResponse {
 
 // Processed settings types
 export interface Settings {
-  general: z.infer<typeof generalFormSchema>
-  posts: z.infer<typeof postsFormSchema>
+  general: z.infer<typeof generalFormSchema>;
+  posts: z.infer<typeof postsFormSchema>;
   appearance: {
-    homeBanner: string
-    aboutBanner: string
-    contactBanner: string
-    homeBannerMobile: string
-    aboutBannerMobile: string
-    contactBannerMobile: string
-  }
-  advanced: z.infer<typeof advancedFormSchema>
-  about: AboutSettings
+    homeBanner: string;
+    aboutBanner: string;
+    contactBanner: string;
+    homeBannerMobile: string;
+    aboutBannerMobile: string;
+    contactBannerMobile: string;
+  };
+  advanced: z.infer<typeof advancedFormSchema>;
+  about: AboutSettings;
 }
 
 export interface AboutSettings {
-  intro: string
-  intro_zh: string
+  intro: string;
+  intro_zh: string;
   contact: {
-    email: string
-    phone: string
-    location: string
-  }
-  skills: string[]
+    email: string;
+    phone: string;
+    location: string;
+  };
+  skills: string[];
   education: Array<{
-    degree: string
-    institution: string
-    year: string
-    description: string
-  }>
+    degree: string;
+    institution: string;
+    year: string;
+    description: string;
+  }>;
   experience: Array<{
-    position: string
-    company: string
-    period: string
-    description: string
-  }>
+    position: string;
+    company: string;
+    period: string;
+    description: string;
+  }>;
   projects: Array<{
-    name: string
-    description: string
-    link: string
-    tech: string[]
-  }>
+    name: string;
+    description: string;
+    link: string;
+    tech: string[];
+  }>;
   social: {
-    github: string
-    linkedin: string
-    twitter: string
-    website: string
-  }
+    github: string;
+    linkedin: string;
+    twitter: string;
+    website: string;
+  };
 }
 
 export interface FieldItem {
@@ -69,14 +76,14 @@ export interface FieldItem {
 }
 
 export interface AboutFormData {
-  intro?: string
-  intro_zh?: string
-  contact?: AboutSettings['contact']
-  skills?: AboutSettings['skills']
-  education?: AboutSettings['education']
-  experience?: AboutSettings['experience']
-  projects?: AboutSettings['projects']
-  social?: AboutSettings['social']
+  intro?: string;
+  intro_zh?: string;
+  contact?: AboutSettings["contact"];
+  skills?: AboutSettings["skills"];
+  education?: AboutSettings["education"];
+  experience?: AboutSettings["experience"];
+  projects?: AboutSettings["projects"];
+  social?: AboutSettings["social"];
 }
 
 export interface Setting {
@@ -123,7 +130,7 @@ export interface AboutSettingsFormProps extends BaseSettingsFormProps {
 }
 
 export interface BannerImageSelectorProps {
-  value: string
-  onChange: (url: string) => void
-  label: string
-} 
+  value: string;
+  onChange: (url: string) => void;
+  label: string;
+}

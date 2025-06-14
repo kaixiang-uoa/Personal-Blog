@@ -7,6 +7,17 @@ import { ApiErrorFallback } from '@/components/common';
 import { SortOrder, Tag, Category, Article } from '@/types';
 import { useArticles } from '@/hooks/useArticles';
 
+/**
+ * Props interface for the ArticleList component
+ * @interface ArticleListProps
+ * @property {string} locale - The current locale for internationalization
+ * @property {number} currentPage - The current page number for pagination
+ * @property {number} postsPerPage - Number of posts to display per page
+ * @property {string[]} tagsParam - Array of tag slugs to filter articles
+ * @property {string} [category] - Optional category slug to filter articles
+ * @property {string} [search] - Optional search term to filter articles
+ * @property {SortOrder} sort - The sorting order for articles
+ */
 interface ArticleListProps { 
   locale: string;
   currentPage: number;
@@ -17,6 +28,29 @@ interface ArticleListProps {
   sort: SortOrder;
 }
 
+/**
+ * ArticleList Component
+ * 
+ * A component that displays a grid of articles with filtering, sorting, and pagination capabilities.
+ * It handles loading states, error states, and empty states appropriately.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <ArticleList
+ *   locale="en"
+ *   currentPage={1}
+ *   postsPerPage={9}
+ *   tagsParam={['react', 'typescript']}
+ *   category="web-development"
+ *   search="react hooks"
+ *   sort="latest"
+ * />
+ * ```
+ * 
+ * @param {ArticleListProps} props - The component props
+ * @returns {JSX.Element} A responsive grid of articles with appropriate state handling
+ */
 export default function ArticleList({ 
   locale, 
   currentPage, 
@@ -28,7 +62,7 @@ export default function ArticleList({
 }: ArticleListProps) {
   const t = useTranslations('common');
   
-  // use React Query hooks to get data
+  // Fetch articles data using React Query hook
   const { 
     data: articlesData, 
     isLoading: isLoadingArticles, 
@@ -44,33 +78,33 @@ export default function ArticleList({
     lang: locale
   });
 
-  // Extract data and create filtered articles in one memo to maintain hook order
+  // Memoize filtered articles to optimize performance
   const { articles, filteredArticles } = useMemo(() => {
     const articles = articlesData?.posts || [];
     
-    // Calculate filtered articles only if we have articles
+    // Return early if no articles are available
     if (articles.length === 0) {
       return { articles, filteredArticles: [] };
     }
 
-    // Filter logic
+    // Apply filters and sorting
     let result = [...articles];
 
-    // filter by tags
+    // Filter by tags if specified
     if (tagsParam.length > 0) {
       result = result.filter(article => 
         Array.isArray(article.tags) &&
         article.tags.some((tag: Tag) => tagsParam.includes(tag?.slug)));
     }
 
-    // filter by category
+    // Filter by category if specified
     if (category) {
       result = result.filter(article => 
         Array.isArray(article.categories) && 
         article.categories.some((cat: Category) => cat?.slug === category))
     }
 
-    // search filter
+    // Apply search filter if search term is provided
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(
@@ -80,7 +114,7 @@ export default function ArticleList({
       );
     }
 
-    // sort
+    // Sort articles based on the specified order
     switch (sort) {
       case 'latest':
         result.sort((a: Article, b: Article) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -102,7 +136,7 @@ export default function ArticleList({
     sort
   ]);
 
-  // loading state
+  // Display loading skeleton while fetching data
   if (isLoadingArticles) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,7 +147,7 @@ export default function ArticleList({
     );
   }
 
-  // error state
+  // Display error state with retry option
   if (articlesError) {
     return (
       <ApiErrorFallback 
@@ -124,7 +158,7 @@ export default function ArticleList({
     );
   }
 
-  // empty state
+  // Display empty state message when no articles are found
   if (articles.length === 0) {
     return (
       <div className="py-12 text-center">
@@ -136,7 +170,7 @@ export default function ArticleList({
     );
   }
 
-  // normal rendering of article list
+  // Render the grid of filtered articles
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {filteredArticles.map((article) => (

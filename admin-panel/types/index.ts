@@ -3,9 +3,14 @@
  * Consolidated type definitions for the Admin Panel
  */
 
-import { z } from "zod";
-import { useForm, UseFormReturn, FieldValues, DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useForm,
+  UseFormReturn,
+  FieldValues,
+  DefaultValues,
+} from "react-hook-form";
+import { z } from "zod";
 
 // ====================
 // Base API Types
@@ -47,7 +52,7 @@ export interface User {
   _id: string;
   username: string;
   email: string;
-  role: 'admin' | 'editor' | 'user';
+  role: "admin" | "editor" | "user";
   createdAt?: string;
   updatedAt?: string;
 }
@@ -68,8 +73,8 @@ export interface AuthResponse {
     id: string;
     username: string;
     email: string;
-    role: 'admin' | 'editor' | 'user';
-  }
+    role: "admin" | "editor" | "user";
+  };
 }
 
 // ====================
@@ -116,8 +121,6 @@ export interface Media {
   updatedAt: string;
 }
 
-
-
 // common field item type
 export interface FieldItem {
   [key: string]: any;
@@ -128,13 +131,16 @@ export interface FieldItem {
 // ====================
 
 // Typed form hook
-export function useTypedForm<TSchema extends z.ZodType<any, any, any>, TValues extends FieldValues = z.infer<TSchema>>(
+export function useTypedForm<
+  TSchema extends z.ZodType<any, any, any>,
+  TValues extends FieldValues = z.infer<TSchema>,
+>(
   schema: TSchema,
-  defaultValues?: DefaultValues<TValues>
+  defaultValues?: DefaultValues<TValues>,
 ): UseFormReturn<TValues> {
   return useForm<TValues>({
     resolver: zodResolver(schema),
-    defaultValues
+    defaultValues,
   });
 }
 
@@ -142,26 +148,30 @@ export function useTypedForm<TSchema extends z.ZodType<any, any, any>, TValues e
 export const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(1, { message: "Please enter your password" }),
-  rememberMe: z.boolean().default(false)
+  rememberMe: z.boolean().default(false),
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
 // Forgot password form schema
 export const forgotPasswordSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" })
+  email: z.string().email({ message: "Please enter a valid email address" }),
 });
 
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 // Reset password form schema
-export const resetPasswordSchema = z.object({
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
-  confirmPassword: z.string()
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"]
-});
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
@@ -237,5 +247,5 @@ export interface DashboardData {
 }
 
 // Re-export types from other files
-export * from './auth';
-export * from './posts'; 
+export * from "./auth";
+export * from "./posts";

@@ -1,52 +1,55 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import { apiService } from "@/lib/api"
-import { Post } from "@/types/posts"
-import { ChevronLeft, Calendar, User, Tag, Bookmark } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/inputs/button"
-import { Badge } from "@/components/ui/data-display/badge"
+import { ChevronLeft, Calendar, User, Tag, Bookmark } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { Badge } from "@/components/ui/data-display/badge";
+import { Button } from "@/components/ui/inputs/button";
+import { apiService } from "@/lib/api";
+import { Post } from "@/types/posts";
+
+
 
 export default function PostPreviewPage() {
-  const params = useParams()
-  const [post, setPost] = useState<Post | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const params = useParams();
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPost() {
       try {
-        const id = params.id as string
-        const response = await apiService.getPostById(id)
-        console.log(response)
+        const id = params.id as string;
+        const response = await apiService.getPostById(id);
+        console.log(response);
         if (response.data) {
-          setPost(response.data.post)
+          setPost(response.data.post);
         }
       } catch (error) {
-        console.error('Error fetching post:', error)
-        setError('Failed to load post')
+        console.error("Error fetching post:", error);
+        setError("Failed to load post");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
     if (params.id) {
-      fetchPost()
+      fetchPost();
     }
-  }, [params.id])
+  }, [params.id]);
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>
+    return <div>Error: {error}</div>;
   }
 
   if (!post) {
-    return <div>Post not found</div>
+    return <div>Post not found</div>;
   }
 
   // Author info: some posts may not have author field, so use optional chaining and type assertion
@@ -117,7 +120,10 @@ export default function PostPreviewPage() {
               <div className="flex flex-wrap gap-2">
                 {(post.categories as any[]).map((category: any) => (
                   <Badge key={category._id} variant="secondary">
-                    {category.name_en || category.name || category.name_zh || ""}
+                    {category.name_en ||
+                      category.name ||
+                      category.name_zh ||
+                      ""}
                   </Badge>
                 ))}
               </div>
@@ -140,11 +146,11 @@ export default function PostPreviewPage() {
           )}
         </div>
 
-        <div 
+        <div
           className="prose prose-slate dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{ __html: post.content || "" }}
         />
       </article>
     </div>
-  )
-} 
+  );
+}

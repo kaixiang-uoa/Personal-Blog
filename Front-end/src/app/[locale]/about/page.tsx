@@ -6,15 +6,31 @@ import { Navbar } from '@/components';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useSetting } from '@/contexts/SettingsContext';
-import { settingApi } from '@/services/settingApi';
-import { AboutData, SettingItem, ContactInfo, EducationItem, ExperienceItem, ProjectItem, SocialLinks } from '@/types/models';
+import { AboutData, ContactInfo, EducationItem, ExperienceItem, ProjectItem, SocialLinks } from '@/types/models';
 import { tryParseJSON } from '@/utils';
 
+/**
+ * AboutMe Component
+ * 
+ * A dynamic page component that displays personal information including introduction,
+ * contact details, skills, education history, work experience, projects, and social links.
+ * Data is fetched from the settings API and supports internationalization.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * // This component is rendered automatically by Next.js
+ * // when navigating to /[locale]/about
+ * ```
+ * 
+ * @returns {JSX.Element} The about page layout
+ */
 export default function AboutMe() {
   const params = useParams();
   const locale = params.locale as string || 'en';
   const t = useTranslations('about');
   
+  // Initialize state with default values
   const [aboutData, setAboutData] = useState<AboutData>({
     intro: '',
     contact: {} as ContactInfo,
@@ -27,63 +43,56 @@ export default function AboutMe() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // get about banner image url from settings
+  // Get banner settings from context
   const aboutBanner = useSetting('appearance.aboutBanner', '/images/about-banner.jpg');
-
-  // get about banner image url for mobile from settings
   const aboutBannerMobile = useSetting('appearance.aboutBannerMobile', aboutBanner);
 
-  useEffect(() => {
-    // use settingApi to get settings for about group
-    settingApi.getSettingsByGroup('about')
-      .then(settingsData => {
-        try {
-          // parse stored about page data
-          const aboutSettings = settingsData.reduce((acc: Record<string, string>, item: SettingItem) => {
-            if (item.key && item.value) {
-              acc[item.key.replace('about.', '')] = item.value as string;
-            }
-            return acc;
-          }, {} as Record<string, string>);
-          // select data based on current language
-          setAboutData({
-            intro: locale === 'zh' ? aboutSettings.intro : aboutSettings.intro,
-            contact: tryParseJSON<ContactInfo>(aboutSettings.contactInfo, {} as ContactInfo),
-            skills: tryParseJSON<string[]>(aboutSettings.skills, []),
-            education: tryParseJSON<EducationItem[]>(aboutSettings.education, []),
-            experience: tryParseJSON<ExperienceItem[]>(aboutSettings.experience, []),
-            projects: tryParseJSON<ProjectItem[]>(aboutSettings.projects, []),
-            social: tryParseJSON<SocialLinks>(aboutSettings.socialLinks, {} as SocialLinks)
-          });
-        } catch (err) {
-          // only log detailed parsing errors in development environment
-          if (process.env.NODE_ENV !== 'production') {
-            console.error('Error parsing JSON data:', err);
-          }
-          setError('Failed to parse about page data. Please check the data format.');
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        // only log detailed errors in development environment
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('Error fetching about data:', err);
-        }
-        setError(err.message || 'Failed to connect to the server. Please make sure the backend is running.');
-        setLoading(false);
-      });
-  }, [locale]);
+  // Get about page data from settings
+  const intro = useSetting('about.intro', '');
+  const contactInfo = useSetting('about.contactInfo', '{}');
+  const skills = useSetting('about.skills', '[]');
+  const education = useSetting('about.education', '[]');
+  const experience = useSetting('about.experience', '[]');
+  const projects = useSetting('about.projects', '[]');
+  const socialLinks = useSetting('about.socialLinks', '{}');
 
-  // check if object has valid non-empty values
+  // Parse and set about page data
+  useEffect(() => {
+    try {
+      setAboutData({
+        intro: locale === 'zh' ? intro : intro,
+        contact: tryParseJSON<ContactInfo>(contactInfo, {} as ContactInfo),
+        skills: tryParseJSON<string[]>(skills, []),
+        education: tryParseJSON<EducationItem[]>(education, []),
+        experience: tryParseJSON<ExperienceItem[]>(experience, []),
+        projects: tryParseJSON<ProjectItem[]>(projects, []),
+        social: tryParseJSON<SocialLinks>(socialLinks, {} as SocialLinks)
+      });
+      setLoading(false);
+    } catch (err) {
+      // Log detailed parsing errors in development environment
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error parsing JSON data:', err);
+      }
+      setError('Failed to parse about page data. Please check the data format.');
+      setLoading(false);
+    }
+  }, [locale, intro, contactInfo, skills, education, experience, projects, socialLinks]);
+
+  /**
+   * Check if an object has valid non-empty values
+   * @param {T} obj - The object to check
+   * @returns {boolean} True if the object has valid content
+   */
   const hasValidContent = function hasValidContent<T>(obj: T): boolean {
     if (!obj) return false;
     
-    // check if it is an array and has elements
+    // Check if it is an array and has elements
     if (Array.isArray(obj)) {
       return obj.length > 0;
     }
     
-    // check if it is an object and has valid property values
+    // Check if it is an object and has valid property values
     if (typeof obj === 'object' && obj !== null) {
       return Object.values(obj).some(val => 
         val !== null && 
@@ -93,10 +102,11 @@ export default function AboutMe() {
       );
     }
     
-    // check if the value is valid
+    // Check if the value is valid
     return obj !== null && obj !== undefined && obj !== '';
   };
 
+  // Loading state
   if (loading) {
     return (
       <main className="min-h-screen bg-white">
@@ -108,6 +118,7 @@ export default function AboutMe() {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <main className="min-h-screen bg-white">
@@ -115,13 +126,11 @@ export default function AboutMe() {
         <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <h2 className="text-2xl font-bold mb-4 text-red-600">
-              {locale === 'zh' ? '连接错误' : 'Connection Error'}
+              {t('errorTitle')}
             </h2>
             <p className="mb-4 text-red-600">{error}</p>
             <p className="text-[#60748a]">
-              {locale === 'zh' 
-                ? '请确保后端服务器正在运行，然后刷新页面重试。' 
-                : 'Please ensure the backend server is running, then refresh to try again.'}
+              {t('errorDescription')}
             </p>
           </div>
         </div>
@@ -129,11 +138,12 @@ export default function AboutMe() {
     );
   }
 
+  // Main content
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Banner section similar to home page */}
+      {/* Banner section */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4">
         <div className="py-4">
           <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10 banner-image"
@@ -168,7 +178,7 @@ export default function AboutMe() {
           </section>
         )}
 
-        {/* Contact Info */}
+        {/* Contact Info Section */}
         {hasValidContent(aboutData.contact) && (
           <section className="mb-12">
             <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('contactTitle')}</h2>
@@ -191,7 +201,7 @@ export default function AboutMe() {
           </section>
         )}
 
-        {/* Skills */}
+        {/* Skills Section */}
         {hasValidContent(aboutData.skills) && (
           <section className="mb-12">
             <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('skillsTitle')}</h2>
@@ -208,7 +218,7 @@ export default function AboutMe() {
           </section>
         )}
 
-        {/* Education */}
+        {/* Education Section */}
         {hasValidContent(aboutData.education) && (
           <section className="mb-12">
             <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('educationTitle')}</h2>
@@ -228,7 +238,7 @@ export default function AboutMe() {
           </section>
         )}
 
-        {/* Experience */}
+        {/* Experience Section */}
         {hasValidContent(aboutData.experience) && (
           <section className="mb-12">
             <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('experienceTitle')}</h2>
@@ -248,80 +258,51 @@ export default function AboutMe() {
           </section>
         )}
 
-        {/* Projects */}
+        {/* Projects Section */}
         {hasValidContent(aboutData.projects) && (
           <section className="mb-12">
             <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('projectsTitle')}</h2>
             <div className="space-y-4">
-              {aboutData.projects.map((project, index) => (
+              {aboutData.projects.map((project: ProjectItem, index: number) => (
                 <div key={index} className="border border-border rounded-lg p-4 hover:shadow-sm transition-all">
-                  {project.name && (
-                    <div>
-                      <h3 className="text-foreground font-medium">{project.name}</h3>
-                      {project.description && <p className="text-muted-foreground text-sm mt-1">{project.description}</p>}
-                      {project.link && (
-                        <a 
-                          href={project.link} 
-                          className="text-cyan-600 hover:text-cyan-700 text-sm mt-2 inline-block" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          {t('githubLink')} →
-                        </a>
-                      )}
-                    </div>
-                  )}
+                  <h3 className="text-foreground font-medium">
+                    {project.name}
+                    {project.link && (
+                      <a 
+                        href={project.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="ml-2 text-cyan-600 hover:text-cyan-700"
+                      >
+                        {t('viewProject')}
+                      </a>
+                    )}
+                  </h3>
+                  {project.description && <p className="text-muted-foreground text-sm mt-1">{project.description}</p>}
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {/* Social Links */}
+        {/* Social Links Section */}
         {hasValidContent(aboutData.social) && (
           <section className="mb-12">
             <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('socialTitle')}</h2>
-            <div className="flex flex-wrap gap-3">
-              {aboutData.social.github && (
-                <a
-                  href={aboutData.social.github}
-                  className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  GitHub
-                </a>
-              )}
-              {aboutData.social.linkedin && (
-                <a
-                  href={aboutData.social.linkedin}
-                  className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  LinkedIn
-                </a>
-              )}
-              {aboutData.social.twitter && (
-                <a
-                  href={aboutData.social.twitter}
-                  className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Twitter
-                </a>
-              )}
-              {aboutData.social.website && (
-                <a
-                  href={aboutData.social.website}
-                  className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t('website')}
-                </a>
-              )}
+            <div className="flex flex-wrap gap-4">
+              {Object.entries(aboutData.social).map(([platform, url]) => (
+                url && (
+                  <a
+                    key={platform}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground hover:text-cyan-600 transition-colors"
+                  >
+                    {platform}
+                  </a>
+                )
+              ))}
             </div>
           </section>
         )}

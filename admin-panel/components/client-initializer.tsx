@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+
 import { useToast } from "@/hooks/ui/use-toast";
 
 /**
@@ -13,12 +14,12 @@ export function ClientInitializer() {
   useEffect(() => {
     // Initialize client services
     console.log("Client services initialized");
-    
+
     // Display welcome toast on initial load
-    if (typeof window !== 'undefined') {
-      const isFirstLoad = !sessionStorage.getItem('initialized');
+    if (typeof window !== "undefined") {
+      const isFirstLoad = !sessionStorage.getItem("initialized");
       if (isFirstLoad) {
-        sessionStorage.setItem('initialized', 'true');
+        sessionStorage.setItem("initialized", "true");
         // Show welcome toast
         setTimeout(() => {
           toast({
@@ -33,4 +34,4 @@ export function ClientInitializer() {
 
   // This component doesn't render anything
   return null;
-} 
+}

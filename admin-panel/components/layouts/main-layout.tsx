@@ -1,29 +1,27 @@
-"use client"
+"use client";
 
-import type React from "react"
+import { usePathname } from "next/navigation";
+import { useState, useEffect, type ReactNode } from "react";
 
-import { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
-import Sidebar from "@/components/navigation/sidebar"
-import Header from "@/components/navigation/header"
-import { useToast } from "@/hooks/ui/use-toast"
-import { useMobile } from "@/hooks/ui/use-mobile"
+import Header from "@/components/navigation/header";
+import Sidebar from "@/components/navigation/sidebar";
+import { useMobile } from "@/hooks/ui/use-mobile";
 
 interface MainLayoutProps {
-  children: React.ReactNode
+  children: ReactNode;
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const pathname = usePathname()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const isMobile = useMobile()
+  const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useMobile();
 
   // Close sidebar when route changes on mobile
   useEffect(() => {
     if (isMobile) {
-      setSidebarOpen(false)
+      setSidebarOpen(false);
     }
-  }, [pathname, isMobile])
+  }, [pathname, isMobile]);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -33,5 +31,5 @@ export default function MainLayout({ children }: MainLayoutProps) {
         <main className="flex-1 p-4 md:p-6 pt-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

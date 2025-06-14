@@ -2,7 +2,7 @@
  * Validation middleware
  * Provides unified validation error handling for all routes
  */
-import { validationResult } from 'express-validator';
+import { validationResult } from "express-validator";
 
 /**
  * Validation error handler
@@ -28,17 +28,17 @@ export const validate = (validations) => {
     }
 
     // Format validation errors
-    const formattedErrors = errors.array().map(error => ({
+    const formattedErrors = errors.array().map((error) => ({
       field: error.path,
       message: error.msg,
-      value: error.value
+      value: error.value,
     }));
 
     // Return standardized error response
     return res.status(400).json({
       success: false,
       errors: formattedErrors,
-      message: 'Validation failed'
+      message: "Validation failed",
     });
   };
 };
@@ -51,4 +51,4 @@ export const validate = (validations) => {
  */
 export const validateRequest = (validations) => {
   return validate(validations);
-}; 
+};

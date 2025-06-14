@@ -1,12 +1,16 @@
 /**
  * test environment common settings
- * 
+ *
  * include all test global settings and teardown
  */
 
-import { connectTestDB, disconnectTestDB, clearDatabase } from '../config/testDb.js';
-import app from '../app.js';
-import supertest from 'supertest';
+import {
+  connectTestDB,
+  disconnectTestDB,
+  clearDatabase,
+} from "../config/testDb.js";
+import app from "../app.js";
+import supertest from "supertest";
 
 // export test request client
 export const request = supertest(app);
@@ -31,7 +35,7 @@ afterAll(async () => {
 
 /**
  * create test user and get authentication token helper function
- * 
+ *
  * @param {Object} userData - user data
  * @param {String} userData.email - user email
  * @param {String} userData.password - userpassword
@@ -41,29 +45,27 @@ afterAll(async () => {
  */
 export const createUserAndGetToken = async (userData = {}) => {
   const defaultUser = {
-    email: 'test@example.com',
-    password: 'password123',
-    username: 'testuser',
-    role: 'admin'
+    email: "test@example.com",
+    password: "password123",
+    username: "testuser",
+    role: "admin",
   };
-  
+
   const user = { ...defaultUser, ...userData };
-  
+
   // register user
   const registerResponse = await request
-    .post('/api/v1/auth/register')
+    .post("/api/v1/auth/register")
     .send(user);
-  
+
   // login and get token
-  const loginResponse = await request
-    .post('/api/v1/auth/login')
-    .send({
-      email: user.email,
-      password: user.password
-    });
-  
+  const loginResponse = await request.post("/api/v1/auth/login").send({
+    email: user.email,
+    password: user.password,
+  });
+
   return {
     token: loginResponse.body.token,
-    userId: registerResponse.body.user._id
+    userId: registerResponse.body.user._id,
   };
-}; 
+};

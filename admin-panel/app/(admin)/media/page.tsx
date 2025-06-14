@@ -1,18 +1,23 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/inputs/button"
-import { Input } from "@/components/ui/inputs/input"
-import { Card, CardContent, CardHeader } from "@/components/ui/data-display/card"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/navigation/dropdown-menu"
-import { Skeleton } from "@/components/ui/data-display/skeleton"
-import { useToast } from "@/hooks/ui/use-toast"
+  Clipboard,
+  Download,
+  Eye,
+  MoreHorizontal,
+  Search,
+  Trash2,
+  Upload,
+} from "lucide-react";
+import Image from "next/image";
+import { useState, useEffect, useCallback, useMemo } from "react";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@/components/ui/data-display/card";
+import { Skeleton } from "@/components/ui/data-display/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +27,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/feedback/alert-dialog"
+} from "@/components/ui/feedback/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -30,36 +35,43 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/feedback/dialog"
-import { Clipboard, Download, Eye, MoreHorizontal, Search, Trash2, Upload } from "lucide-react"
-import Image from "next/image"
-import { Media, ApiResponse, PaginatedResponse } from "@/types"
-import { apiService } from "@/lib/api"
-
+} from "@/components/ui/feedback/dialog";
+import { Button } from "@/components/ui/inputs/button";
+import { Input } from "@/components/ui/inputs/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/navigation/dropdown-menu";
+import { useToast } from "@/hooks/ui/use-toast";
+import { apiService } from "@/lib/api";
+import { Media, ApiResponse, PaginatedResponse } from "@/types";
 
 // base url constant
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
 
 // helper function to get full url
 const getFullUrl = (path: string): string => {
-  if (path.startsWith('http')) return path;
+  if (path.startsWith("http")) return path;
   // ensure path starts with /
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
   // try different url formats
-  const baseUrl = API_BASE_URL.replace('/api/v1', ''); // remove /api/v1
+  const baseUrl = API_BASE_URL.replace("/api/v1", ""); // remove /api/v1
   const fullUrl = `${baseUrl}${normalizedPath}`;
   return fullUrl;
 };
 
-
 // helper function to format file size
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 B"
-  const k = 1024
-  const sizes = ["B", "KB", "MB", "GB"]
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
 
 // test if url is accessible
@@ -67,10 +79,10 @@ const testUrl = async (url: string) => {
   try {
     // try to access image directly
     const response = await fetch(url);
-    const contentType = response.headers.get('content-type');
-    
+    const contentType = response.headers.get("content-type");
+
     // if json response, read error information
-    if (contentType?.includes('application/json')) {
+    if (contentType?.includes("application/json")) {
       const errorData = await response.json();
       return {
         status: response.status,
@@ -78,7 +90,7 @@ const testUrl = async (url: string) => {
         contentType,
         url,
         errorData,
-        headers: Object.fromEntries(response.headers.entries())
+        headers: Object.fromEntries(response.headers.entries()),
       };
     }
 
@@ -87,27 +99,27 @@ const testUrl = async (url: string) => {
       ok: response.ok,
       contentType,
       url,
-      headers: Object.fromEntries(response.headers.entries())
+      headers: Object.fromEntries(response.headers.entries()),
     };
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      url
+      error: error instanceof Error ? error.message : "Unknown error",
+      url,
     };
   }
 };
 
 export default function MediaPage() {
-  const { toast } = useToast()
-  const [mediaItems, setMediaItems] = useState<Media[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedItems, setSelectedItems] = useState<string[]>([])
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<Media | null>(null)
-  const [uploading, setUploading] = useState(false)
+  const { toast } = useToast();
+  const [mediaItems, setMediaItems] = useState<Media[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Media | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [urlTestResult, setUrlTestResult] = useState<any>(null);
 
   // fetch media files
@@ -140,11 +152,11 @@ export default function MediaPage() {
         const url = getFullUrl(mediaItems[0].url);
         const result = await testUrl(url);
         setUrlTestResult(result);
-        
+
         // if test fails, try other url formats
         if (!result.ok) {
           const alternativeUrl = `${API_BASE_URL}/media${mediaItems[0].url}`;
-          const altResult = await testUrl(alternativeUrl);
+          await testUrl(alternativeUrl);
         }
       }
     };
@@ -153,111 +165,101 @@ export default function MediaPage() {
   }, [mediaItems]);
 
   // filter media items based on search query
-  const filteredItems = mediaItems.filter((item) => {
-    if (!item || !item.filename) return false;
-    return item.filename.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  const filteredItems = useMemo(() => 
+    mediaItems.filter((item) => {
+      if (!item || !item.filename) return false;
+      return item.filename.toLowerCase().includes(searchQuery.toLowerCase());
+    }),
+    [mediaItems, searchQuery]
+  );
 
   // toggle item selection
-  const toggleSelectItem = (id: string) => {
-    setSelectedItems((prev) => (prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]))
-  }
+  const toggleSelectItem = useCallback((id: string) => {
+    setSelectedItems((prev) =>
+      prev.includes(id)
+        ? prev.filter((itemId) => itemId !== id)
+        : [...prev, id],
+    );
+  }, []);
 
   // toggle select all items
-  const toggleSelectAll = () => {
+  const toggleSelectAll = useCallback(() => {
     if (selectedItems.length === filteredItems.length) {
-      setSelectedItems([])
+      setSelectedItems([]);
     } else {
-      setSelectedItems(filteredItems.map((item) => item._id))
+      setSelectedItems(filteredItems.map((item) => item._id));
     }
-  }
+  }, [selectedItems.length, filteredItems]);
 
   // open media detail dialog
-  const openDetailDialog = (item: Media) => {
-    setSelectedItem(item)
-    setDetailDialogOpen(true)
-  }
+  const openDetailDialog = useCallback((item: Media) => {
+    setSelectedItem(item);
+    setDetailDialogOpen(true);
+  }, []);
 
   // handle file input change
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback(async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
+    setUploading(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append("files", files[i]);
+    }
+
     try {
-      setUploading(true);
-      
-      // file validation
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4'];
-      
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (file.size > maxSize) {
-          throw new Error(`File ${file.name} is too large. Maximum size is 10MB.`);
-        }
-        if (!allowedTypes.includes(file.type)) {
-          throw new Error(`File ${file.name} is not a supported type.`);
-        }
-      }
-
-      // create FormData
-      const formData = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]);
-      }
-
-      // upload file
-      const response = await apiService.uploadMedia<ApiResponse>(formData);
-      
-      if (response.data) {
-        // refresh media list
-        const mediaResponse = await apiService.getMedia<PaginatedResponse<Media>>();
-        if (mediaResponse.data?.data) {
-          setMediaItems(mediaResponse.data.data);
-        }
-        
+      const response = await apiService.post<ApiResponse<Media[]>>(
+        "/media/upload",
+        formData,
+      );
+      const uploadedMedia = response.data?.data;
+      if (uploadedMedia && Array.isArray(uploadedMedia)) {
+        setMediaItems((prev) => [...prev, ...uploadedMedia]);
         toast({
-          title: "Upload successful",
-          description: `${files.length} file(s) have been uploaded`,
+          title: "Success",
+          description: "Files uploaded successfully",
         });
-        setUploadDialogOpen(false);
-      } else {
-        throw new Error('Upload failed');
       }
     } catch (error) {
       toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Unable to upload files",
+        title: "Error",
+        description: "Failed to upload files",
         variant: "destructive",
       });
     } finally {
       setUploading(false);
+      setUploadDialogOpen(false);
     }
-  };
+  }, [toast]);
 
   // handle file drop
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     if (e.dataTransfer.files) {
-      handleFileChange({ target: { files: e.dataTransfer.files } } as React.ChangeEvent<HTMLInputElement>)
+      handleFileChange({
+        target: { files: e.dataTransfer.files },
+      } as React.ChangeEvent<HTMLInputElement>);
     }
-  }, [])
+  }, [handleFileChange]);
 
   // handle drag over
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-  }, [])
+    e.preventDefault();
+  }, []);
 
   // handle media delete
-  const handleDeleteMedia = async () => {
+  const handleDeleteMedia = useCallback(async () => {
     if (selectedItems.length === 0) return;
 
     try {
       setLoading(true);
-      
+
       // delete all selected files
       await Promise.all(
-        selectedItems.map(id => apiService.deleteMedia<ApiResponse>(id))
+        selectedItems.map((id) => apiService.deleteMedia<ApiResponse>(id)),
       );
 
       // refresh media list
@@ -281,22 +283,26 @@ export default function MediaPage() {
       setLoading(false);
       setDeleteDialogOpen(false);
     }
-  };
+  }, [selectedItems, toast]);
 
   // copy url to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
+  const copyToClipboard = useCallback((text: string) => {
+    navigator.clipboard.writeText(text);
     toast({
       title: "Copied",
       description: "URL copied to clipboard",
-    })
-  }
+    });
+  }, [toast]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-2xl font-bold tracking-tight">Media Library</h2>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setUploadDialogOpen(true)} className="flex items-center gap-1">
+          <Button
+            onClick={() => setUploadDialogOpen(true)}
+            className="flex items-center gap-1"
+          >
             <Upload className="h-4 w-4" />
             Upload Media
           </Button>
@@ -350,34 +356,39 @@ export default function MediaPage() {
               >
                 <CardContent className="p-2 space-y-1">
                   <div className="relative aspect-square bg-muted rounded-md overflow-hidden">
-                    {item.mimetype.startsWith('image/') ? (
+                    {item.mimetype.startsWith("image/") ? (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <img
                           src={getFullUrl(item.url)}
                           alt={item.filename}
                           className="object-cover w-full h-full rounded"
                           loading="lazy"
-                          onError={(e) => {
-                            console.error('Image load error:', {
-                              error: e,
-                              url: item.url,
-                              fullUrl: getFullUrl(item.url),
-                              baseUrl: API_BASE_URL
+                          onError={() => {
+                            toast({
+                              title: "Image Load Error",
+                              description: `Failed to load image: ${item.filename}`,
+                              variant: "destructive",
                             });
                           }}
                         />
                       </div>
-                    ) : item.mimetype.startsWith('application/pdf') ? (
+                    ) : item.mimetype.startsWith("application/pdf") ? (
                       <div className="flex items-center justify-center h-full bg-muted">
-                        <span className="text-2xl text-muted-foreground">PDF</span>
+                        <span className="text-2xl text-muted-foreground">
+                          PDF
+                        </span>
                       </div>
-                    ) : item.mimetype.startsWith('video/') ? (
+                    ) : item.mimetype.startsWith("video/") ? (
                       <div className="flex items-center justify-center h-full bg-muted">
-                        <span className="text-2xl text-muted-foreground">Video</span>
+                        <span className="text-2xl text-muted-foreground">
+                          Video
+                        </span>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center h-full bg-muted">
-                        <span className="text-2xl text-muted-foreground">File</span>
+                        <span className="text-2xl text-muted-foreground">
+                          File
+                        </span>
                       </div>
                     )}
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -386,8 +397,8 @@ export default function MediaPage() {
                         size="sm"
                         className="absolute"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          openDetailDialog(item)
+                          e.stopPropagation();
+                          openDetailDialog(item);
                         }}
                       >
                         <Eye className="h-4 w-4 mr-1" /> View
@@ -395,12 +406,19 @@ export default function MediaPage() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm font-medium truncate">{item.filename}</p>
-                    <p className="text-xs text-muted-foreground">{formatFileSize(item.size)}</p>
+                    <p className="text-sm font-medium truncate">
+                      {item.filename}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatFileSize(item.size)}
+                    </p>
                   </div>
                   <div className="absolute top-1 right-1">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuTrigger
+                        asChild
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Actions</span>
@@ -409,22 +427,26 @@ export default function MediaPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={(e) => {
-                            e.stopPropagation()
-                            openDetailDialog(item)
+                            e.stopPropagation();
+                            openDetailDialog(item);
                           }}
                         >
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={(e) => {
-                            e.stopPropagation()
-                            copyToClipboard(getFullUrl(item.url))
+                            e.stopPropagation();
+                            copyToClipboard(getFullUrl(item.url));
                           }}
                         >
                           Copy URL
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <a href={getFullUrl(item.url)} download={item.filename} onClick={(e) => e.stopPropagation()}>
+                          <a
+                            href={getFullUrl(item.url)}
+                            download={item.filename}
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             Download
                           </a>
                         </DropdownMenuItem>
@@ -432,9 +454,9 @@ export default function MediaPage() {
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           onClick={(e) => {
-                            e.stopPropagation()
-                            setSelectedItems([item._id])
-                            setDeleteDialogOpen(true)
+                            e.stopPropagation();
+                            setSelectedItems([item._id]);
+                            setDeleteDialogOpen(true);
                           }}
                         >
                           Delete
@@ -448,8 +470,13 @@ export default function MediaPage() {
           ) : (
             <Card className="md:col-span-3 lg:col-span-4">
               <CardContent className="flex flex-col items-center justify-center h-32">
-                <p className="text-muted-foreground mb-4">No media files found</p>
-                <Button onClick={() => setUploadDialogOpen(true)} className="flex items-center gap-1">
+                <p className="text-muted-foreground mb-4">
+                  No media files found
+                </p>
+                <Button
+                  onClick={() => setUploadDialogOpen(true)}
+                  className="flex items-center gap-1"
+                >
                   <Upload className="h-4 w-4" />
                   Upload Media
                 </Button>
@@ -465,7 +492,8 @@ export default function MediaPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will permanently delete {selectedItems.length} file(s) and cannot be undone. Are you sure?
+              This action will permanently delete {selectedItems.length} file(s)
+              and cannot be undone. Are you sure?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -486,7 +514,8 @@ export default function MediaPage() {
           <DialogHeader>
             <DialogTitle>Upload Media</DialogTitle>
             <DialogDescription>
-              Upload images, documents, or other media files. Maximum file size is 10MB.
+              Upload images, documents, or other media files. Maximum file size
+              is 10MB.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -535,77 +564,107 @@ export default function MediaPage() {
             </DialogHeader>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-muted rounded-md overflow-hidden flex items-center justify-center">
-                {selectedItem.mimetype.startsWith('image/') ? (
+                {selectedItem.mimetype.startsWith("image/") ? (
                   <div className="relative h-64 w-full">
                     <Image
                       src={getFullUrl(selectedItem.url)}
                       alt={selectedItem.filename}
                       fill
                       className="object-contain"
-                      onError={(e) => {
-                        console.error('Image load error:', e);
-                        console.log('Failed URL:', getFullUrl(selectedItem.url));
+                      onError={() => {
+                        toast({
+                          title: "Image Load Error",
+                          description: `Failed to load image: ${selectedItem.filename}`,
+                          variant: "destructive",
+                        });
                       }}
                     />
                   </div>
-                ) : selectedItem.mimetype.startsWith('application/pdf') ? (
+                ) : selectedItem.mimetype.startsWith("application/pdf") ? (
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center">
                       <span className="text-4xl block mb-2">PDF</span>
-                      <p className="text-sm text-muted-foreground">Preview not available</p>
+                      <p className="text-sm text-muted-foreground">
+                        Preview not available
+                      </p>
                     </div>
                   </div>
-                ) : selectedItem.mimetype.startsWith('video/') ? (
+                ) : selectedItem.mimetype.startsWith("video/") ? (
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center">
                       <span className="text-4xl block mb-2">Video</span>
-                      <p className="text-sm text-muted-foreground">Preview not available</p>
+                      <p className="text-sm text-muted-foreground">
+                        Preview not available
+                      </p>
                     </div>
                   </div>
                 ) : (
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center">
                       <span className="text-4xl block mb-2">File</span>
-                      <p className="text-sm text-muted-foreground">Preview not available</p>
+                      <p className="text-sm text-muted-foreground">
+                        Preview not available
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Filename</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                    Filename
+                  </h3>
                   <p>{selectedItem.filename}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Original Name</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                    Original Name
+                  </h3>
                   <p>{selectedItem.originalname}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">URL</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                    URL
+                  </h3>
                   <div className="flex items-center gap-2">
                     <Input value={getFullUrl(selectedItem.url)} readOnly />
-                    <Button variant="outline" size="icon" onClick={() => copyToClipboard(getFullUrl(selectedItem.url))}>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        copyToClipboard(getFullUrl(selectedItem.url))
+                      }
+                    >
                       <Clipboard className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Type</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                      Type
+                    </h3>
                     <p>{selectedItem.mimetype}</p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Size</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                      Size
+                    </h3>
                     <p>{formatFileSize(selectedItem.size)}</p>
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Upload Date</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                    Upload Date
+                  </h3>
                   <p>{new Date(selectedItem.createdAt).toLocaleString()}</p>
                 </div>
                 <div className="flex gap-2 pt-2">
                   <Button variant="secondary" asChild className="flex-1 gap-1">
-                    <a href={getFullUrl(selectedItem.url)} download={selectedItem.filename}>
+                    <a
+                      href={getFullUrl(selectedItem.url)}
+                      download={selectedItem.filename}
+                    >
                       <Download className="h-4 w-4" /> Download
                     </a>
                   </Button>
@@ -613,9 +672,9 @@ export default function MediaPage() {
                     variant="destructive"
                     className="flex-1 gap-1"
                     onClick={() => {
-                      setSelectedItems([selectedItem._id])
-                      setDeleteDialogOpen(true)
-                      setDetailDialogOpen(false)
+                      setSelectedItems([selectedItem._id]);
+                      setDeleteDialogOpen(true);
+                      setDetailDialogOpen(false);
                     }}
                   >
                     <Trash2 className="h-4 w-4" /> Delete
@@ -627,5 +686,5 @@ export default function MediaPage() {
         </Dialog>
       )}
     </div>
-  )
+  );
 }

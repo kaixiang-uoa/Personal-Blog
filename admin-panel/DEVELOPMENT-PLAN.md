@@ -72,10 +72,10 @@ const [items, setItems] = useState<Item[]>([]);
 useEffect(() => {
   async function fetchData() {
     try {
-      const data = await apiService.get('/endpoint');
+      const data = await apiService.get("/endpoint");
       setItems(data);
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      console.error("Failed to fetch data:", error);
     }
   }
   fetchData();
@@ -90,7 +90,7 @@ useEffect(() => {
 // API调用示例
 const handleSubmit = async (values) => {
   try {
-    const result = await apiService.post('/endpoint', values);
+    const result = await apiService.post("/endpoint", values);
     if (result.success) {
       // 处理成功情况
     }
@@ -107,7 +107,7 @@ const handleSubmit = async (values) => {
 ```tsx
 const form = useForm<FormValues>({
   resolver: zodResolver(formSchema),
-  defaultValues
+  defaultValues,
 });
 
 const onSubmit = async (values: FormValues) => {
@@ -143,6 +143,7 @@ const onSubmit = async (values: FormValues) => {
 ### 部署流程
 
 1. 构建生产版本
+
    ```bash
    npm run build
    ```
@@ -152,4 +153,4 @@ const onSubmit = async (values: FormValues) => {
 3. 部署到生产环境
    - 确保环境变量正确设置
    - 确保数据库连接配置正确
-   - 确保API端点配置正确 
+   - 确保API端点配置正确

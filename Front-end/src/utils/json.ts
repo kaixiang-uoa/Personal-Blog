@@ -8,7 +8,7 @@ export function tryParseJSON<T>(jsonString: string | undefined | null, defaultVa
   if (!jsonString) return defaultValue;
   try {
     return JSON.parse(jsonString) as T;
-  } catch (e) {
+  } catch {
     return defaultValue;
   }
 } 

@@ -33,12 +33,13 @@ export async function GET(request: Request) {
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Settings API] Error fetching settings:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch settings';
     return NextResponse.json(
       { 
         success: false, 
-        message: error.message || 'Failed to fetch settings' 
+        message: errorMessage
       },
       { status: 500 }
     );

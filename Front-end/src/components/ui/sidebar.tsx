@@ -12,14 +12,6 @@ import { Separator } from './separator';
 import { Sheet, SheetContent } from './sheet';
 import { Skeleton } from './skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
-import {
-  X,
-  Menu,
-  Eye,
-  EyeOff,
-  ChevronDown,
-  ChevronRight,
-} from 'lucide-react';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

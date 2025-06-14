@@ -76,11 +76,15 @@ export default function Contact() {
 
         form.reset();
       }
-    } catch (error: any) {
-      console.error('提交表单时出错:', error);
+    } catch (error: unknown) {
+      console.error('Error submitting form:', error);
+      const errorMessage = error instanceof Error ? error.message : t('errorMessage');
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      const serverMessage = axiosError.response?.data?.message;
+      
       toast({
         title: t('errorTitle'),
-        description: error.response?.data?.message || t('errorMessage'),
+        description: serverMessage || errorMessage,
         variant: 'destructive',
       });
     } finally {

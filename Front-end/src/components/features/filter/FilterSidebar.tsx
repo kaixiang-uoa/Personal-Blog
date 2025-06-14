@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSetting } from '@/contexts/SettingsContext';
 import { SelectField } from '@/components/ui';
@@ -22,58 +22,61 @@ export default function FilterSidebar({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(activeCategory || null);
   const [selectedSortOrder, setSelectedSortOrder] = useState<SortOrder>(sortOrder);
   
-  // get sidebar settings from settings
+  // Get sidebar settings from settings
   const defaultSortSetting = useSetting('posts.defaultSort', 'latest');
   const defaultSort = validateSortOrder(defaultSortSetting, 'latest');
   const showSidebar = useSetting('appearance.showSidebar', true);
-  
-  // if set to not show sidebar, do not render component
-  if (!showSidebar) {
-    return null;
-  }
 
-  const getLocalizedName = (
+  const getLocalizedName = useCallback((
     item: { name: string; name_en?: string; name_zh?: string },
     locale: string
   ): string => {
     if (locale === 'en') return item.name_en || item.name;
     if (locale === 'zh') return item.name_zh || item.name;
     return item.name;
-  };
+  }, []);
 
-  useEffect(() => {
-    setSelectedCategory(activeCategory || null);
-  }, [activeCategory]);
-
-  useEffect(() => {
-    setSelectedTags(activeTags || []);
-  }, [activeTags]);
-
-  useEffect(() => {
-    // if no sort selected or reset to default, use default sort from settings
-    if (!sortOrder || sortOrder === defaultSort) {
-      onFilterChangeAction({ type: 'sort', value: defaultSort });
-    }
-  }, [defaultSort]);
-
-  const handleTagChange = (tagSlug: string) => {
+  const handleTagChange = useCallback((tagSlug: string) => {
     setSelectedTags([tagSlug]);
     onFilterChangeAction({ type: 'tags', value: [tagSlug] });
-  };
+  }, [onFilterChangeAction]);
 
-  const handleCategoryChange = (categorySlug: string | null) => {
+  const handleCategoryChange = useCallback((categorySlug: string | null) => {
     setSelectedCategory(categorySlug);
     onFilterChangeAction({ type: 'category', value: categorySlug || '' });
-  };
+  }, [onFilterChangeAction]);
 
-  const handleSortChange = (newSortValue: string) => {
+  const handleSortChange = useCallback((newSortValue: string) => {
     // Validate the sort value before using it
     const newSort = validateSortOrder(newSortValue, 'latest');
     setSelectedSortOrder(newSort);
     onFilterChangeAction({ type: 'sort', value: newSort });
-  };
+  }, [onFilterChangeAction]);
 
-  // 调整容器样式，确保水平布局时组件并排显示
+  // Update selected category when activeCategory changes
+  useEffect(() => {
+    setSelectedCategory(activeCategory || null);
+  }, [activeCategory]);
+
+  // Update selected tags when activeTags changes
+  useEffect(() => {
+    setSelectedTags(activeTags || []);
+  }, [activeTags]);
+
+  // Update sort order when defaultSort changes
+  useEffect(() => {
+    // If no sort selected or reset to default, use default sort from settings
+    if (!sortOrder || sortOrder === defaultSort) {
+      onFilterChangeAction({ type: 'sort', value: defaultSort });
+    }
+  }, [defaultSort, sortOrder, onFilterChangeAction]);
+
+  // If set to not show sidebar, return null after all hooks are called
+  if (!showSidebar) {
+    return null;
+  }
+
+  // Adjust container style to ensure components are displayed side by side in horizontal layout
   const containerClass = isHorizontal 
     ? "flex flex-row flex-wrap md:flex-nowrap items-center space-x-3 w-full"
     : "flex flex-col space-y-3 w-full";

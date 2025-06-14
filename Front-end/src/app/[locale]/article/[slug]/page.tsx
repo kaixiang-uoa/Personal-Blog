@@ -7,6 +7,22 @@ import { useArticle } from '@/hooks/useArticle';
 import { Article, PostData } from '@/types';
 import { useSetting } from '@/contexts/SettingsContext';
 
+/**
+ * ArticlePage Component
+ * 
+ * A dynamic page component that displays a single article with its content,
+ * metadata, and related information. Handles loading states, error states,
+ * and article not found scenarios.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * // This component is rendered automatically by Next.js
+ * // when navigating to /[locale]/article/[slug]
+ * ```
+ * 
+ * @returns {JSX.Element} The article page layout
+ */
 export default function ArticlePage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -14,23 +30,27 @@ export default function ArticlePage() {
   const router = useRouter();
   const t = useTranslations('common');
 
-  // Get article banner default from settings
+  // Get banner settings from context
   const defaultBannerUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCAvMmY596FeQcfcATBZ7OCdgRlSZliPxjcpZQUcZDqH5aEwjRN_P38-l88OIVnA9PyzIWRGnVNwbjVmCoZOZ_MnIY9KnnrpDWEWyOKr74u0BfuxcU8SCMdy_m4R1XJrfQAbbPvd_LOUHwPGiRA7iZZLHNUz2tdANkx_VRCWWEB9fN6A1KhjUB5sAv03TuX4i4LtLrekE7qhDDqrMb2yCjou6oipdZSlw5L4upEMuuXII_n8xAuCdFTVn0_RDqCdKy6rXtMwHOp5CE";
   const articleBanner = useSetting('appearance.articleBanner', defaultBannerUrl);
-  
-  // Get article banner for mobile from settings
   const articleBannerMobile = useSetting('appearance.articleBannerMobile', articleBanner);
 
-  // Use React Query to fetch article data
+  // Fetch article data using React Query
   const { data, isLoading, error } = useArticle(slug);
-  
-  // Extract article from response
   const article: Article | null = data ? (data as PostData).post || null : null;
 
+  /**
+   * Handle tag click and navigate to filtered article list
+   * @param {string} tagSlug - The slug of the clicked tag
+   */
   const handleTagClick = (tagSlug: string) => {
     router.push(`/${locale}?tag=${tagSlug}`);
   };
 
+  /**
+   * Handle category click and navigate to filtered article list
+   * @param {string} categorySlug - The slug of the clicked category
+   */
   const handleCategoryClick = (categorySlug: string) => {
     router.push(`/${locale}?category=${categorySlug}`);
   };
@@ -40,6 +60,7 @@ export default function ArticlePage() {
       <Navbar />
 
       <div className="max-w-6xl mx-auto w-full px-4 md:px-6 lg:px-8 py-4">
+        {/* Back to home link */}
         <Link
           href={`/${params.locale}`}
           className="text-foreground hover:text-muted-foreground mb-4 inline-flex items-center"
@@ -50,6 +71,7 @@ export default function ArticlePage() {
           {t('backToHome')}
         </Link>
 
+        {/* Loading state */}
         {isLoading ? (
           <div className="text-center py-10">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -69,7 +91,7 @@ export default function ArticlePage() {
           </div>
         ) : article ? (
           <>
-            {/* Banner section similar to home page */}
+            {/* Article banner with responsive image */}
             <div className="py-4">
               <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10 banner-image"
                 style={{
@@ -92,7 +114,9 @@ export default function ArticlePage() {
               </div>
             </div>
 
+            {/* Article content */}
             <article className="bg-card border border-border rounded-lg p-6 shadow-sm my-4">
+              {/* Article metadata */}
               <div className="mb-6 flex flex-wrap items-center text-muted-foreground gap-x-4 gap-y-2">
                 <span className="flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" fill="currentColor" viewBox="0 0 256 256" className="mr-1.5">
@@ -110,6 +134,7 @@ export default function ArticlePage() {
                 )}
               </div>
 
+              {/* Categories section */}
               {article.categories && article.categories.length > 0 && (
                 <div className="mb-4">
                   <span className="text-muted-foreground mr-2">{t('categories')}:</span>
@@ -127,6 +152,7 @@ export default function ArticlePage() {
                 </div>
               )}
 
+              {/* Tags section */}
               {article.tags && article.tags.length > 0 && (
                 <div className="mb-6">
                   <span className="text-muted-foreground mr-2">{t('tags')}:</span>
@@ -144,6 +170,7 @@ export default function ArticlePage() {
                 </div>
               )}
 
+              {/* Article content with prose styling */}
               <div className="prose prose-lg dark:prose-invert max-w-none">
                 <div dangerouslySetInnerHTML={{ __html: article.content }} />
               </div>
@@ -164,6 +191,7 @@ export default function ArticlePage() {
         )}
       </div>
 
+      {/* Footer */}
       <footer className="mt-auto py-6 border-t border-border">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center">
           <p className="text-muted-foreground">

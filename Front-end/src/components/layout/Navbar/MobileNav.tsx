@@ -4,16 +4,28 @@ import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
 /**
- * mobile nav menu component
- * contains hamburger menu button and collapsible menu panel
+ * Mobile Navigation Component
+ * 
+ * A responsive mobile navigation menu that includes a hamburger menu button and a collapsible menu panel.
+ * The menu supports internationalization and provides smooth transitions between states.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <MobileNav />
+ * ```
+ * 
+ * @returns {JSX.Element} A mobile navigation component with toggle functionality
  */
 export default function MobileNav() {
+  // State to control the visibility of the mobile menu
   const [isOpen, setIsOpen] = useState(false);
+  // Get translations for navigation items
   const t = useTranslations('nav');
   
   return (
     <>
-      {/* mobile menu button */}
+      {/* Hamburger menu button with toggle functionality */}
       <div className="md:hidden">
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -24,10 +36,12 @@ export default function MobileNav() {
         >
           <span className="sr-only">Open main menu</span>
           {isOpen ? (
+            // Close icon (X) when menu is open
             <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           ) : (
+            // Hamburger icon (≡) when menu is closed
             <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -35,7 +49,7 @@ export default function MobileNav() {
         </button>
       </div>
       
-      {/* mobile menu panel */} 
+      {/* Collapsible menu panel with navigation links */} 
       <div 
         id="mobile-menu"
         className={`${isOpen ? 'block' : 'hidden'} absolute top-16 left-0 right-0 bg-background shadow-lg md:hidden z-50`}

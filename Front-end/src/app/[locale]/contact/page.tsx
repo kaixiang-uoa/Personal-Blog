@@ -23,17 +23,32 @@ import { useSetting } from '@/contexts/SettingsContext';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Contact Component
+ * 
+ * A contact form page that allows users to send messages. The form includes fields for
+ * name, email, subject, and message, with validation using Zod schema. The component
+ * handles form submission, displays success/error messages using toast notifications,
+ * and supports internationalization.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * // This component is rendered automatically by Next.js
+ * // when navigating to /[locale]/contact
+ * ```
+ * 
+ * @returns {JSX.Element} The contact page layout
+ */
 export default function Contact() {
   const t = useTranslations('contact');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // get contact banner image url from settings
+  // Get banner settings from context
   const contactBanner = useSetting('appearance.contactBanner', '/images/contact-banner.jpg');
-
-  // get contact banner image url for mobile from settings  
   const contactBannerMobile = useSetting('appearance.contactBannerMobile', contactBanner);
 
-
+  // Form validation schema
   const formSchema = z.object({
     name: z.string().min(1, {
       message: t('nameValidation'),
@@ -49,7 +64,7 @@ export default function Contact() {
     }),
   });
 
-
+  // Initialize form with validation
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,15 +75,19 @@ export default function Contact() {
     },
   });
 
-  
+  /**
+   * Handle form submission
+   * @param {z.infer<typeof formSchema>} values - The form values
+   */
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
 
     try {
-      
+      // Submit form data to API
       const response = await axios.post(`${API_BASE_URL}/contact`, values);
 
       if (response.status === 200) {
+        // Show success message and reset form
         toast({
           title: t('successTitle'),
           description: t('successMessage'),
@@ -77,6 +96,7 @@ export default function Contact() {
         form.reset();
       }
     } catch (error: unknown) {
+      // Handle and display error messages
       console.error('Error submitting form:', error);
       const errorMessage = error instanceof Error ? error.message : t('errorMessage');
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -96,7 +116,7 @@ export default function Contact() {
     <main className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Banner section similar to home page */}
+      {/* Banner section */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4">
         <div className="py-4">
           <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10 banner-image"
@@ -119,6 +139,7 @@ export default function Contact() {
         </div>
       </div>
       
+      {/* Contact form section */}
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <section className="mb-12">
           <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('title')}</h2>
@@ -129,6 +150,7 @@ export default function Contact() {
           <div className="border border-border rounded-lg p-6 shadow-sm">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Name and email fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
@@ -167,6 +189,7 @@ export default function Contact() {
                   />
                 </div>
 
+                {/* Subject field */}
                 <FormField
                   control={form.control}
                   name="subject"
@@ -185,6 +208,7 @@ export default function Contact() {
                   )}
                 />
 
+                {/* Message field */}
                 <FormField
                   control={form.control}
                   name="message"
@@ -203,6 +227,7 @@ export default function Contact() {
                   )}
                 />
 
+                {/* Submit button */}
                 <Button 
                   type="submit" 
                   className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg" 

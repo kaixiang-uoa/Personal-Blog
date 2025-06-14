@@ -1,13 +1,27 @@
-import React from "react";
-import { useEffect } from "react";
-import { EntityFormDialogProps } from "@/types/index";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/feedback/dialog";
-import { Button } from "@/components/ui/inputs/button";
-import { useForm, FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/inputs/form";
+import React, { useEffect } from "react";
+import { useForm, FieldValues } from "react-hook-form";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/feedback/dialog";
+import { Button } from "@/components/ui/inputs/button";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/inputs/form";
 import { Input } from "@/components/ui/inputs/input";
 import { Textarea } from "@/components/ui/inputs/textarea";
+import { EntityFormDialogProps } from "@/types/index";
 
 export function EntityFormDialog({
   open,
@@ -21,7 +35,6 @@ export function EntityFormDialog({
   loading,
   submitText = "Submit",
 }: EntityFormDialogProps) {
-
   const form = useForm<FieldValues>({
     resolver: zodResolver(schema),
     defaultValues,
@@ -29,15 +42,13 @@ export function EntityFormDialog({
 
   useEffect(() => {
     if (defaultValues) {
-      form.reset(defaultValues)
+      form.reset(defaultValues);
     }
-  }, [defaultValues, form])
-
+  }, [defaultValues, form]);
 
   const handleSubmit = async (values: FieldValues) => {
     await onSubmit(values);
   };
-
 
   const renderField = (field: any) => {
     if (field.isI18n) {
@@ -111,7 +122,10 @@ export function EntityFormDialog({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             {fields.map(renderField)}
             <DialogFooter>
               <Button type="submit" disabled={loading}>

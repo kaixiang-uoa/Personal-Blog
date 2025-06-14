@@ -19,7 +19,23 @@ import { useCategories, useTags } from '@/hooks/useTaxonomies';
 import { getStringParam, getArrayParam, getResponsiveImageUrls, validateSortOrder } from '@/utils';
 import type { Tag, Category, Article } from '@/types';
 
-// extract article list to a separate component, so that it can be wrapped by ErrorBoundary
+/**
+ * ArticlesList Component
+ * 
+ * A component that displays a list of articles with filtering, sorting, and pagination.
+ * Handles loading states, error states, and empty states.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.locale - Current locale
+ * @param {number} props.currentPage - Current page number
+ * @param {number} props.postsPerPage - Number of posts per page
+ * @param {string[]} props.tagsParam - Array of selected tag slugs
+ * @param {string} [props.category] - Selected category slug
+ * @param {string} [props.search] - Search query
+ * @param {SortOrder} props.sort - Current sort order
+ * @returns {JSX.Element} A list of articles or appropriate state UI
+ */
 function ArticlesList({ 
   locale, 
   currentPage, 
@@ -39,7 +55,7 @@ function ArticlesList({
 }) {
   const t = useTranslations('common');
   
-  // use React Query hooks to get data
+  // Fetch articles data using React Query
   const { 
     data: articlesData, 
     isLoading: isLoadingArticles, 
@@ -55,33 +71,31 @@ function ArticlesList({
     lang: locale
   });
 
-  // Extract data and create filtered articles in one memo to maintain hook order
+  // Process and filter articles data
   const { articles, filteredArticles } = useMemo(() => {
     const articles = articlesData?.posts || [];
     
-    // Calculate filtered articles only if we have articles
     if (articles.length === 0) {
       return { articles, filteredArticles: [] };
     }
 
-    // Filter logic
     let result = [...articles];
 
-    // filter by tags
+    // Apply tag filters
     if (tagsParam.length > 0) {
       result = result.filter(article => 
         Array.isArray(article.tags) &&
         article.tags.some((tag: Tag) => tagsParam.includes(tag?.slug)));
     }
 
-    // filter by category
+    // Apply category filter
     if (category) {
       result = result.filter(article => 
         Array.isArray(article.categories) && 
         article.categories.some((cat: Category) => cat?.slug === category))
     }
 
-    // search filter
+    // Apply search filter
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(
@@ -91,7 +105,7 @@ function ArticlesList({
       );
     }
 
-    // sort
+    // Apply sorting
     switch (sort) {
       case 'latest':
         result.sort((a: Article, b: Article) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -113,7 +127,7 @@ function ArticlesList({
     sort
   ]);
 
-  // loading state
+  // Loading state
   if (isLoadingArticles) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -124,7 +138,7 @@ function ArticlesList({
     );
   }
 
-  // error state
+  // Error state
   if (articlesError) {
     return (
       <ApiErrorFallback 
@@ -135,7 +149,7 @@ function ArticlesList({
     );
   }
 
-  // empty state
+  // Empty state
   if (articles.length === 0) {
     return (
       <div className="py-12 text-center">
@@ -147,7 +161,7 @@ function ArticlesList({
     );
   }
 
-  // normal rendering of article list
+  // Render article list
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {filteredArticles.map((article) => (
@@ -157,6 +171,16 @@ function ArticlesList({
   );
 }
 
+/**
+ * Home Page Component
+ * 
+ * The main page component that displays the blog's home page.
+ * Includes a banner, filter sidebar, and article list.
+ * Handles URL parameters for filtering and sorting.
+ * 
+ * @component
+ * @returns {JSX.Element} The home page layout
+ */
 export default function Home() {  
   const t = useTranslations('common');
   const params = useParams();
@@ -164,7 +188,7 @@ export default function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Parse query parameters with type validation
+  // Parse and validate URL parameters
   const sort = validateSortOrder(searchParams.get('sort'), 'publishedAt-desc');
   const tagsParam = getArrayParam(searchParams.get('tag'));
   const category = getStringParam(searchParams.get('category'));
@@ -172,19 +196,20 @@ export default function Home() {
   const page = getStringParam(searchParams.get('page'), '1');
   const currentPage = parseInt(page) || 1;
   
-  // Get settings
+  // Get settings from context
   const postsPerPage = useSetting('posts.perPage', 10); 
   const defaultBannerUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCAvMmY596FeQcfcATBZ7OCdgRlSZliPxjcpZQUcZDqH5aEwjRN_P38-l88OIVnA9PyzIWRGnVNwbjVmCoZOZ_MnIY9KnnrpDWEWyOKr74u0BfuxcU8SCMdy_m4R1XJrfQAbbPvd_LOUHwPGiRA7iZZLHNUz2tdANkx_VRCWWEB9fN6A1KhjUB5sAv03TuX4i4LtLrekE7qhDDqrMb2yCjou6oipdZSlw5L4upEMuuXII_n8xAuCdFTVn0_RDqCdKy6rXtMwHOp5CE";
   const homeBanner = useSetting('appearance.homeBanner', defaultBannerUrl);
   const homeBannerMobile = useSetting('appearance.homeBannerMobile', homeBanner);
   
-  // use tool function to process Banner URLs
+  // Process banner images for responsive display
   const { desktop: processedHomeBanner, mobile: processedMobileBanner } = getResponsiveImageUrls(
     homeBanner,
     homeBannerMobile,
     defaultBannerUrl
   );
   
+  // Fetch categories and tags data
   const { data: categoriesData } = useCategories(locale);
   const { data: tagsData } = useTags(locale);
   
@@ -192,6 +217,12 @@ export default function Home() {
   const categories = categoriesData?.categories || [];
   const tags = tagsData?.tags || [];
    
+  /**
+   * Handle filter changes and update URL parameters
+   * @param {Object} params - Filter parameters
+   * @param {string} params.type - Type of filter ('tags', 'category', or 'sort')
+   * @param {string|string[]|SortOrder} params.value - New filter value
+   */
   const handleFilterChange = (params: {
     type: 'tags' | 'category' | 'sort';
     value: string | string[] | SortOrder;
@@ -208,6 +239,9 @@ export default function Home() {
     router.push(`/${locale}?${urlParams.toString()}`);
   };
 
+  /**
+   * Clear all filters and reset to default state
+   */
   const handleClearFilters = () => {
     router.push(`/${locale}`);
   };
@@ -216,7 +250,7 @@ export default function Home() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      {/* repositioned filter area - horizontal layout */}
+      {/* Filter area with horizontal layout */}
       <div className="bg-background border-b border-border py-4">
         <div className="max-w-6xl mx-auto w-full px-4 md:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -240,7 +274,7 @@ export default function Home() {
 
       <div className="flex flex-1 max-w-6xl mx-auto w-full px-4 md:px-6 lg:px-8 py-4">
         <div className="flex flex-col flex-1">
-          {/* banner area - adjust ratio */}
+          {/* Banner area with responsive image */}
           <div>
             <div className="py-4">
               <div className="flex min-h-[380px] md:min-h-[420px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10 banner-image"
@@ -267,19 +301,8 @@ export default function Home() {
             </div>
           </div>
             
-          {/* article title */}
-          <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-5">
-            Latest Posts
-          </h2>
-          
-          {/* use ErrorBoundary to wrap article list */}
-          <ErrorBoundary
-            fallback={
-              <div className="text-center p-4 text-red-500">
-                Something went wrong while loading articles.
-              </div>
-            }
-          >
+          {/* Article list with error boundary */}
+          <ErrorBoundary>
             <ArticlesList
               locale={locale}
               currentPage={currentPage}

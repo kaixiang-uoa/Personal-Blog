@@ -1,6 +1,13 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 
+/**
+ * Props interface for the ApiErrorFallback component
+ * @interface ApiErrorFallbackProps
+ * @property {Error | null} [error] - The error object to display
+ * @property {function} [resetErrorBoundary] - Function to reset the error boundary
+ * @property {string} [message] - Custom error message to display
+ */
 interface ApiErrorFallbackProps {
   error?: Error | null;
   resetErrorBoundary?: () => void;
@@ -8,15 +15,31 @@ interface ApiErrorFallbackProps {
 }
 
 /**
- * API error fallback component
- * display friendly error message and retry button when API request fails
+ * ApiErrorFallback Component
+ * 
+ * A component that displays user-friendly error messages when API requests fail.
+ * Supports different error types with appropriate styling and provides a retry option.
+ * Includes fallback translations and handles various HTTP status codes.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <ApiErrorFallback
+ *   error={apiError}
+ *   resetErrorBoundary={handleReset}
+ *   message="Custom error message"
+ * />
+ * ```
+ * 
+ * @param {ApiErrorFallbackProps} props - The component props
+ * @returns {JSX.Element} An error display component with retry functionality
  */
 export default function ApiErrorFallback({
   error,
   resetErrorBoundary,
   message
 }: ApiErrorFallbackProps) {
-  // Use common namespace instead of errors to avoid missing translations
+  // Use common namespace for translations
   const t = useTranslations('common');
   
   // Fallback translations in case the hook fails
@@ -31,7 +54,11 @@ export default function ApiErrorFallback({
     'validationError': 'Invalid data'
   };
 
-  // Safe translation function that uses fallbacks if needed
+  /**
+   * Safely translate a key with fallback support
+   * @param {string} key - The translation key
+   * @returns {string} The translated text or fallback
+   */
   const safeTranslate = (key: string) => {
     try {
       return t(key);
@@ -40,26 +67,29 @@ export default function ApiErrorFallback({
     }
   };
   
-  // Parse error message and status code
+  /**
+   * Parse error details and determine appropriate message and status code
+   * @returns {Object} Object containing error message and status code
+   */
   const getErrorDetails = () => {
     if (!error) return { message: message || safeTranslate('defaultApiError'), statusCode: 500 };
     
-    // Try to extract API response information from error object
+    // Extract API response information
     let statusCode = 500;
     let errorMessage = message || error.message || safeTranslate('defaultApiError');
     
-    // Handle Axios error
+    // Handle network errors
     if (error.message.includes('Network Error')) {
       return { message: safeTranslate('networkError'), statusCode: 0 };
     }
     
-    // Try to extract status code from error message
+    // Extract status code from error message
     const match = error.message.match(/(\d{3})/);
     if (match) {
       statusCode = parseInt(match[1]);
     }
     
-    // Provide more friendly error messages based on status code
+    // Map status codes to user-friendly messages
     switch (statusCode) {
       case 400:
         errorMessage = message || safeTranslate('validationError');
@@ -85,7 +115,10 @@ export default function ApiErrorFallback({
   
   const { message: errorMessage, statusCode } = getErrorDetails();
 
-  // Choose different icons and colors based on error type
+  /**
+   * Get appropriate styling based on error type
+   * @returns {Object} Object containing CSS classes for different elements
+   */
   const getErrorStyle = () => {
     if (statusCode === 404) {
       return {
@@ -97,7 +130,7 @@ export default function ApiErrorFallback({
       };
     }
     
-    // Default is red error style
+    // Default error styling
     return {
       containerClass: "border-red-200 bg-red-50 dark:border-red-800/30 dark:bg-red-900/20",
       iconClass: "text-red-500 dark:text-red-400",
@@ -112,6 +145,7 @@ export default function ApiErrorFallback({
   return (
     <div className={`rounded-lg border p-6 text-center ${style.containerClass}`}>
       <div className="flex flex-col items-center justify-center gap-2">
+        {/* Error icon */}
         <svg
           className={`h-10 w-10 ${style.iconClass}`}
           fill="none"
@@ -129,14 +163,17 @@ export default function ApiErrorFallback({
           <path d="M9 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
         </svg>
         
+        {/* Error title */}
         <h3 className={`text-lg font-medium ${style.titleClass}`}>
           {safeTranslate('dataLoadingFailed')}
         </h3>
         
+        {/* Error message */}
         <p className={`text-sm max-w-md ${style.textClass}`}>
           {errorMessage}
         </p>
         
+        {/* Retry button */}
         {resetErrorBoundary && (
           <button
             onClick={resetErrorBoundary}

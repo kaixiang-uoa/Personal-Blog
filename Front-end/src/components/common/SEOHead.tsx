@@ -3,19 +3,34 @@
 import { useSettings } from '@/contexts/SettingsContext';
 import { useEffect } from 'react';
 
+/**
+ * SEOHead Component
+ * 
+ * A client-side component that manages SEO-related meta tags and document head elements.
+ * Updates the website title, description, keywords, and favicon based on settings.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <SEOHead />
+ * ```
+ * 
+ * @returns {null} This component doesn't render anything
+ */
 export function SEOHead() {
   const { getSetting } = useSettings();
   
+  // Get SEO-related settings with fallback values
   const siteName = getSetting('general.siteName', 'Modern Blog');
   const siteDescription = getSetting('general.siteDescription', 'A trendy blog for web development enthusiasts');
   const keywords = getSetting('general.metaKeywords', '');
   const favicon = getSetting('general.favicon', '/favicon.ico');
   
   useEffect(() => {
-    // 更新网站标题
+    // Update website title
     document.title = siteName;
     
-    // 更新描述标签
+    // Update description meta tag
     let descriptionMeta = document.querySelector('meta[name="description"]');
     if (descriptionMeta) {
       descriptionMeta.setAttribute('content', siteDescription);
@@ -26,7 +41,7 @@ export function SEOHead() {
       document.head.appendChild(descriptionMeta);
     }
     
-    // 更新关键词标签
+    // Update keywords meta tag if keywords are provided
     if (keywords) {
       let keywordsMeta = document.querySelector('meta[name="keywords"]');
       if (keywordsMeta) {
@@ -39,7 +54,7 @@ export function SEOHead() {
       }
     }
     
-    // 更新favicon
+    // Update favicon if provided
     if (favicon) {
       let faviconLink = document.querySelector('link[rel="icon"]');
       if (faviconLink) {
@@ -53,6 +68,6 @@ export function SEOHead() {
     }
   }, [siteName, siteDescription, keywords, favicon]);
   
-  // 这个组件不渲染任何内容，只在客户端修改文档头部
+  // This component doesn't render anything, it only modifies the document head
   return null;
 } 

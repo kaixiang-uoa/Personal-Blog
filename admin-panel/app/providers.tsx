@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Toaster } from "@/components/ui/feedback/toaster"
+import { Toaster } from "@/components/ui/feedback/toaster";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -8,5 +8,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {children}
       <Toaster />
     </>
-  )
-} 
+  );
+}

@@ -1,8 +1,9 @@
-import type React from "react"
-import { ThemeToggle } from "@/components/theme-toggle"
+import type React from "react";
+
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface AuthLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
@@ -13,5 +14,5 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       </div>
       <div className="w-full max-w-md">{children}</div>
     </div>
-  )
+  );
 }

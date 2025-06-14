@@ -13,32 +13,28 @@
  * @returns {Object} processed pagination parameters
  */
 export const getPaginationParams = (req, options = {}) => {
-  const {
-    defaultPage = 1,
-    defaultLimit = 10,
-    maxLimit = 100
-  } = options;
+  const { defaultPage = 1, defaultLimit = 10, maxLimit = 100 } = options;
 
   // extract pagination parameters from query parameters
   let { page, limit } = req.query;
-  
+
   // convert to integer and apply default values and limits
   page = parseInt(page) || defaultPage;
   limit = parseInt(limit) || defaultLimit;
-  
+
   // ensure page number is at least 1
   page = Math.max(1, page);
-  
+
   // limit max limit per page
   limit = Math.min(maxLimit, Math.max(1, limit));
-  
+
   // calculate the number of items to skip
   const skip = (page - 1) * limit;
-  
+
   return {
     page,
     limit,
-    skip
+    skip,
   };
 };
 
@@ -60,8 +56,8 @@ export const createPaginationResponse = ({ page, limit, total }, data) => {
       currentPage: page,
       perPage: limit,
       hasNextPage: page < Math.ceil(total / limit),
-      hasPrevPage: page > 1
-    }
+      hasPrevPage: page > 1,
+    },
   };
 };
 
@@ -76,29 +72,29 @@ export const createPaginationResponse = ({ page, limit, total }, data) => {
  * @returns {Promise<Object>} standard pagination response
  */
 export const paginateResults = async (
-  req, 
+  req,
   queryFn,
   countFn,
-  filter = {}, 
-  options = {}, 
-  paginationOptions = {}
+  filter = {},
+  options = {},
+  paginationOptions = {},
 ) => {
   // get pagination parameters
   const { page, limit, skip } = getPaginationParams(req, paginationOptions);
-  
+
   // add pagination to query options
   const queryOptions = {
     ...options,
     skip,
-    limit
+    limit,
   };
-  
+
   // execute data query and count query in parallel to improve performance
   const [data, total] = await Promise.all([
     queryFn(filter, queryOptions),
-    countFn(filter)
+    countFn(filter),
   ]);
-  
+
   // return standard response
   return createPaginationResponse({ page, limit, total }, data);
-}; 
+};

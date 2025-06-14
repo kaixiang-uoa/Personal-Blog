@@ -1,8 +1,10 @@
-import { TagSelectorProps } from '@/types/posts';
-import { Tag } from '@/types';
-import { ComboboxSelect } from '@/components/posts/Combobox-select';
-import { Badge } from '@/components/ui/data-display/badge';
-import { X } from 'lucide-react';
+import { X } from "lucide-react";
+
+import { ComboboxSelect } from "@/components/posts/Combobox-select";
+import { Badge } from "@/components/ui/data-display/badge";
+import { Tag } from "@/types";
+import { TagSelectorProps } from "@/types/posts";
+
 
 export function TagSelector({
   tags = [],
@@ -11,7 +13,7 @@ export function TagSelector({
   multiple = true,
   showSelected = true,
   placeholder = "Select tags...",
-  disabled = false
+  disabled = false,
 }: TagSelectorProps) {
   const handleSelect = (item: Tag) => {
     if (multiple) {
@@ -27,13 +29,13 @@ export function TagSelector({
   };
 
   const handleRemove = (item: Tag) => {
-    onChange(selectedTags.filter(tag => tag._id !== item._id));
+    onChange(selectedTags.filter((tag) => tag._id !== item._id));
   };
 
   const displayName = (item: Tag) => {
     if (!item) return "";
     if (!item.name) return "";
-    
+
     return String(item.name);
   };
 
@@ -41,16 +43,16 @@ export function TagSelector({
     <div className="space-y-2">
       {showSelected && selectedTags.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
-          {selectedTags.map(tag => (
-            <Badge 
-              key={tag._id} 
-              variant="secondary" 
+          {selectedTags.map((tag) => (
+            <Badge
+              key={tag._id}
+              variant="secondary"
               className="flex items-center gap-1 text-xs py-1 px-2"
             >
               {displayName(tag)}
               {!disabled && (
-                <X 
-                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                <X
+                  className="h-3 w-3 cursor-pointer hover:text-destructive"
                   onClick={() => handleRemove(tag)}
                 />
               )}
@@ -58,7 +60,7 @@ export function TagSelector({
           ))}
         </div>
       )}
-      
+
       <ComboboxSelect<Tag>
         items={tags}
         selectedItems={selectedTags}
@@ -71,4 +73,4 @@ export function TagSelector({
       />
     </div>
   );
-} 
+}

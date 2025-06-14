@@ -1,40 +1,56 @@
-"use client"
+"use client";
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
-import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/inputs/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/data-display/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
-import { Input } from "@/components/ui/inputs/input"
-import { Skeleton } from "@/components/ui/data-display/skeleton"
-import { postsFormSchema } from "@/lib/validators/settings-schemas"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/data-display/card";
+import { Skeleton } from "@/components/ui/data-display/skeleton";
+import { Button } from "@/components/ui/inputs/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/inputs/form";
+import { Input } from "@/components/ui/inputs/input";
+import { postsFormSchema } from "@/lib/validators/settings-schemas";
 
 interface PostsSettingsFormProps {
-  defaultValues: z.infer<typeof postsFormSchema>
-  onSubmit: (values: z.infer<typeof postsFormSchema>) => Promise<void>
-  loading: boolean
-  isSaving: boolean
+  defaultValues: z.infer<typeof postsFormSchema>;
+  onSubmit: (values: z.infer<typeof postsFormSchema>) => Promise<void>;
+  loading: boolean;
+  isSaving: boolean;
 }
 
 export default function PostsSettingsForm({
-  defaultValues, 
+  defaultValues,
   onSubmit,
   loading,
-  isSaving
+  isSaving,
 }: PostsSettingsFormProps) {
   const form = useForm<z.infer<typeof postsFormSchema>>({
     resolver: zodResolver(postsFormSchema),
     defaultValues,
-  })
+  });
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Post Settings</CardTitle>
-        <CardDescription>Configure how your blog posts are displayed and interacted with</CardDescription>
+        <CardDescription>
+          Configure how your blog posts are displayed and interacted with
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -48,7 +64,11 @@ export default function PostsSettingsForm({
           </div>
         ) : (
           <Form {...form}>
-            <form id="posts-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              id="posts-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={form.control}
                 name="postsPerPage"
@@ -61,7 +81,9 @@ export default function PostsSettingsForm({
                         min={1}
                         max={100}
                         {...field}
-                        onChange={(e) => field.onChange(Number.parseInt(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(Number.parseInt(e.target.value))
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -88,5 +110,5 @@ export default function PostsSettingsForm({
         </Button>
       </CardFooter>
     </Card>
-  )
-} 
+  );
+}

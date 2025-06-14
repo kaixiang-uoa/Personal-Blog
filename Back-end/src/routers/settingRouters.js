@@ -1,36 +1,41 @@
-import express from 'express';
-import { 
-    getAllSettings, 
-    getSettingByKey, 
-    updateSetting, 
-    updateSettings, 
-    deleteSetting,
-    getSettingHistory,
-    getSettingVersions,
-    rollbackSetting
-} from '../controllers/settingController.js';
-import { protect, restrictTo } from '../middleware/authMiddleware.js';
-import mongoose from 'mongoose';
+import express from "express";
+import {
+  getAllSettings,
+  getSettingByKey,
+  updateSetting,
+  updateSettings,
+  deleteSetting,
+  getSettingHistory,
+  getSettingVersions,
+  rollbackSetting,
+} from "../controllers/settingController.js";
+import { protect, restrictTo } from "../middleware/authMiddleware.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
 // get all settings
-router.get('/', getAllSettings);
+router.get("/", getAllSettings);
 
 // get single setting
-router.get('/:key', getSettingByKey);
+router.get("/:key", getSettingByKey);
 
 // routes that require admin privileges
-router.put('/:key', protect, restrictTo('admin'), updateSetting);
-router.post('/', protect, restrictTo('admin'), updateSetting);
-router.post('/batch', protect, restrictTo('admin'), updateSettings);
-router.delete('/:key', protect, restrictTo('admin'), deleteSetting);
+router.put("/:key", protect, restrictTo("admin"), updateSetting);
+router.post("/", protect, restrictTo("admin"), updateSetting);
+router.post("/batch", protect, restrictTo("admin"), updateSettings);
+router.delete("/:key", protect, restrictTo("admin"), deleteSetting);
 
 // setting history related routes
-router.get('/history/all', protect, restrictTo('admin'), getSettingHistory);
-router.get('/history/:key', protect, restrictTo('admin'), getSettingHistory);
-router.get('/versions/:key', protect, restrictTo('admin'), getSettingVersions);
-router.post('/rollback/:historyId', protect, restrictTo('admin'), rollbackSetting);
+router.get("/history/all", protect, restrictTo("admin"), getSettingHistory);
+router.get("/history/:key", protect, restrictTo("admin"), getSettingHistory);
+router.get("/versions/:key", protect, restrictTo("admin"), getSettingVersions);
+router.post(
+  "/rollback/:historyId",
+  protect,
+  restrictTo("admin"),
+  rollbackSetting,
+);
 
 /**
  * @swagger
@@ -69,23 +74,23 @@ router.post('/rollback/:historyId', protect, restrictTo('admin'), rollbackSettin
  *       403:
  *         description: Forbidden
  */
-router.get('/db/status', protect, restrictTo('admin'), (req, res) => {
+router.get("/db/status", protect, restrictTo("admin"), (req, res) => {
   const conn = mongoose.connection;
-  
+
   const status = {
-    host: conn.host || 'N/A',
-    port: conn.port || 'N/A',
-    name: conn.name || 'N/A',
+    host: conn.host || "N/A",
+    port: conn.port || "N/A",
+    name: conn.name || "N/A",
     connected: conn.readyState === 1,
     connectionState: getConnectionState(conn.readyState),
     models: Object.keys(mongoose.models).length,
     collections: Object.keys(conn.collections).length,
-    connectionTime: conn._hasOpened ? 'Connected' : 'Not connected'
+    connectionTime: conn._hasOpened ? "Connected" : "Not connected",
   };
-  
+
   res.status(200).json({
     success: true,
-    status
+    status,
   });
 });
 
@@ -96,11 +101,16 @@ router.get('/db/status', protect, restrictTo('admin'), (req, res) => {
  */
 function getConnectionState(state) {
   switch (state) {
-    case 0: return 'disconnected';
-    case 1: return 'connected';
-    case 2: return 'connecting';
-    case 3: return 'disconnecting';
-    default: return 'unknown';
+    case 0:
+      return "disconnected";
+    case 1:
+      return "connected";
+    case 2:
+      return "connecting";
+    case 3:
+      return "disconnecting";
+    default:
+      return "unknown";
   }
 }
 

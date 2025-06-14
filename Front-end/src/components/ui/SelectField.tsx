@@ -10,6 +10,36 @@ import {
   SelectValue,
 } from './select';
 
+/**
+ * SelectField Component
+ * 
+ * A customizable select field component that supports both horizontal and vertical layouts.
+ * Handles empty values gracefully and provides consistent styling across the application.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * // Vertical layout with label
+ * <SelectField
+ *   label="Category"
+ *   value={category}
+ *   onChange={setCategory}
+ *   options={[
+ *     { value: 'tech', label: 'Technology' },
+ *     { value: 'life', label: 'Lifestyle' }
+ *   ]}
+ * />
+ * 
+ * // Horizontal layout without label
+ * <SelectField
+ *   value={sortBy}
+ *   onChange={setSortBy}
+ *   options={sortOptions}
+ *   isHorizontal
+ *   showLabel={false}
+ * />
+ * ```
+ */
 export function SelectField({ 
   label, 
   value, 
@@ -20,28 +50,31 @@ export function SelectField({
 }: SelectFieldProps) {
   const t = useTranslations('common');
   
-  // according to layout style
+  // Style classes based on layout type
   const triggerClass = cn(
     isHorizontal 
       ? "h-10 w-full min-w-[140px] max-w-[200px] rounded-lg text-sm font-normal leading-normal"
       : "h-12 w-full rounded-xl text-base font-normal leading-normal"
   );
 
-  // ensure value is not empty string, replace with meaningful default value
+  // Handle empty value case
   const safeValue = value === '' ? '_empty' : value;
   
-  // preprocess options, ensure no empty value
+  // Process options to handle empty values
   const safeOptions = options.map(option => ({
     ...option,
     value: option.value === '' ? '_empty' : option.value
   }));
 
+  /**
+   * Handles value changes and converts placeholder empty value back to actual empty string
+   * @param {string} newValue - The newly selected value
+   */
   const handleValueChange = (newValue: string) => {
-    // if the selected value is our empty value placeholder, return actual empty string
     onChange(newValue === '_empty' ? '' : newValue);
   };
 
-  // set container class for select component, adjust width to fit layout
+  // Container class based on layout type
   const selectWrapperClass = cn(
     isHorizontal ? "flex-1 min-w-[140px] max-w-[200px]" : "w-full"
   );

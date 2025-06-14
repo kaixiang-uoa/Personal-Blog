@@ -1,20 +1,26 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { ChevronDown, ChevronUp, Filter, MoreHorizontal, PlusCircle, Search } from "lucide-react"
-import { Button } from "@/components/ui/inputs/button"
-import { Input } from "@/components/ui/inputs/input"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/navigation/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/data-display/table"
-import { Badge } from "@/components/ui/data-display/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/inputs/select"
+  ChevronDown,
+  ChevronUp,
+  Filter,
+  MoreHorizontal,
+  PlusCircle,
+  Search,
+} from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/data-display/badge";
+import { Skeleton } from "@/components/ui/data-display/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/data-display/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,22 +30,37 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/feedback/alert-dialog"
-import { Skeleton } from "@/components/ui/data-display/skeleton"
-import { useToast } from "@/hooks/ui/use-toast"
-import { apiService } from "@/lib/api"
-import { Post, PostStatus, PostQueryParams } from "@/types/posts"
+} from "@/components/ui/feedback/alert-dialog";
+import { Button } from "@/components/ui/inputs/button";
+import { Input } from "@/components/ui/inputs/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/inputs/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/navigation/dropdown-menu";
+import { useToast } from "@/hooks/ui/use-toast";
+import { apiService } from "@/lib/api";
+import { Post, PostStatus, PostQueryParams } from "@/types/posts";
 
 export default function PostsPage() {
-  const { toast } = useToast()
-  const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<PostStatus>(PostStatus.ALL)
-  const [sortField, setSortField] = useState("createdAt")
-  const [sortDirection, setSortDirection] = useState("desc")
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [postToDelete, setPostToDelete] = useState<string | null>(null)
+  const { toast } = useToast();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<PostStatus>(PostStatus.ALL);
+  const [sortField, setSortField] = useState("createdAt");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -52,22 +73,22 @@ export default function PostsPage() {
 
         const response = await apiService.getPosts(queryParams);
         if (!response?.data?.posts) {
-          console.warn('No posts data received from API');
+          console.warn("No posts data received from API");
           setPosts([]);
           return;
         }
 
-        const postsArray = Array.isArray(response.data.posts) 
-          ? response.data.posts 
+        const postsArray = Array.isArray(response.data.posts)
+          ? response.data.posts
           : [];
 
         setPosts(postsArray);
       } catch (error) {
-        console.error('Failed to fetch posts:', error);
+        console.error("Failed to fetch posts:", error);
         toast({
           title: "Error",
           description: "Failed to load posts",
-          variant: "destructive"
+          variant: "destructive",
         });
         setPosts([]);
       } finally {
@@ -81,101 +102,109 @@ export default function PostsPage() {
   // handle sort
   const handleSort = (field: string) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortDirection("desc")
+      setSortField(field);
+      setSortDirection("desc");
     }
-  }
+  };
 
   // filtered and sorted posts
   const filteredAndSortedPosts = posts
-    .filter(post => {
+    .filter((post) => {
       // search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        const title = post.title?.toLowerCase() || '';
-        const excerpt = post.excerpt?.toLowerCase() || '';
+        const title = post.title?.toLowerCase() || "";
+        const excerpt = post.excerpt?.toLowerCase() || "";
         // search in title and excerpt
         if (title.includes(query) || excerpt.includes(query)) {
           return true;
         }
-        
+
         // search in category
-        const categoryMatch = Array.isArray(post.categories) && post.categories.some(
-          cat => typeof cat === 'object' && cat?.name?.toLowerCase().includes(query)
-        );
-        
+        const categoryMatch =
+          Array.isArray(post.categories) &&
+          post.categories.some(
+            (cat) =>
+              typeof cat === "object" &&
+              cat?.name?.toLowerCase().includes(query),
+          );
+
         // search in tag
-        const tagMatch = Array.isArray(post.tags) && post.tags.some(
-          tag => typeof tag === 'object' && tag?.name?.toLowerCase().includes(query)
-        );
-        
+        const tagMatch =
+          Array.isArray(post.tags) &&
+          post.tags.some(
+            (tag) =>
+              typeof tag === "object" &&
+              tag?.name?.toLowerCase().includes(query),
+          );
+
         return categoryMatch || tagMatch;
       }
       return true;
     })
     .sort((a, b) => {
-      if (sortField === 'title') {
-        return sortDirection === 'asc' 
-          ? (a.title || '').localeCompare(b.title || '')
-          : (b.title || '').localeCompare(a.title || '');
+      if (sortField === "title") {
+        return sortDirection === "asc"
+          ? (a.title || "").localeCompare(b.title || "")
+          : (b.title || "").localeCompare(a.title || "");
       }
-      
-      if (sortField === 'status') {
-        return sortDirection === 'asc'
-          ? (a.status || '').localeCompare(b.status || '')
-          : (b.status || '').localeCompare(a.status || '');
+
+      if (sortField === "status") {
+        return sortDirection === "asc"
+          ? (a.status || "").localeCompare(b.status || "")
+          : (b.status || "").localeCompare(a.status || "");
       }
-      
-      if (sortField === 'publishDate') {
+
+      if (sortField === "publishDate") {
         const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
         const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+        return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
       }
-      
-      if (sortField === 'viewCount') {
+
+      if (sortField === "viewCount") {
         const viewsA = a.viewCount || 0;
         const viewsB = b.viewCount || 0;
-        return sortDirection === 'asc' ? viewsA - viewsB : viewsB - viewsA;
+        return sortDirection === "asc" ? viewsA - viewsB : viewsB - viewsA;
       }
-      
+
       // default sort by createdAt
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
     });
 
   // handle delete post
   const handleDeleteConfirm = async () => {
     if (!postToDelete) return;
-    
+
     try {
       await apiService.deletePost(postToDelete);
-      console.log(postToDelete)
-      setPosts(posts.filter(post => post._id !== postToDelete));
+      console.log(postToDelete);
+      setPosts(posts.filter((post) => post._id !== postToDelete));
       toast({
         title: "Success",
         description: "Post deleted successfully",
       });
     } catch (error) {
-      console.error('Failed to delete post:', error);
+      console.error("Failed to delete post:", error);
       toast({
         title: "Error",
         description: "Failed to delete post",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setPostToDelete(null);
       setDeleteDialogOpen(false);
     }
-  }
+  };
 
   // trigger delete dialog
   const handleDeleteClick = (post_id: string) => {
-    setPostToDelete(post_id)
-    setDeleteDialogOpen(true)
-  }
+    setPostToDelete(post_id);
+    setDeleteDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -203,9 +232,11 @@ export default function PostsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select 
-            value={statusFilter} 
-            onValueChange={(value: string) => setStatusFilter(value as PostStatus)}
+          <Select
+            value={statusFilter}
+            onValueChange={(value: string) =>
+              setStatusFilter(value as PostStatus)
+            }
             defaultValue={PostStatus.ALL}
           >
             <SelectTrigger className="w-[140px]">
@@ -225,26 +256,48 @@ export default function PostsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[300px]" onClick={() => handleSort("title")} role="button">
+              <TableHead
+                className="w-[300px]"
+                onClick={() => handleSort("title")}
+                role="button"
+              >
                 <div className="flex items-center gap-1">
                   Title
                   {sortField === "title" &&
-                    (sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
+                    (sortDirection === "asc" ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    ))}
                 </div>
               </TableHead>
-              <TableHead className="hidden md:table-cell">Category/Tags</TableHead>
+              <TableHead className="hidden md:table-cell">
+                Category/Tags
+              </TableHead>
               <TableHead onClick={() => handleSort("status")} role="button">
                 <div className="flex items-center gap-1">
                   Status
                   {sortField === "status" &&
-                    (sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
+                    (sortDirection === "asc" ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    ))}
                 </div>
               </TableHead>
-              <TableHead onClick={() => handleSort("publishDate")} className="hidden md:table-cell" role="button">
+              <TableHead
+                onClick={() => handleSort("publishDate")}
+                className="hidden md:table-cell"
+                role="button"
+              >
                 <div className="flex items-center gap-1">
                   Publish Date
                   {sortField === "publishDate" &&
-                    (sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
+                    (sortDirection === "asc" ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    ))}
                 </div>
               </TableHead>
               <TableHead
@@ -255,7 +308,11 @@ export default function PostsPage() {
                 <div className="flex items-center justify-end gap-1">
                   Views
                   {sortField === "viewCount" &&
-                    (sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
+                    (sortDirection === "asc" ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    ))}
                 </div>
               </TableHead>
               <TableHead className="w-[70px]"></TableHead>
@@ -290,21 +347,28 @@ export default function PostsPage() {
                 <TableRow key={post._id || `post-row-${postIndex}`}>
                   <TableCell>
                     <div className="font-medium hover:underline">
-                      <Link href={`/posts/${post._id}/preview`}>{post.title}</Link>
+                      <Link href={`/posts/${post._id}/preview`}>
+                        {post.title}
+                      </Link>
                     </div>
-                    <div className="text-sm text-muted-foreground line-clamp-1">{post.excerpt}</div>
+                    <div className="text-sm text-muted-foreground line-clamp-1">
+                      {post.excerpt}
+                    </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="space-y-1">
                       {/* category */}
-                      {Array.isArray(post.categories) && post.categories.length > 0 ? (
+                      {Array.isArray(post.categories) &&
+                      post.categories.length > 0 ? (
                         <div className="flex flex-wrap gap-1 mb-1">
                           {post.categories.map((category, catIndex) => (
-                            <Badge 
+                            <Badge
                               key={`${post._id}-cat-${catIndex}`}
                               variant="outline"
                             >
-                              {typeof category === 'object' ? category.name || category.slug || "Category" : "Category"}
+                              {typeof category === "object"
+                                ? category.name || category.slug || "Category"
+                                : "Category"}
                             </Badge>
                           ))}
                         </div>
@@ -315,16 +379,20 @@ export default function PostsPage() {
                       <div className="flex flex-wrap gap-1">
                         {Array.isArray(post.tags) && post.tags.length > 0 ? (
                           post.tags.map((tag, tagIndex) => (
-                            <Badge 
+                            <Badge
                               key={`${post._id}-tag-${tagIndex}`}
                               variant="secondary"
                               className="text-xs"
                             >
-                              {typeof tag === 'object' ? tag.name || tag.slug || "Tag" : "Tag"}
+                              {typeof tag === "object"
+                                ? tag.name || tag.slug || "Tag"
+                                : "Tag"}
                             </Badge>
                           ))
                         ) : (
-                          <Badge variant="secondary" className="text-xs">No tags</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            No tags
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -337,7 +405,9 @@ export default function PostsPage() {
                     )}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {post.status === "published" && post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : "Not published"}
+                    {post.status === "published" && post.publishedAt
+                      ? new Date(post.publishedAt).toLocaleDateString()
+                      : "Not published"}
                   </TableCell>
                   <TableCell className="hidden lg:table-cell text-right">
                     {post.status === "published" ? post.viewCount : "-"}
@@ -352,10 +422,14 @@ export default function PostsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/posts/${post._id}/edit`}>View/Edit</Link>
+                          <Link href={`/posts/${post._id}/edit`}>
+                            View/Edit
+                          </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/posts/${post._id}/preview`}>Preview</Link>
+                          <Link href={`/posts/${post._id}/preview`}>
+                            Preview
+                          </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -387,17 +461,21 @@ export default function PostsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this post from our servers.
+              This action cannot be undone. This will permanently delete this
+              post from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

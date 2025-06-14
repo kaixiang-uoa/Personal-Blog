@@ -1,30 +1,38 @@
-"use client"
+"use client";
 
-import { useEffect, useState, Suspense } from "react"
-import { useRouter, useParams } from "next/navigation"
-import { useToast } from "@/hooks/ui/use-toast"
-import { ChevronLeft, Save } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/inputs/button"
-import { Card, CardContent } from "@/components/ui/data-display/card"
-import { Input } from "@/components/ui/inputs/input"
-import { Textarea } from "@/components/ui/inputs/textarea"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
-import { PostEditor } from "@/components/posts/post-editor"
-import { TagSelector } from "@/components/posts/TagSelector"
-import { useForm } from "react-hook-form"
-import { Skeleton } from "@/components/ui/data-display/skeleton"
-import { Post, PostStatus } from "@/types/posts"
-import { Category, Tag } from "@/types"
-import { apiService } from "@/lib/api"
-import { CategorySelector } from "@/components/categories/CategorySelector"
+import { ChevronLeft, Save } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useForm } from "react-hook-form";
+
+import { CategorySelector } from "@/components/categories/CategorySelector";
+import { TagSelector } from "@/components/posts/TagSelector";
+import { PostEditor } from "@/components/posts/post-editor";
+import { Card, CardContent } from "@/components/ui/data-display/card";
+import { Skeleton } from "@/components/ui/data-display/skeleton";
+import { Button } from "@/components/ui/inputs/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/inputs/form";
+import { Input } from "@/components/ui/inputs/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/inputs/select"
+} from "@/components/ui/inputs/select";
+import { Textarea } from "@/components/ui/inputs/textarea";
+import { useToast } from "@/hooks/ui/use-toast";
+import { apiService } from "@/lib/api";
+import { Category, Tag } from "@/types";
+import { Post, PostStatus } from "@/types/posts";
 
 // loading skeleton
 function PostFormSkeleton() {
@@ -37,7 +45,7 @@ function PostFormSkeleton() {
         </div>
         <Skeleton className="h-10 w-32" />
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
           <Card>
@@ -71,7 +79,7 @@ function PostFormSkeleton() {
 export default function EditPostPage() {
   const params = useParams();
   const postId = params.id as string;
-  
+
   return (
     <Suspense fallback={<PostFormSkeleton />}>
       <EditPostForm postId={postId} />
@@ -84,16 +92,18 @@ interface EditPostFormProps {
 }
 
 function EditPostForm({ postId }: EditPostFormProps) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<Category[]>([])
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([])
-  const [availableCategories, setAvailableCategories] = useState<Category[]>([])
-  const [availableTags, setAvailableTags] = useState<Tag[]>([])
-  const [currentPost, setCurrentPost] = useState<Post | null>(null)
-  const [loading, setLoading] = useState(true)
-  
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<Category[]>(
+    [],
+  );
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [currentPost, setCurrentPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+
   // Form setup
   const form = useForm<Post>({
     defaultValues: {
@@ -106,7 +116,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
       status: PostStatus.DRAFT,
       featuredImage: "",
     },
-  })
+  });
 
   // Get post, category and tag data
   useEffect(() => {
@@ -116,7 +126,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
         const postResponse = await apiService.getPostById(postId);
         const post = postResponse.data.post;
         setCurrentPost(post);
-        
+
         // Set form initial values
         form.reset({
           title: post.title ?? "",
@@ -128,30 +138,35 @@ function EditPostForm({ postId }: EditPostFormProps) {
           status: post.status ?? PostStatus.DRAFT,
           featuredImage: post.featuredImage ?? "",
         });
-        
+
         // Set selected categories and tags
         if (post.categories) {
-          setSelectedCategory(Array.isArray(post.categories) ? post.categories : []);
+          setSelectedCategory(
+            Array.isArray(post.categories) ? post.categories : [],
+          );
         }
         if (post.tags) {
           setSelectedTags(Array.isArray(post.tags) ? post.tags : []);
         }
-        
-       
-        const categoriesResponse = await apiService.getCategories() as unknown as import("@/types").ApiResponse<{ categories: Category[] }>;
+
+        const categoriesResponse =
+          (await apiService.getCategories()) as unknown as import("@/types").ApiResponse<{
+            categories: Category[];
+          }>;
         if (categoriesResponse.data) {
-       
-          const categories = Array.isArray(categoriesResponse.data) 
-            ? categoriesResponse.data 
+          const categories = Array.isArray(categoriesResponse.data)
+            ? categoriesResponse.data
             : categoriesResponse.data.categories || [];
           setAvailableCategories(categories);
         }
-        
-        const tagsResponse = await apiService.getTags() as unknown as import("@/types").ApiResponse<{ tags: Tag[] }>;
+
+        const tagsResponse =
+          (await apiService.getTags()) as unknown as import("@/types").ApiResponse<{
+            tags: Tag[];
+          }>;
         if (tagsResponse.data) {
-         
-          const tags = Array.isArray(tagsResponse.data) 
-            ? tagsResponse.data 
+          const tags = Array.isArray(tagsResponse.data)
+            ? tagsResponse.data
             : tagsResponse.data.tags || [];
           setAvailableTags(tags);
         }
@@ -165,23 +180,33 @@ function EditPostForm({ postId }: EditPostFormProps) {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [postId, form, toast]);
 
   // Handle input changes
-  const handleInputChange = (field: keyof Post, value: string | number | boolean | Category[] | string[] | Tag[] | undefined) => {
-    form.setValue(field, value)
+  const handleInputChange = (
+    field: keyof Post,
+    value:
+      | string
+      | number
+      | boolean
+      | Category[]
+      | string[]
+      | Tag[]
+      | undefined,
+  ) => {
+    form.setValue(field, value);
 
     // If title changes, generate slug
     if (field === "title" && typeof value === "string") {
       const slug = value
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-      form.setValue("slug", slug)
+        .replace(/\s+/g, "-");
+      form.setValue("slug", slug);
     }
-  }
+  };
 
   // Handle category selection
   const handleCategorySelect = (categories: Category[]) => {
@@ -196,33 +221,37 @@ function EditPostForm({ postId }: EditPostFormProps) {
   // Handle tag selection
   const handleTagSelect = (tags: Tag[]) => {
     setSelectedTags(tags);
-    form.setValue("tags", tags.map(tag => tag._id));
+    form.setValue(
+      "tags",
+      tags.map((tag) => tag._id),
+    );
   };
 
   // Submit form
   const onSubmit = async (data: Post) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       await apiService.updatePost(postId, data);
-      
+
       toast({
         title: "Success",
         description: "Post updated successfully",
-      })
-      router.push("/posts")
+      });
+      router.push("/posts");
     } catch (error) {
       toast({
         title: "Update Failed",
-        description: "An error occurred while updating the post. Please try again.",
+        description:
+          "An error occurred while updating the post. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (loading) {
-    return <PostFormSkeleton />
+    return <PostFormSkeleton />;
   }
 
   return (
@@ -237,26 +266,29 @@ function EditPostForm({ postId }: EditPostFormProps) {
           <h1 className="text-2xl font-bold">Edit Post</h1>
         </div>
         <Button onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
-            {isLoading ? (
+          {isLoading ? (
             <>
               <Save className="h-4 w-4 mr-2 animate-spin" />
               Saving...
             </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </Button>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          )}
+        </Button>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        >
           <div className="md:col-span-2">
-          <Card>
+            <Card>
               <CardContent className="p-6">
-              <div className="space-y-4">
+                <div className="space-y-4">
                   <FormField
                     control={form.control}
                     name="title"
@@ -267,7 +299,9 @@ function EditPostForm({ postId }: EditPostFormProps) {
                           <Input
                             placeholder="Enter post title"
                             {...field}
-                            onChange={(e) => handleInputChange("title", e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("title", e.target.value)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -285,7 +319,9 @@ function EditPostForm({ postId }: EditPostFormProps) {
                           <Input
                             placeholder="Enter post slug"
                             {...field}
-                            onChange={(e) => handleInputChange("slug", e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("slug", e.target.value)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -304,7 +340,9 @@ function EditPostForm({ postId }: EditPostFormProps) {
                             placeholder="Enter post excerpt"
                             rows={3}
                             {...field}
-                            onChange={(e) => handleInputChange("excerpt", e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("excerpt", e.target.value)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -321,22 +359,24 @@ function EditPostForm({ postId }: EditPostFormProps) {
                         <FormControl>
                           <PostEditor
                             value={field.value || ""}
-                            onChange={(value) => handleInputChange("content", value)}
+                            onChange={(value) =>
+                              handleInputChange("content", value)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           <div>
-          <Card>
+            <Card>
               <CardContent className="p-6">
-              <div className="space-y-4">
+                <div className="space-y-4">
                   <FormField
                     control={form.control}
                     name="categories"
@@ -385,14 +425,20 @@ function EditPostForm({ postId }: EditPostFormProps) {
                         <FormLabel>Status</FormLabel>
                         <Select
                           value={field.value}
-                          onValueChange={(value) => handleInputChange("status", value)}
+                          onValueChange={(value) =>
+                            handleInputChange("status", value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value={PostStatus.DRAFT}>Draft</SelectItem>
-                            <SelectItem value={PostStatus.PUBLISHED}>Published</SelectItem>
+                            <SelectItem value={PostStatus.DRAFT}>
+                              Draft
+                            </SelectItem>
+                            <SelectItem value={PostStatus.PUBLISHED}>
+                              Published
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -410,19 +456,21 @@ function EditPostForm({ postId }: EditPostFormProps) {
                           <Input
                             placeholder="Enter featured image URL"
                             {...field}
-                            onChange={(e) => handleInputChange("featuredImage", e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange("featuredImage", e.target.value)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </form>
       </Form>
     </div>
-  )
-} 
+  );
+}

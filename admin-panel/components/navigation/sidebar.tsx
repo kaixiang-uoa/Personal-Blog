@@ -1,25 +1,34 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/inputs/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, LayoutDashboard, FileText, BookmarkPlus, ImageIcon, Settings, LogOut } from "lucide-react"
-import { useMobile } from "@/hooks/use-mobile"
-import { apiService } from "@/lib/api"
-import { useToast } from "@/hooks/ui/use-toast"
+import {
+  X,
+  LayoutDashboard,
+  FileText,
+  BookmarkPlus,
+  ImageIcon,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
+import { Button } from "@/components/ui/inputs/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/ui/use-toast";
+import { useMobile } from "@/hooks/use-mobile";
+import { apiService } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
-  open: boolean
-  setOpen: (open: boolean) => void
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
 export default function Sidebar({ open, setOpen }: SidebarProps) {
-  const pathname = usePathname()
-  const isMobile = useMobile()
-  const router = useRouter()
-  const { toast } = useToast()
+  const pathname = usePathname();
+  const isMobile = useMobile();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const items = [
     {
@@ -47,49 +56,61 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
       href: "/settings",
       icon: <Settings className="w-5 h-5" />,
     },
-  ]
+  ];
 
   const handleLogout = async () => {
     try {
-      await apiService.logout()
+      await apiService.logout();
       toast({
         title: "登出成功",
         description: "您已成功退出登录",
-      })
-      
+      });
+
       // 清除可能存在的重定向路径
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('redirectAfterLogin');
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("redirectAfterLogin");
       }
-      
+
       // 使用 replace 而非 push，防止用户通过后退按钮返回已登录状态
-      router.replace("/login")
+      router.replace("/login");
     } catch (error) {
-      console.error("登出失败:", error)
+      console.error("登出失败:", error);
       toast({
         title: "登出失败",
         description: "退出登录时发生错误，请重试",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   return (
     <>
       {/* Mobile background overlay */}
       {isMobile && open && (
-        <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm" onClick={() => setOpen(false)} />
+        <div
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+          onClick={() => setOpen(false)}
+        />
       )}
 
       {/* Sidebar */}
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r bg-background transition-transform duration-300 ease-in-out",
-          isMobile ? (open ? "translate-x-0" : "-translate-x-full") : "translate-x-0 relative",
+          isMobile
+            ? open
+              ? "translate-x-0"
+              : "-translate-x-full"
+            : "translate-x-0 relative",
         )}
       >
         {isMobile && (
-          <Button variant="ghost" size="icon" className="absolute right-2 top-2" onClick={() => setOpen(false)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2"
+            onClick={() => setOpen(false)}
+          >
             <X className="h-5 w-5" />
             <span className="sr-only">Close sidebar</span>
           </Button>
@@ -125,12 +146,16 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
         </ScrollArea>
 
         <div className="border-t p-3">
-          <Button variant="outline" className="w-full justify-start gap-2" onClick={handleLogout}>
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-2"
+            onClick={handleLogout}
+          >
             <LogOut className="w-4 h-4" />
             Log Out
           </Button>
         </div>
       </aside>
     </>
-  )
+  );
 }

@@ -1,16 +1,26 @@
-import React, { useState } from "react";
-import { ComboboxSelectProps } from "@/types";
-import { Button } from "@/components/ui/inputs/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/feedback/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/navigation/command";
 import { Check, Plus } from "lucide-react";
+import React, { useState } from "react";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/feedback/popover";
+import { Button } from "@/components/ui/inputs/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/navigation/command";
 import { cn } from "@/lib/utils";
+import { ComboboxSelectProps } from "@/types";
 
 // safe array, handle null and undefined
 function safeArray<T>(arr: T[] | null | undefined): T[] {
   return Array.isArray(arr) ? arr : [];
 }
-
 
 export function ComboboxSelect<T>({
   items,
@@ -40,52 +50,55 @@ export function ComboboxSelect<T>({
   const getSafeLabel = (item: T): string => {
     try {
       const label = getItemLabel(item);
-      if (!label) return '';
-      
+      if (!label) return "";
+
       // simplify, return string value
       return String(label);
     } catch (e) {
-      console.error('Error getting label for item:', e);
-      return '';
+      console.error("Error getting label for item:", e);
+      return "";
     }
   };
 
   // Filtered list
-  const filteredItems = safeItems.filter(item => {
+  const filteredItems = safeItems.filter((item) => {
     if (!item) return false;
-    
+
     try {
       const itemLabel = getSafeLabel(item);
       if (!search) return true;
       return itemLabel.toLowerCase().includes(search.toLowerCase());
     } catch (e) {
-      console.error('Error filtering item:', e);
+      console.error("Error filtering item:", e);
       return false;
     }
   });
 
   // Whether a new item can be created
-  const canCreate = onCreate && search && !filteredItems.some(item => {
-    if (!item) return false;
-    
-    try {
-      const itemLabel = getSafeLabel(item);
-      return itemLabel.toLowerCase() === search.toLowerCase();
-    } catch (e) {
-      console.error('Error checking if item can be created:', e);
-      return false;
-    }
-  });
+  const canCreate =
+    onCreate &&
+    search &&
+    !filteredItems.some((item) => {
+      if (!item) return false;
+
+      try {
+        const itemLabel = getSafeLabel(item);
+        return itemLabel.toLowerCase() === search.toLowerCase();
+      } catch (e) {
+        console.error("Error checking if item can be created:", e);
+        return false;
+      }
+    });
 
   // Check if item is selected
   const isSelected = (item: T) => {
     if (!item) return false;
     try {
-      return safeSelectedItems.some(sel => 
-        sel && getItemValue(sel) === getItemValue(item)
+      return safeSelectedItems.some(
+        (sel) => sel && getItemValue(sel) === getItemValue(item),
       );
     } catch (e) {
-      console.error('Error checking if item is selected:', e);
+      console.error("Error checking if item is selected:", e);
       return false;
     }
   };
@@ -107,7 +120,7 @@ export function ComboboxSelect<T>({
       setSearch("");
       setOpen(false);
     } catch (e) {
-      console.error('Error creating item:', e);
+      console.error("Error creating item:", e);
     } finally {
       setCreating(false);
     }
@@ -115,7 +128,7 @@ export function ComboboxSelect<T>({
 
   // Get display label
   const getDisplayLabel = (item: T) => {
-    if (!item) return '';
+    if (!item) return "";
     return getSafeLabel(item);
   };
 
@@ -161,7 +174,7 @@ export function ComboboxSelect<T>({
               )}
             </CommandEmpty>
             <CommandGroup>
-              {filteredItems.map(item => (
+              {filteredItems.map((item) => (
                 <CommandItem
                   key={getItemValue(item)}
                   onSelect={() => handleSelect(item)}
@@ -171,7 +184,7 @@ export function ComboboxSelect<T>({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        isSelected(item) ? "opacity-100" : "opacity-0"
+                        isSelected(item) ? "opacity-100" : "opacity-0",
                       )}
                     />
                   )}

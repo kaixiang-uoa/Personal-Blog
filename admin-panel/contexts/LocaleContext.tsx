@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useState, ReactNode } from 'react';
-import { Locale } from '@/hooks/useLocale';
+import { createContext, useState, ReactNode } from "react";
+
+import { Locale } from "@/hooks/useLocale";
 
 interface LocaleContextType {
   locale: Locale;
@@ -15,7 +16,10 @@ interface LocaleProviderProps {
   defaultLocale?: Locale;
 }
 
-export function LocaleProvider({ children, defaultLocale = 'zh' }: LocaleProviderProps) {
+export function LocaleProvider({
+  children,
+  defaultLocale = "zh",
+}: LocaleProviderProps) {
   const [locale, setLocale] = useState<Locale>(defaultLocale);
 
   return (
@@ -23,4 +27,4 @@ export function LocaleProvider({ children, defaultLocale = 'zh' }: LocaleProvide
       {children}
     </LocaleContext.Provider>
   );
-} 
+}

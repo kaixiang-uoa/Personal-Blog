@@ -1,26 +1,32 @@
-"use client"
+"use client";
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { appearanceFormSchema } from "@/lib/validators/settings-schemas"
-import { AppearanceSettingsFormProps } from "@/types/settings"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
 
-import { Form } from "@/components/ui/inputs/form"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/data-display/card"
-import { Button } from "@/components/ui/inputs/button"
-import { Loader2 } from "lucide-react"
-import BannerImageSelector from "@/components/settings/BannerImageSelector"
+import BannerImageSelector from "@/components/settings/BannerImageSelector";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/data-display/card";
+import { Button } from "@/components/ui/inputs/button";
+import { Form } from "@/components/ui/inputs/form";
+import { appearanceFormSchema } from "@/lib/validators/settings-schemas";
+import { AppearanceSettingsFormProps } from "@/types/settings";
 
 export default function AppearanceSettingsForm({
   defaultValues,
   onSubmit,
   loading,
-  isSaving
+  isSaving,
 }: AppearanceSettingsFormProps) {
   const form = useForm({
     resolver: zodResolver(appearanceFormSchema),
     defaultValues,
-  })
+  });
 
   return (
     <Form {...form}>
@@ -42,7 +48,9 @@ export default function AppearanceSettingsForm({
               <BannerImageSelector
                 label="Home Banner (Mobile)"
                 value={form.watch("homeBannerMobile")}
-                onChange={(url: string) => form.setValue("homeBannerMobile", url)}
+                onChange={(url: string) =>
+                  form.setValue("homeBannerMobile", url)
+                }
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -54,7 +62,9 @@ export default function AppearanceSettingsForm({
               <BannerImageSelector
                 label="About Banner (Mobile)"
                 value={form.watch("aboutBannerMobile")}
-                onChange={(url: string) => form.setValue("aboutBannerMobile", url)}
+                onChange={(url: string) =>
+                  form.setValue("aboutBannerMobile", url)
+                }
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -66,7 +76,9 @@ export default function AppearanceSettingsForm({
               <BannerImageSelector
                 label="Contact Banner (Mobile)"
                 value={form.watch("contactBannerMobile")}
-                onChange={(url: string) => form.setValue("contactBannerMobile", url)}
+                onChange={(url: string) =>
+                  form.setValue("contactBannerMobile", url)
+                }
               />
             </div>
           </CardContent>
@@ -80,5 +92,5 @@ export default function AppearanceSettingsForm({
         </div>
       </form>
     </Form>
-  )
-} 
+  );
+}

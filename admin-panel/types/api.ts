@@ -12,7 +12,7 @@ export interface BaseEntity {
 }
 
 // Common status types
-export type PostStatus = 'draft' | 'published' | 'archived';
+export type PostStatus = "draft" | "published" | "archived";
 
 // Common response types
 export interface ApiResponse<T> {
@@ -66,4 +66,4 @@ export interface DashboardData extends DashboardStats {
 export interface PaginatedData<T> {
   items: T[];
   count: number;
-} 
+}

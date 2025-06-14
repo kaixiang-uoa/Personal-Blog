@@ -4,8 +4,8 @@ export const logger = {
   warn: (message) => console.warn(`[WARN] ${message}`),
   error: (message) => console.error(`[ERROR] ${message}`),
   debug: (message) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.debug(`[DEBUG] ${message}`);
     }
-  }
+  },
 };

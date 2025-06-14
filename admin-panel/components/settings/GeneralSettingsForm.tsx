@@ -1,43 +1,60 @@
-"use client"
+"use client";
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
-import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/inputs/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/data-display/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/inputs/form"
-import { Input } from "@/components/ui/inputs/input"
-import { Textarea } from "@/components/ui/inputs/textarea"
-import { Separator } from "@/components/ui/separator"
-import { Skeleton } from "@/components/ui/data-display/skeleton"
-import { generalFormSchema } from "@/lib/validators/settings-schemas"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/data-display/card";
+import { Skeleton } from "@/components/ui/data-display/skeleton";
+import { Button } from "@/components/ui/inputs/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/inputs/form";
+import { Input } from "@/components/ui/inputs/input";
+import { Textarea } from "@/components/ui/inputs/textarea";
+import { Separator } from "@/components/ui/separator";
+import { generalFormSchema } from "@/lib/validators/settings-schemas";
 
 interface GeneralSettingsFormProps {
-  defaultValues: z.infer<typeof generalFormSchema>
-  onSubmit: (values: z.infer<typeof generalFormSchema>) => Promise<void>
-  loading: boolean
-  isSaving: boolean
+  defaultValues: z.infer<typeof generalFormSchema>;
+  onSubmit: (values: z.infer<typeof generalFormSchema>) => Promise<void>;
+  loading: boolean;
+  isSaving: boolean;
 }
 
 export default function GeneralSettingsForm({
-  defaultValues, 
+  defaultValues,
   onSubmit,
   loading,
-  isSaving
+  isSaving,
 }: GeneralSettingsFormProps) {
-  // 创建表单实例
+  // Create form instance
   const form = useForm<z.infer<typeof generalFormSchema>>({
     resolver: zodResolver(generalFormSchema),
     defaultValues,
-  })
+  });
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Site Information</CardTitle>
-        <CardDescription>Configure your blog's basic information</CardDescription>
+        <CardDescription>
+          Configure your blog&apos;s basic information
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -51,7 +68,11 @@ export default function GeneralSettingsForm({
           </div>
         ) : (
           <Form {...form}>
-            <form id="general-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              id="general-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={form.control}
                 name="siteName"
@@ -72,9 +93,15 @@ export default function GeneralSettingsForm({
                   <FormItem>
                     <FormLabel>Site Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Describe your blog..." {...field} />
+                      <Textarea
+                        placeholder="Describe your blog..."
+                        {...field}
+                      />
                     </FormControl>
-                    <FormDescription>This will be displayed on your homepage and meta description</FormDescription>
+                    <FormDescription>
+                      This will be displayed on your homepage and meta
+                      description
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -128,9 +155,14 @@ export default function GeneralSettingsForm({
                   <FormItem>
                     <FormLabel>Meta Keywords</FormLabel>
                     <FormControl>
-                      <Input placeholder="keyword1, keyword2, keyword3" {...field} />
+                      <Input
+                        placeholder="keyword1, keyword2, keyword3"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormDescription>Comma-separated list of keywords for SEO</FormDescription>
+                    <FormDescription>
+                      Comma-separated list of keywords for SEO
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -140,7 +172,11 @@ export default function GeneralSettingsForm({
         )}
       </CardContent>
       <CardFooter className="flex justify-end">
-        <Button type="submit" form="general-form" disabled={loading || isSaving}>
+        <Button
+          type="submit"
+          form="general-form"
+          disabled={loading || isSaving}
+        >
           {isSaving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -152,5 +188,5 @@ export default function GeneralSettingsForm({
         </Button>
       </CardFooter>
     </Card>
-  )
-} 
+  );
+}

@@ -1,49 +1,68 @@
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import swaggerUi from 'swagger-ui-express';
-import swaggerSpecs from './config/swagger.js';
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpecs from "./config/swagger.js";
 
 // Import routers
-import postRouter from './routers/postRouters.js';
-import userRouter from './routers/userRouters.js';
-import categoryRouter from './routers/categoryRouters.js';
-import tagRouter from './routers/tagRouters.js';
-import commentRouter from './routers/commentRouters.js';
-import mediaRouter from './routers/mediaRouters.js';
-import settingRouter from './routers/settingRouters.js';
-import authRouter from './routers/authRouters.js';
-import i18nRouters from './routers/i18nRouters.js';
-import contactRouter from './routers/contactRouters.js';
+import postRouter from "./routers/postRouters.js";
+import userRouter from "./routers/userRouters.js";
+import categoryRouter from "./routers/categoryRouters.js";
+import tagRouter from "./routers/tagRouters.js";
+import commentRouter from "./routers/commentRouters.js";
+import mediaRouter from "./routers/mediaRouters.js";
+import settingRouter from "./routers/settingRouters.js";
+import authRouter from "./routers/authRouters.js";
+import i18nRouters from "./routers/i18nRouters.js";
+import contactRouter from "./routers/contactRouters.js";
 
 // Import middleware
-import { errorHandler, notFound } from './middleware/errorMiddleware.js';
-import { i18nMiddleware } from './middleware/i18nMiddleware.js';
-import { requestLogger, errorLogger } from './middleware/requestLoggerMiddleware.js';
-import { enableQueryMonitoring, getQueryStats } from './middleware/queryMonitorMiddleware.js';
-import { csrfProtection } from './middleware/csrfMiddleware.js';
-import { 
-  configureSecureHeaders, 
-  apiLimiter, 
+import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
+import { i18nMiddleware } from "./middleware/i18nMiddleware.js";
+import {
+  requestLogger,
+  errorLogger,
+} from "./middleware/requestLoggerMiddleware.js";
+import {
+  enableQueryMonitoring,
+  getQueryStats,
+} from "./middleware/queryMonitorMiddleware.js";
+import { csrfProtection } from "./middleware/csrfMiddleware.js";
+import {
+  configureSecureHeaders,
+  apiLimiter,
   sensitiveApiLimiter,
-  addRequestId, 
-  sanitizeInputMiddleware, 
-  setHSTS
-} from './middleware/securityMiddleware.js';
+  addRequestId,
+  sanitizeInputMiddleware,
+  setHSTS,
+} from "./middleware/securityMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-CSRF-Token'],
+  origin: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",")
+    : "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Request-ID",
+    "X-CSRF-Token",
+  ],
   credentials: true,
-  exposedHeaders: ['Content-Type', 'Content-Length', 'Content-Disposition', 'X-Request-ID', 'X-CSRF-Token'],
+  exposedHeaders: [
+    "Content-Type",
+    "Content-Length",
+    "Content-Disposition",
+    "X-Request-ID",
+    "X-CSRF-Token",
+  ],
 };
 
 const app = express();
@@ -52,11 +71,13 @@ const app = express();
 app.use(addRequestId());
 
 // Enable database query monitoring in development mode
-if (process.env.NODE_ENV !== 'production') {
-  app.use(enableQueryMonitoring({ 
-    slowQueryThreshold: 100, // ms
-    logAllQueries: process.env.LOG_ALL_QUERIES === 'true'
-  }));
+if (process.env.NODE_ENV !== "production") {
+  app.use(
+    enableQueryMonitoring({
+      slowQueryThreshold: 100, // ms
+      logAllQueries: process.env.LOG_ALL_QUERIES === "true",
+    }),
+  );
 }
 
 // Apply middleware
@@ -71,9 +92,11 @@ app.use(setHSTS());
 app.use(sanitizeInputMiddleware());
 
 // Apply CSRF protection middleware (after body parser and before routes)
-app.use(csrfProtection({ 
-  enforceInDevelopment: process.env.NODE_ENV === 'production' // Only enforce in production
-}));
+app.use(
+  csrfProtection({
+    enforceInDevelopment: process.env.NODE_ENV === "production", // Only enforce in production
+  }),
+);
 
 // Apply request logging and tracking middleware
 app.use(requestLogger);
@@ -85,22 +108,30 @@ app.use(i18nMiddleware);
 app.use(apiLimiter());
 
 // Static file directories - add CORS headers for static files
-app.use('/uploads', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
-}, express.static(path.join(__dirname, '..', 'uploads')));
+app.use(
+  "/uploads",
+  (req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  express.static(path.join(__dirname, "..", "uploads")),
+);
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 // API prefix
-const API_PREFIX = '/api/v1';
+const API_PREFIX = "/api/v1";
 
 // Add Swagger documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-}));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpecs, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+  }),
+);
 
 // Register routes
 app.use(`${API_PREFIX}/posts`, postRouter);
@@ -118,14 +149,14 @@ app.use(`${API_PREFIX}/i18n`, i18nRouters);
 app.use(`${API_PREFIX}/contact`, contactRouter);
 
 // Root route
-app.get('/', (req, res) => {
-  res.send('Blog API server is running');
+app.get("/", (req, res) => {
+  res.send("Blog API server is running");
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get("/health", (req, res) => {
   res.status(200).json({
-    status: 'OK',
+    status: "OK",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memoryUsage: process.memoryUsage(),
@@ -133,8 +164,8 @@ app.get('/health', (req, res) => {
 });
 
 // Database query stats endpoint (development only)
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/db-stats', getQueryStats);
+if (process.env.NODE_ENV !== "production") {
+  app.get("/db-stats", getQueryStats);
 }
 
 // 404 handler

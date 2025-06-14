@@ -3,7 +3,7 @@ import Tag from '../models/Tag.js';
 import Category from '../models/Category.js';
 import asyncHandler from 'express-async-handler';
 import { success, createError } from '../utils/responseHandler.js';
-import { populatePostQuery, populatePostListQuery } from '../utils/populatePostQuery.js';
+import {populatePostListQuery } from '../utils/populatePostQuery.js';
 import { getPopulatedPostById, getPopulatedPostBySlug } from '../utils/populateUtils.js';
 import { transformLocalizedCategories } from '../utils/transformLocalizedCategories.js';
 import { transformLocalizedTags } from '../utils/transformLocalizedTags.js';
@@ -105,7 +105,6 @@ export const getAllPosts = asyncHandler(async (req, res) => {
 export const getPostById = asyncHandler(async (req, res) => {
   const lang = req.query.lang || 'en';
   const postId = req.params.id;
-  console.log('post', postId);
   
   const post = await getPopulatedPostById(postId);
 
@@ -157,7 +156,7 @@ export const getPostById = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getPostBySlug = asyncHandler(async (req, res) => {
-  const lang = req.query.lang || 'zh';
+  const lang = req.query.lang || 'en';
   const slug = req.params.slug;
   
   const post = await getPopulatedPostBySlug(slug);
@@ -254,24 +253,24 @@ export const createPost = asyncHandler(async (req, res) => {
     seo,
   } = req.body;
 
-  // [INCOMPLETE TRANSLATION] 如果是草稿且没有标题，使用临时标题 
+  // If it's a draft and has no title, use a temporary title
   const postTitle = title || '';
   
   // process slug
   let slug = '';
   if (providedSlug) {
-    // [INCOMPLETE TRANSLATION] 如果提供了 slug，确保它是唯一的
+    // If slug is provided, ensure it's unique
     slug = await generateUniqueSlug(providedSlug);
   } else if (postTitle) {
-    // [INCOMPLETE TRANSLATION] 如果有标题但没有 slug，从标题生成
+    // If there's a title but no slug, generate from title
     const baseSlug = postTitle.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
     slug = await generateUniqueSlug(baseSlug);
   } else if (status === 'published') {
-    // [INCOMPLETE TRANSLATION] 如果是发布status但没有标题和 slug，生成一个临时 slug
+    // If it's published status but has no title and slug, generate a temporary slug
     const timestamp = Date.now();
     slug = await generateUniqueSlug(`post-${timestamp}`);
   } else {
-    // [INCOMPLETE TRANSLATION] 草稿模式下，如果没有标题和 slug，生成一个临时 slug
+    // In draft mode, if there's no title and slug, generate a temporary slug
     const timestamp = Date.now();
     slug = `draft-${timestamp}`;
   }
@@ -307,13 +306,13 @@ export const updatePost = asyncHandler(async (req, res) => {
 
   const { status, title, content, slug: providedSlug } = req.body;
 
-  // [INCOMPLETE TRANSLATION] check是否从草稿变为发布status
+  // Check if status is changing from draft to published
   if (status === 'published' && post.status !== 'published') {
-    // [INCOMPLETE TRANSLATION] 发布时需要validate必填字段
+    // Validate required fields when publishing
     if (!title) throw createError('Title is required for published posts', 400);
     if (!content) throw createError('Content is required for published posts', 400);
     
-    // [INCOMPLETE TRANSLATION] settings发布时间
+    // Set publish time
     req.body.publishedAt = Date.now();
   }
 
@@ -322,12 +321,12 @@ export const updatePost = asyncHandler(async (req, res) => {
     const slugExists = await Post.findOne({ slug: providedSlug, _id: { $ne: req.params.id } });
     if (slugExists) throw createError('This slug is already in use, please use another slug', 400);
   } else if (status === 'published' && !post.slug && !providedSlug) {
-    // [INCOMPLETE TRANSLATION] 如果是发布status但没有 slug，从标题生成
+    // If it's published status but has no slug, generate from title
     if (title) {
       const baseSlug = title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
       req.body.slug = await generateUniqueSlug(baseSlug, req.params.id);
     } else {
-      // [INCOMPLETE TRANSLATION] 如果没有标题，使用时间戳生成 slug
+      // If there's no title, use timestamp to generate slug
       const timestamp = Date.now();
       req.body.slug = await generateUniqueSlug(`post-${timestamp}`, req.params.id);
     }

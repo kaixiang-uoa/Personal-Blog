@@ -1,20 +1,20 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance} from 'axios';
 import type { ApiResponse } from '@/types/dto/commonDto';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 export const INTERNAL_API_BASE_URL = '/api';
 
-// 为外部API创建axios实例
+// Create axios instance for external API
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
 });
 
-// 处理全局错误
+// Handle global errors
 axiosInstance.interceptors.response.use(
   response => response,
   error => {
-    // 只记录服务器错误和网络错误，避免记录客户端预期错误（如401/404）
+    // Only log server errors and network errors, avoid logging client expected errors (like 401/404)
     if (!error.response || error.response.status >= 500) {
       console.error('API Error:', error.response || error);
     }
@@ -22,17 +22,17 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// 为内部API创建axios实例
+// Create axios instance for internal API
 const internalAxiosInstance = axios.create({
   baseURL: INTERNAL_API_BASE_URL,
   timeout: 10000,
 });
 
-// 处理全局错误
+// Handle global errors
 internalAxiosInstance.interceptors.response.use(
   response => response,
   error => {
-    // 只记录服务器错误和网络错误，避免记录客户端预期错误
+    // Only log server errors and network errors, avoid logging client expected errors
     if (!error.response || error.response.status >= 500) {
       console.error('Internal API Error:', error.response || error);
     }
@@ -40,89 +40,89 @@ internalAxiosInstance.interceptors.response.use(
   }
 );
 
-// 创建通用的请求函数
+// Create generic request functions
 function createApiRequest(axiosInstance: AxiosInstance) {
   return {
-    get: async <T>(url: string, params?: any): Promise<T> => {
+    get: async <T>(url: string, params?: Record<string, string | number | boolean>): Promise<T> => {
       const res = await axiosInstance.get<ApiResponse<T>>(url, { params });
       return res.data.data;
     },
-    post: async <T>(url: string, data?: any): Promise<T> => {
+    post: async <T>(url: string, data?: Record<string, unknown>): Promise<T> => {
       const res = await axiosInstance.post<ApiResponse<T>>(url, data);
       return res.data.data;
     },
-    put: async <T>(url: string, data?: any): Promise<T> => {
+    put: async <T>(url: string, data?: Record<string, unknown>): Promise<T> => {
       const res = await axiosInstance.put<ApiResponse<T>>(url, data);
       return res.data.data;
     },
-    delete: async <T>(url: string, params?: any): Promise<T> => {
+    delete: async <T>(url: string, params?: Record<string, string | number | boolean>): Promise<T> => {
       const res = await axiosInstance.delete<ApiResponse<T>>(url, { params });
       return res.data.data;
     }
   };
 }
 
-// 创建API客户端
+// Create API clients
 export const externalApi = createApiRequest(axiosInstance);
 export const internalApi = createApiRequest(internalAxiosInstance);
 
 /**
- * 旧API函数的迁移指南
- * =====================
+ * Legacy API Functions Migration Guide
+ * ===================================
  * 
- * 以下函数将在版本v1.0.0中被标记为废弃，并计划在v2.0.0中移除。
- * 请使用新的API客户端对象来替代这些单独的函数：
+ * The following functions will be marked as deprecated in v1.0.0 and planned for removal in v2.0.0.
+ * Please use the new API client objects instead of these individual functions:
  * 
- * 旧方法 -> 新方法映射：
+ * Old method -> New method mapping:
  * - getApiData -> externalApi.get
  * - postApiData -> externalApi.post
  * - getInternalApiData -> internalApi.get
  * - postInternalApiData -> internalApi.post
  * 
- * 迁移示例:
- * 旧: const data = await getApiData<UserData>('/users');
- * 新: const data = await externalApi.get<UserData>('/users');
+ * Migration example:
+ * Old: const data = await getApiData<UserData>('/users');
+ * New: const data = await externalApi.get<UserData>('/users');
  */
 
 /**
- * @deprecated 请使用 externalApi.get 代替。将在v2.0.0版本中移除。
+ * @deprecated Please use externalApi.get instead. Will be removed in v2.0.0.
  */
-export const getApiData = (url: string, params?: any) => {
-  // 在开发环境显示警告
+export const getApiData = <T>(url: string, params?: Record<string, string | number | boolean>) => {
+  // Show warning in development environment
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[废弃警告] getApiData 已废弃，请使用 externalApi.get 替代。');
+    console.warn('[Deprecation Warning] getApiData is deprecated, please use externalApi.get instead.');
   }
-  return externalApi.get(url, params);
+  return externalApi.get<T>(url, params);
 };
 
 /**
- * @deprecated 请使用 externalApi.post 代替。将在v2.0.0版本中移除。
+ * @deprecated Please use externalApi.post instead. Will be removed in v2.0.0.
  */
-export const postApiData = (url: string, data?: any) => {
+export const postApiData = <T>(url: string, data?: Record<string, unknown>) => {
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[废弃警告] postApiData 已废弃，请使用 externalApi.post 替代。');
+    console.warn('[Deprecation Warning] postApiData is deprecated, please use externalApi.post instead.');
   }
-  return externalApi.post(url, data);
+  return externalApi.post<T>(url, data);
 };
 
 /**
- * @deprecated 请使用 internalApi.get 代替。将在v2.0.0版本中移除。
+ * @deprecated Please use internalApi.get instead. Will be removed in v2.0.0.
  */
-export const getInternalApiData = (url: string, params?: any) => {
+export const getInternalApiData = <T>(url: string, params?: Record<string, string | number | boolean>) => {
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[废弃警告] getInternalApiData 已废弃，请使用 internalApi.get 替代。');
+    console.warn('[Deprecation Warning] getInternalApiData is deprecated, please use internalApi.get instead.');
   }
-  return internalApi.get(url, params);
+  return internalApi.get<T>(url, params);
 };
 
 /**
- * @deprecated 请使用 internalApi.post 代替。将在v2.0.0版本中移除。
+ * @deprecated Please use internalApi.post instead. Will be removed in v2.0.0.
  */
-export const postInternalApiData = (url: string, data?: any) => {
+export const postInternalApiData = <T>(url: string, data?: Record<string, unknown>) => {
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[废弃警告] postInternalApiData 已废弃，请使用 internalApi.post 替代。');
+    console.warn('[Deprecation Warning] postInternalApiData is deprecated, please use internalApi.post instead.');
   }
-  return internalApi.post(url, data);
+  return internalApi.post<T>(url, data);
 };
 
 export default axiosInstance;

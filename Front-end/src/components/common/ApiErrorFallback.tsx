@@ -17,65 +17,67 @@ export default function ApiErrorFallback({
   message
 }: ApiErrorFallbackProps) {
   // Use common namespace instead of errors to avoid missing translations
-  let t;
-  try {
-    // Try to use translations, but don't fail if they're not available
-    t = useTranslations('common');
-  } catch (e) {
-    // Fallback if translations aren't available
-    t = (key: string) => {
-      const fallbacks: Record<string, string> = {
-        'defaultApiError': 'Something went wrong',
-        'dataLoadingFailed': 'Data loading failed',
-        'tryAgain': 'Try again',
-        'notFoundError': 'Resource not found',
-        'serverError': 'Server error occurred',
-        'networkError': 'Network error',
-        'unauthorizedError': 'Unauthorized access',
-        'validationError': 'Invalid data'
-      };
-      return fallbacks[key] || key;
-    };
-  }
+  const t = useTranslations('common');
   
-  // 解析错误信息和状态码
+  // Fallback translations in case the hook fails
+  const fallbackTranslations: Record<string, string> = {
+    'defaultApiError': 'Something went wrong',
+    'dataLoadingFailed': 'Data loading failed',
+    'tryAgain': 'Try again',
+    'notFoundError': 'Resource not found',
+    'serverError': 'Server error occurred',
+    'networkError': 'Network error',
+    'unauthorizedError': 'Unauthorized access',
+    'validationError': 'Invalid data'
+  };
+
+  // Safe translation function that uses fallbacks if needed
+  const safeTranslate = (key: string) => {
+    try {
+      return t(key);
+    } catch {
+      return fallbackTranslations[key] || key;
+    }
+  };
+  
+  // Parse error message and status code
   const getErrorDetails = () => {
-    if (!error) return { message: message || t('defaultApiError'), statusCode: 500 };
+    if (!error) return { message: message || safeTranslate('defaultApiError'), statusCode: 500 };
     
-    // 尝试从错误对象提取API响应信息
+    // Try to extract API response information from error object
     let statusCode = 500;
-    let errorMessage = message || error.message || t('defaultApiError');
+    let errorMessage = message || error.message || safeTranslate('defaultApiError');
     
-    // 处理Axios错误
+    // Handle Axios error
     if (error.message.includes('Network Error')) {
-      return { message: t('networkError'), statusCode: 0 };
+      return { message: safeTranslate('networkError'), statusCode: 0 };
     }
     
-    // 尝试从错误对象中提取状态码
+    // Try to extract status code from error message
     const match = error.message.match(/(\d{3})/);
     if (match) {
       statusCode = parseInt(match[1]);
     }
     
-    // 根据状态码提供更友好的错误信息
+    // Provide more friendly error messages based on status code
     switch (statusCode) {
       case 400:
-        errorMessage = message || t('validationError');
+        errorMessage = message || safeTranslate('validationError');
         break;
       case 401:
       case 403:
-        errorMessage = message || t('unauthorizedError');
+        errorMessage = message || safeTranslate('unauthorizedError');
         break;
       case 404:
-        errorMessage = message || t('notFoundError');
+        errorMessage = message || safeTranslate('notFoundError');
         break;
       case 500:
       case 502:
       case 503:
-        errorMessage = message || t('serverError');
+        errorMessage = message || safeTranslate('serverError');
         break;
       default:
-        errorMessage = message || error.message || t('defaultApiError');
+        errorMessage = message || error.message || safeTranslate('defaultApiError');
     }
     
     return { message: errorMessage, statusCode };
@@ -83,7 +85,7 @@ export default function ApiErrorFallback({
   
   const { message: errorMessage, statusCode } = getErrorDetails();
 
-  // 根据错误类型选择不同的图标和颜色
+  // Choose different icons and colors based on error type
   const getErrorStyle = () => {
     if (statusCode === 404) {
       return {
@@ -95,7 +97,7 @@ export default function ApiErrorFallback({
       };
     }
     
-    // 默认是红色错误样式
+    // Default is red error style
     return {
       containerClass: "border-red-200 bg-red-50 dark:border-red-800/30 dark:bg-red-900/20",
       iconClass: "text-red-500 dark:text-red-400",
@@ -128,7 +130,7 @@ export default function ApiErrorFallback({
         </svg>
         
         <h3 className={`text-lg font-medium ${style.titleClass}`}>
-          {t('dataLoadingFailed')}
+          {safeTranslate('dataLoadingFailed')}
         </h3>
         
         <p className={`text-sm max-w-md ${style.textClass}`}>
@@ -140,7 +142,7 @@ export default function ApiErrorFallback({
             onClick={resetErrorBoundary}
             className={`mt-4 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${style.buttonClass}`}
           >
-            {t('tryAgain')}
+            {safeTranslate('tryAgain')}
           </button>
         )}
       </div>

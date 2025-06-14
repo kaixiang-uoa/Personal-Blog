@@ -24,6 +24,7 @@
     "nextPage": "Next",
     "pageInfo": "Page {current} of {total}",
     "noArticlesFound": "No articles found",
+    "tryChangingFilters": "Try changing your filters or search terms",
     "clearAllFilters": "Clear All Filters",
     "filters": "Filters",
     "clear": "Clear",

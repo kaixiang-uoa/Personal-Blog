@@ -20,6 +20,8 @@ export function getArrayParam(param: string | string[] | null | undefined): stri
   return str.split(',').map(s => s.trim()).filter(Boolean);
 }
 
+export type SortOrder = 'publishedAt-desc' | 'publishedAt-asc' | 'updatedAt-desc' | 'updatedAt-asc' | 'latest' | 'oldest' | 'popular';
+
 /**
  * Safely validates if a value is a valid SortOrder
  * @param value The value to validate
@@ -28,14 +30,14 @@ export function getArrayParam(param: string | string[] | null | undefined): stri
  */
 export function validateSortOrder(
   value: string | null | undefined, 
-  defaultValue: 'publishedAt-desc' | 'publishedAt-asc' | 'updatedAt-desc' | 'updatedAt-asc' | 'latest' | 'oldest' | 'popular' = 'latest'
-): 'publishedAt-desc' | 'publishedAt-asc' | 'updatedAt-desc' | 'updatedAt-asc' | 'latest' | 'oldest' | 'popular' {
+  defaultValue: SortOrder = 'latest'
+): SortOrder {
   if (!value) return defaultValue;
   
   // Check if value is one of the allowed sort orders
   const validSortOrders = ['publishedAt-desc', 'publishedAt-asc', 'updatedAt-desc', 'updatedAt-asc', 'latest', 'oldest', 'popular'] as const;
-  return validSortOrders.includes(value as any) 
-    ? (value as 'publishedAt-desc' | 'publishedAt-asc' | 'updatedAt-desc' | 'updatedAt-asc' | 'latest' | 'oldest' | 'popular') 
+  return validSortOrders.includes(value as typeof validSortOrders[number]) 
+    ? (value as SortOrder) 
     : defaultValue;
 }
 
@@ -52,7 +54,7 @@ export function validateEnum<T extends string>(
   defaultValue: T
 ): T {
   if (!value) return defaultValue;
-  return allowedValues.includes(value as any) 
+  return allowedValues.includes(value as T) 
     ? (value as T) 
     : defaultValue;
 } 

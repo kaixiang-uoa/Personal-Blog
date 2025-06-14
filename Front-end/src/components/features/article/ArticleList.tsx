@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import ArticleCard from './ArticleCard';
 import { ArticleSkeleton } from '@/components/ui';
 import { ApiErrorFallback } from '@/components/common';
-import { SortOrder } from '@/types';
+import { SortOrder, Tag, Category, Article } from '@/types';
 import { useArticles } from '@/hooks/useArticles';
 
 interface ArticleListProps { 
@@ -37,8 +37,8 @@ export default function ArticleList({
   } = useArticles({
     page: currentPage,
     limit: Number(postsPerPage),
-    tag: tagsParam.length > 0 ? tagsParam.join(',') : undefined,
-    category: category || undefined,
+    tagSlug: tagsParam.length > 0 ? tagsParam.join(',') : undefined,
+    categorySlug: category || undefined,
     search: search || undefined,
     sort,
     lang: locale
@@ -60,21 +60,21 @@ export default function ArticleList({
     if (tagsParam.length > 0) {
       result = result.filter(article => 
         Array.isArray(article.tags) &&
-        article.tags.some((t: any) => tagsParam.includes(t?.slug)));
+        article.tags.some((tag: Tag) => tagsParam.includes(tag?.slug)));
     }
 
     // filter by category
     if (category) {
       result = result.filter(article => 
         Array.isArray(article.categories) && 
-        article.categories.some((c: any) => c?.slug === category))
+        article.categories.some((cat: Category) => cat?.slug === category))
     }
 
     // search filter
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(
-        article =>
+        (article: Article) =>
           article.title.toLowerCase().includes(searchLower) ||
           article.content.toLowerCase().includes(searchLower)
       );
@@ -83,13 +83,13 @@ export default function ArticleList({
     // sort
     switch (sort) {
       case 'latest':
-        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        result.sort((a: Article, b: Article) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
       case 'oldest':
-        result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        result.sort((a: Article, b: Article) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         break;
       case 'popular':
-        result.sort((a, b) => b.viewCount - a.viewCount);
+        result.sort((a: Article, b: Article) => b.viewCount - a.viewCount);
         break;
     }
 

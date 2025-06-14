@@ -1,12 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { internalApi } from '@/services/api';
+import { Settings, SettingItem } from '@/types/models';
+
+type SettingsObject = Record<string, string | number | boolean | object | null>;
 
 interface SettingsContextType {
-  settings: Record<string, any>;
+  settings: SettingsObject;
   isLoading: boolean;
-  error: Error | null;
   refreshSettings: () => Promise<void>;
   getSetting: <T>(key: string, defaultValue: T) => T;
 }
@@ -14,61 +16,26 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<Record<string, any>>({});
+  const [settings, setSettings] = useState<SettingsObject>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
   
-  async function fetchSettings() {
-    try {
-      setIsLoading(true);
-      
-      // 先尝试从缓存加载
-      const cachedSettings = loadFromCache();
-      if (cachedSettings) {
-        setSettings(cachedSettings);
-        setIsLoading(false);
-        
-        // 后台刷新缓存
-        try {
-          const data = await internalApi.get<Record<string, any>>('/settings');
-          setSettings(data);
-          saveToCache(data);
-        } catch (error) {
-          // 静默处理后台刷新错误
-        }
-          
-        return;
-      }
-      
-      // 没有缓存则从API获取
-      const settingsData = await internalApi.get<Record<string, any>>('/settings');
-      
-      setSettings(settingsData);
-      saveToCache(settingsData);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  // 缓存相关函数
+  // Cache related functions
   const CACHE_KEY = 'blog_settings_cache';
-  const CACHE_EXPIRY = 60 * 60 * 1000; // 1小时缓存
+  const CACHE_EXPIRY = 60 * 60 * 1000; // 1 hour cache
   
-  function saveToCache(data: Record<string, any>) {
+  const saveToCache = useCallback((data: SettingsObject) => {
     try {
       const cacheData = {
         timestamp: Date.now(),
         data
       };
       localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-    } catch (e) {
-      // 静默处理缓存保存错误
+    } catch {
+      // Silently handle cache save error
     }
-  }
+  }, []);
   
-  function loadFromCache(): Record<string, any> | null {
+  const loadFromCache = useCallback((): SettingsObject | null => {
     try {
       const cache = localStorage.getItem(CACHE_KEY);
       if (!cache) return null;
@@ -80,36 +47,81 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       }
       
       return data;
-    } catch (e) {
-      // 静默处理缓存加载错误
+    } catch {
+      // Silently handle cache load error
       return null;
     }
-  }
+  }, [CACHE_EXPIRY]);
   
-  function getSetting<T>(key: string, defaultValue: T): T {
-    // 检查设置是否存在且不为空
+  const fetchSettings = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      // Try to load from cache first
+      const cachedSettings = loadFromCache();
+      if (cachedSettings) {
+        setSettings(cachedSettings);
+        setIsLoading(false);
+        
+        // Refresh cache in background
+        try {
+          const response = await internalApi.get<Settings>('/settings');
+          const settingsData = Array.isArray(response) 
+            ? response.reduce((acc: SettingsObject, item: SettingItem) => {
+                acc[item.key] = item.value;
+                return acc;
+              }, {})
+            : response;
+          setSettings(settingsData);
+          saveToCache(settingsData);
+        } catch {
+          // Silently handle background refresh error
+        }
+          
+        return;
+      }
+      
+      // If no cache, fetch from API
+      const response = await internalApi.get<Settings>('/settings');
+      const settingsData = Array.isArray(response)
+        ? response.reduce((acc: SettingsObject, item: SettingItem) => {
+            acc[item.key] = item.value;
+            return acc;
+          }, {})
+        : response;
+      
+      setSettings(settingsData);
+      saveToCache(settingsData);
+    } catch {
+      // Silently handle error
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadFromCache, saveToCache]);
+  
+  const getSetting = useCallback(function getSetting<T>(key: string, defaultValue: T): T {
+    // Check if setting exists and is not empty
     const value = settings[key];
     
-    // 特殊处理字符串类型，如果是空字符串则返回默认值
+    // Special handling for string type, return default value if empty string
     if (typeof value === 'string' && value.trim() === '' && typeof defaultValue === 'string') {
       return defaultValue;
     }
     
-    return (value !== undefined && value !== null) ? value : defaultValue;
-  }
+    return (value !== undefined && value !== null) ? value as T : defaultValue;
+  }, [settings]);
   
   useEffect(() => {
-    // 确保只在客户端执行
+    // Ensure client-side execution only
     if (typeof window !== 'undefined') {
       fetchSettings();
     }
-  }, []);
+  }, [fetchSettings]);
   
   return (
     <SettingsContext.Provider value={{ 
       settings, 
       isLoading, 
-      error, 
       refreshSettings: fetchSettings,
       getSetting 
     }}>

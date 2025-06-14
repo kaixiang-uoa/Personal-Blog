@@ -12,7 +12,7 @@ export interface ErrorOptions {
   type?: ErrorType;
   message?: string;
   code?: string;
-  details?: Record<string, any>;
+  details?: Record<string, string | number | boolean | null>;
 }
 
 export function useErrorHandler() {
@@ -30,7 +30,7 @@ export function useErrorHandler() {
     }
 
     // If it's an ErrorOptions object
-    const { type = 'unknown', message, code, details } = error;
+    const { type = 'unknown', message } = error;
 
     // Try to get a localized message based on the error type
     try {
@@ -53,16 +53,20 @@ export function useErrorHandler() {
           // Otherwise use the default error message
           return t('common.defaultError');
       }
-    } catch (e) {
+    } catch {
       // Fallback if translations are not available
       return message || 'An unexpected error occurred';
     }
   };
 
-  const formatValidationError = (field: string, type: string, params?: Record<string, any>): string => {
+  const formatValidationError = (
+    field: string, 
+    type: string, 
+    params?: Record<string, string | number | boolean | null>
+  ): string => {
     try {
       return t(`form.${type}`, { field, ...params });
-    } catch (e) {
+    } catch {
       return `Invalid ${field}`;
     }
   };

@@ -17,6 +17,7 @@ import { SortOrder } from '@/types';
 import { useArticles } from '@/hooks/useArticles';
 import { useCategories, useTags } from '@/hooks/useTaxonomies';
 import { getStringParam, getArrayParam, getResponsiveImageUrls, validateSortOrder } from '@/utils';
+import type { Tag, Category, Article } from '@/types';
 
 // extract article list to a separate component, so that it can be wrapped by ErrorBoundary
 function ArticlesList({ 
@@ -70,21 +71,21 @@ function ArticlesList({
     if (tagsParam.length > 0) {
       result = result.filter(article => 
         Array.isArray(article.tags) &&
-        article.tags.some((t: any) => tagsParam.includes(t?.slug)));
+        article.tags.some((tag: Tag) => tagsParam.includes(tag?.slug)));
     }
 
     // filter by category
     if (category) {
       result = result.filter(article => 
         Array.isArray(article.categories) && 
-        article.categories.some((c: any) => c?.slug === category))
+        article.categories.some((cat: Category) => cat?.slug === category))
     }
 
     // search filter
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(
-        article =>
+        (article: Article) =>
           article.title.toLowerCase().includes(searchLower) ||
           article.content.toLowerCase().includes(searchLower)
       );
@@ -93,13 +94,13 @@ function ArticlesList({
     // sort
     switch (sort) {
       case 'latest':
-        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        result.sort((a: Article, b: Article) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
       case 'oldest':
-        result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        result.sort((a: Article, b: Article) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         break;
       case 'popular':
-        result.sort((a, b) => b.viewCount - a.viewCount);
+        result.sort((a: Article, b: Article) => b.viewCount - a.viewCount);
         break;
     }
 
@@ -191,10 +192,6 @@ export default function Home() {
   const categories = categoriesData?.categories || [];
   const tags = tagsData?.tags || [];
    
-  const handleSearch = (query: string) => {
-    router.push(`/${locale}?search=${encodeURIComponent(query)}`);
-  };
-
   const handleFilterChange = (params: {
     type: 'tags' | 'category' | 'sort';
     value: string | string[] | SortOrder;
@@ -213,10 +210,6 @@ export default function Home() {
 
   const handleClearFilters = () => {
     router.push(`/${locale}`);
-  };
-
-  const handlePageChange = (page: number) => {
-    router.push(`/${locale}?page=${page}`);
   };
 
   return (

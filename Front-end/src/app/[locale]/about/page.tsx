@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useSetting } from '@/contexts/SettingsContext';
 import { settingApi } from '@/services/settingApi';
-import { AboutData, SettingItem } from '@/types/models/setting';
+import { AboutData, SettingItem, ContactInfo, EducationItem, ExperienceItem, ProjectItem, SocialLinks } from '@/types/models';
 import { tryParseJSON } from '@/utils';
 
 export default function AboutMe() {
@@ -17,12 +17,12 @@ export default function AboutMe() {
   
   const [aboutData, setAboutData] = useState<AboutData>({
     intro: '',
-    contact: {},
+    contact: {} as ContactInfo,
     skills: [],
     education: [],
     experience: [],
     projects: [],
-    social: {}
+    social: {} as SocialLinks
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,23 +38,22 @@ export default function AboutMe() {
     settingApi.getSettingsByGroup('about')
       .then(settingsData => {
         try {
-          // console.log('settingsData', settingsData);
           // parse stored about page data
-          const aboutSettings = settingsData.reduce((acc: Record<string, any>, item: SettingItem) => {
+          const aboutSettings = settingsData.reduce((acc: Record<string, string>, item: SettingItem) => {
             if (item.key && item.value) {
-              acc[item.key.replace('about.', '')] = item.value;
+              acc[item.key.replace('about.', '')] = item.value as string;
             }
             return acc;
-          }, {} as Record<string, any>);
+          }, {} as Record<string, string>);
           // select data based on current language
           setAboutData({
             intro: locale === 'zh' ? aboutSettings.intro : aboutSettings.intro,
-            contact: tryParseJSON(aboutSettings.contactInfo, {}),
-            skills: tryParseJSON(aboutSettings.skills, []),
-            education: tryParseJSON(aboutSettings.education, []),
-            experience: tryParseJSON(aboutSettings.experience, []),
-            projects: tryParseJSON(aboutSettings.projects, []),
-            social: tryParseJSON(aboutSettings.socialLinks, {})
+            contact: tryParseJSON<ContactInfo>(aboutSettings.contactInfo, {} as ContactInfo),
+            skills: tryParseJSON<string[]>(aboutSettings.skills, []),
+            education: tryParseJSON<EducationItem[]>(aboutSettings.education, []),
+            experience: tryParseJSON<ExperienceItem[]>(aboutSettings.experience, []),
+            projects: tryParseJSON<ProjectItem[]>(aboutSettings.projects, []),
+            social: tryParseJSON<SocialLinks>(aboutSettings.socialLinks, {} as SocialLinks)
           });
         } catch (err) {
           // only log detailed parsing errors in development environment
@@ -76,7 +75,7 @@ export default function AboutMe() {
   }, [locale]);
 
   // check if object has valid non-empty values
-  const hasValidContent = (obj: unknown): boolean => {
+  const hasValidContent = function hasValidContent<T>(obj: T): boolean {
     if (!obj) return false;
     
     // check if it is an array and has elements
@@ -197,7 +196,7 @@ export default function AboutMe() {
           <section className="mb-12">
             <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('skillsTitle')}</h2>
             <div className="flex flex-wrap gap-2">
-              {aboutData.skills.map((skill, index) => (
+              {aboutData.skills.map((skill: string, index: number) => (
                 <span 
                   key={index} 
                   className="px-3 py-1.5 bg-muted text-foreground rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
@@ -214,12 +213,12 @@ export default function AboutMe() {
           <section className="mb-12">
             <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('educationTitle')}</h2>
             <div className="space-y-4">
-              {aboutData.education.map((edu, index) => (
+              {aboutData.education.map((edu: EducationItem, index: number) => (
                 <div key={index} className="border border-border rounded-lg p-4 hover:shadow-sm transition-all">
                   <h3 className="text-foreground font-medium">
-                    {edu.degree && edu.institution ? 
-                      `${edu.degree}, ${edu.institution} ${edu.year ? `(${edu.year})` : ''}` : 
-                      edu.degree || edu.institution
+                    {edu.degree && edu.school ? 
+                      `${edu.degree}, ${edu.school} ${edu.startDate ? `(${edu.startDate})` : ''}` : 
+                      edu.degree || edu.school
                     }
                   </h3>
                   {edu.description && <p className="text-muted-foreground text-sm mt-1">{edu.description}</p>}
@@ -234,11 +233,11 @@ export default function AboutMe() {
           <section className="mb-12">
             <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">{t('experienceTitle')}</h2>
             <div className="space-y-4">
-              {aboutData.experience.map((exp, index) => (
+              {aboutData.experience.map((exp: ExperienceItem, index: number) => (
                 <div key={index} className="border border-border rounded-lg p-4 hover:shadow-sm transition-all">
                   <h3 className="text-foreground font-medium">
                     {exp.position && exp.company ? 
-                      `${exp.position} ${t('at')} ${exp.company} ${exp.period ? `(${exp.period})` : ''}` : 
+                      `${exp.position} ${t('at')} ${exp.company} ${exp.startDate ? `(${exp.startDate})` : ''}` : 
                       exp.position || exp.company
                     }
                   </h3>

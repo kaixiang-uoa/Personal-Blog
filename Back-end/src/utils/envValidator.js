@@ -32,14 +32,15 @@ const validateVariable = (name, isSecurity = false) => {
       : `缺少环境变量 ${name}`;
 
     logger.error(message);
+    console.error(`[ENV ERROR] ${message}`);
     return false;
   }
 
   // check JWT_SECRET strength
   if (name === "JWT_SECRET" && value.length < 32) {
-    logger.warn(
-      "Security risk: JWT_SECRET is too short, at least 32 characters are recommended",
-    );
+    const warning = "Security risk: JWT_SECRET is too short, at least 32 characters are recommended";
+    logger.warn(warning);
+    console.warn(`[ENV WARNING] ${warning}`);
   }
 
   return true;
@@ -52,6 +53,7 @@ const validateVariable = (name, isSecurity = false) => {
  */
 export const validateEnvironment = () => {
   logger.info("正在验证环境变量...");
+  console.log("[ENV] Starting environment variable validation...");
 
   let missingCount = 0;
   let securityIssues = 0;
@@ -71,21 +73,28 @@ export const validateEnvironment = () => {
 
   // check recommended variables
   if (!process.env.NODE_ENV) {
-    logger.warn("NODE_ENV is not set, default to development");
+    const warning = "NODE_ENV is not set, default to development";
+    logger.warn(warning);
+    console.warn(`[ENV WARNING] ${warning}`);
   }
 
   if (!process.env.ALLOWED_ORIGINS) {
-    logger.warn("ALLOWED_ORIGINS is not set, default to *");
+    const warning = "ALLOWED_ORIGINS is not set, default to *";
+    logger.warn(warning);
+    console.warn(`[ENV WARNING] ${warning}`);
   }
 
   if (missingCount === 0) {
-    logger.info("Environment variable validation passed");
+    const success = "Environment variable validation passed";
+    logger.info(success);
+    console.log(`[ENV SUCCESS] ${success}`);
     return {
       success: true,
     };
   } else {
     const message = `Environment variable validation failed: missing ${missingCount} necessary variables, including ${securityIssues} security related variables`;
     logger.error(message);
+    console.error(`[ENV ERROR] ${message}`);
 
     return {
       success: false,
@@ -104,9 +113,9 @@ export const validateEnvironmentOrExit = () => {
   const result = validateEnvironment();
 
   if (!result.success && result.securityIssues > 0) {
-    logger.error(
-      "There are security risks, the application will exit. Please set all necessary environment variables and restart.",
-    );
+    const error = "There are security risks, the application will exit. Please set all necessary environment variables and restart.";
+    logger.error(error);
+    console.error(`[ENV FATAL] ${error}`);
     process.exit(1);
   }
 

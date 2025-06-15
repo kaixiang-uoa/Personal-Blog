@@ -95,11 +95,11 @@ app.use(setHSTS());
 app.use(sanitizeInputMiddleware());
 
 // Apply CSRF protection middleware (after body parser and before routes)
-app.use(
-  csrfProtection({
-    enforceInDevelopment: process.env.NODE_ENV === "production", // Only enforce in production
-  }),
-);
+// app.use(
+//   csrfProtection({
+//     enforceInDevelopment: process.env.NODE_ENV === "production", // Only enforce in production
+//   }),
+// );
 
 // Apply request logging and tracking middleware
 app.use(requestLogger);

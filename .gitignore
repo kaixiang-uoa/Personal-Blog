@@ -139,3 +139,5 @@ dist
 # Ignore Vercel local config
 # .vercel/
 # .vercel
+
+.cursor/

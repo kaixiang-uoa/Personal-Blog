@@ -4,6 +4,8 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import AuthLayout from "@/components/layouts/auth-layout";
 import {
@@ -25,7 +27,6 @@ import {
 } from "@/components/ui/inputs/form";
 import { Input } from "@/components/ui/inputs/input";
 import { useToast } from "@/hooks/ui/use-toast";
-import { useTypedForm } from "@/types/index";
 
 // Form validation schema
 const formSchema = z.object({
@@ -37,9 +38,11 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Use custom form hook
-  const form = useTypedForm(formSchema, {
-    email: "",
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+    },
   });
 
   // Form submission handler

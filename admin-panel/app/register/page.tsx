@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import AuthLayout from "@/components/layouts/auth-layout";
 import {
@@ -27,7 +29,6 @@ import {
 import { Input } from "@/components/ui/inputs/input";
 import { useToast } from "@/hooks/ui/use-toast";
 import { apiService } from "@/lib/api";
-import { useTypedForm } from "@/types/index";
 
 // Registration form validation schema
 const formSchema = z
@@ -58,11 +59,14 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Use custom form hook
-  const form = useTypedForm(formSchema, {
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   // Registration handler function

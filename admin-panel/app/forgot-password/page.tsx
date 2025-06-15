@@ -1,11 +1,11 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 import AuthLayout from "@/components/layouts/auth-layout";
 import {

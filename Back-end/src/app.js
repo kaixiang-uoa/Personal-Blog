@@ -43,22 +43,11 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
-  : [];
-
+// CORS configuration
 const corsOptions = {
-  origin: function (origin, callback) {
-   
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
+  origin: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",")
+    : "*",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",
@@ -66,6 +55,7 @@ const corsOptions = {
     "X-Request-ID",
     "X-CSRF-Token",
   ],
+  credentials: true,
   exposedHeaders: [
     "Content-Type",
     "Content-Length",
@@ -76,9 +66,6 @@ const corsOptions = {
 };
 
 const app = express();
-
-
-app.options("*", cors(corsOptions));
 
 // Add request ID before all other middleware
 app.use(addRequestId());
@@ -97,7 +84,7 @@ if (process.env.NODE_ENV !== "production") {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors(corsOptions)); 
+app.use(cors(corsOptions));
 
 // Apply security middleware
 app.use(configureSecureHeaders());

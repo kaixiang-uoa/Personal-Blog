@@ -112,7 +112,7 @@ app.use(apiLimiter());
 
 // Static file directories - add CORS headers for static files
 app.use(
-  "/uploads",
+  "/api/v1/media/uploads",
   (req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Cross-Origin-Resource-Policy", "cross-origin");

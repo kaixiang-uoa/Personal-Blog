@@ -67,6 +67,9 @@ const corsOptions = {
 
 const app = express();
 
+// support cloud deployment proxy, correctly identify X-Forwarded-For
+app.set('trust proxy', 1); 
+
 // Add request ID before all other middleware
 app.use(addRequestId());
 

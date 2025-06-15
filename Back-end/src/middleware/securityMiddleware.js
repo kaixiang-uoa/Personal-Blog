@@ -8,6 +8,14 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { v4 as uuidv4 } from "uuid";
 
+// Rate limit configurations from environment variables
+const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"); // 15 minutes default
+const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "1000"); // 1000 requests default
+const SENSITIVE_RATE_LIMIT_WINDOW_MS = parseInt(process.env.SENSITIVE_RATE_LIMIT_WINDOW_MS || "3600000"); // 1 hour default
+const SENSITIVE_RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.SENSITIVE_RATE_LIMIT_MAX_REQUESTS || "50"); // 50 attempts default
+const CONTACT_RATE_LIMIT_WINDOW_MS = parseInt(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || "3600000"); // 1 hour default
+const CONTACT_RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.CONTACT_RATE_LIMIT_MAX_REQUESTS || "20"); // 20 attempts default
+
 /**
  * configure enhanced security headers
  *
@@ -75,8 +83,8 @@ export const configureSecureHeaders = () => {
  */
 export const apiLimiter = (options = {}) => {
   const defaultOptions = {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // 100 requests per IP per windowMs
+    windowMs: RATE_LIMIT_WINDOW_MS,
+    max: RATE_LIMIT_MAX_REQUESTS,
     standardHeaders: true, // return standard RateLimit headers
     legacyHeaders: false, // disable X-RateLimit headers
     message: {
@@ -99,12 +107,29 @@ export const apiLimiter = (options = {}) => {
  */
 export const sensitiveApiLimiter = () => {
   return apiLimiter({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // 10 attempts per IP per hour
+    windowMs: SENSITIVE_RATE_LIMIT_WINDOW_MS,
+    max: SENSITIVE_RATE_LIMIT_MAX_REQUESTS,
     message: {
       success: false,
-      message: "Attempts too frequent, please try again in 1 hour",
+      message: "Attempts too frequent, please try again later",
       error: "Operation frequency exceeds security limit",
+    },
+  });
+};
+
+/**
+ * Contact form rate limiter
+ * 
+ * @returns {Function} rate limit middleware for contact form
+ */
+export const contactLimiter = () => {
+  return rateLimit({
+    windowMs: CONTACT_RATE_LIMIT_WINDOW_MS,
+    max: CONTACT_RATE_LIMIT_MAX_REQUESTS,
+    message: {
+      success: false,
+      message: "Too many contact form submissions. Please try again later.",
+      error: "Contact form submission limit exceeded",
     },
   });
 };

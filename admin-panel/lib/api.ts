@@ -7,6 +7,7 @@ const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   timeout: 30000,
   headers: { "Content-Type": "application/json" },
+  withCredentials: true, // Enable sending cookies
 });
 
 // Flag to prevent infinite refresh token loops
@@ -56,6 +57,19 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Get CSRF token from cookie
+    if (typeof window !== "undefined") {
+      const csrfToken = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('XSRF-TOKEN='))
+        ?.split('=')[1];
+      
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken;
+      }
+    }
+
     return config;
   },
   (error) => {
@@ -244,16 +258,9 @@ export const apiService = {
     api.get("/media", { params }),
 
   uploadMedia: <T = any>(formData: FormData): Promise<ApiResponse<T>> => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    const csrfToken = typeof window !== "undefined" 
-      ? document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='))?.split('=')[1]
-      : null;
-
     return api.post("/media", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        Authorization: token ? `Bearer ${token}` : "",
-        "X-CSRF-Token": csrfToken || "",
       },
     });
   },

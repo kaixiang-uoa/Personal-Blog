@@ -245,22 +245,17 @@ export const apiService = {
 
   uploadMedia: <T = any>(formData: FormData): Promise<ApiResponse<T>> => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+    const csrfToken = typeof window !== "undefined" 
+      ? document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='))?.split('=')[1]
+      : null;
 
-    return axios
-      .post(`${baseUrl}/media`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      })
-      .then((response) => {
-        return response.data;
-      })
-      .catch((error) => {
-        console.error('UploadMedia error:', error);
-        throw error;
-      });
+    return api.post("/media", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: token ? `Bearer ${token}` : "",
+        "X-CSRF-Token": csrfToken || "",
+      },
+    });
   },
 
   deleteMedia: <T = any>(id: string): Promise<ApiResponse<T>> =>

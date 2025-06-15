@@ -118,7 +118,7 @@ app.use(
     res.header("Cross-Origin-Resource-Policy", "cross-origin");
     next();
   },
-  express.static(path.join(__dirname, "..", "uploads")),
+  express.static(path.join(process.cwd(), "uploads")),
 );
 
 app.use(express.static(path.join(__dirname, "..", "public")));

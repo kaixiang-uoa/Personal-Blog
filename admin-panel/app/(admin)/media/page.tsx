@@ -204,18 +204,32 @@ export default function MediaPage() {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
+    console.log('Files to upload:', {
+      count: files.length,
+      files: Array.from(files).map(f => ({
+        name: f.name,
+        type: f.type,
+        size: f.size
+      }))
+    });
+
     setUploading(true);
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
       formData.append("files", files[i]);
     }
 
+    // Log FormData contents
+    console.log('FormData contents:');
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
     try {
-      const response = await apiService.post<ApiResponse<Media[]>>(
-        "/media/upload",
-        formData,
-      );
-      const uploadedMedia = response.data?.data;
+      console.log('Sending request to:', '/media');
+      const response = await apiService.uploadMedia<Media[]>(formData);
+      console.log('Upload response:', response);
+      const uploadedMedia = response.data;
       if (uploadedMedia && Array.isArray(uploadedMedia)) {
         setMediaItems((prev) => [...prev, ...uploadedMedia]);
         toast({
@@ -224,6 +238,7 @@ export default function MediaPage() {
         });
       }
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: "Error",
         description: "Failed to upload files",

@@ -175,21 +175,30 @@ export const apiService = {
   get: <T>(url: string, params?: Record<string, string | number | boolean>): Promise<ApiResponse<T>> =>
     api.get(url, { params }),
 
-  post: <T>(url: string, data?: Record<string, unknown> | FormData): Promise<ApiResponse<T>> => {
-    if (!(data instanceof FormData)) {
-      return api.post(url, data);
+  async post<T>(url: string, data?: any): Promise<ApiResponse<T>> {
+    console.log('API post request:', {
+      url,
+      baseURL: api.defaults.baseURL,
+      fullUrl: `${api.defaults.baseURL}${url}`,
+      data: data instanceof FormData ? 'FormData' : data,
+      headers: api.defaults.headers
+    });
+
+    try {
+      const response = await api.post<ApiResponse<T>>(url, data);
+      console.log('API post response:', {
+        status: response.status,
+        data: response.data
+      });
+      return response.data;
+    } catch (error) {
+      console.error('API post error:', {
+        error,
+        url,
+        data: data instanceof FormData ? 'FormData' : data
+      });
+      throw error;
     }
-    // Handle FormData specially for file uploads
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    return axios
-      .post(`${process.env.NEXT_PUBLIC_API_URL}${url}`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      })
-      .then((response) => response.data);
   },
 
   put: <T>(url: string, data?: Record<string, unknown>): Promise<ApiResponse<T>> =>

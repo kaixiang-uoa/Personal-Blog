@@ -70,12 +70,15 @@ router.get("/", protect, getAllMedia);
 router.get("/:id", protect, getMediaById);
 
 // upload media file
-router.post("/", protect, csrfProtection, upload.array("files", 10), uploadMedia);
+// router.post("/", protect, csrfProtection, upload.array("files", 10), uploadMedia);
+router.post("/", protect, upload.array("files", 10), uploadMedia);
 
 // update media file information
-router.put("/:id", protect, csrfProtection, updateMedia);
+// router.put("/:id", protect, csrfProtection, updateMedia);
+router.put("/:id", protect, updateMedia);
 
 // delete media file (single or batch)
-router.delete("/:id?", protect, csrfProtection, restrictTo("admin", "editor"), deleteMedia);
+// router.delete("/:id?", protect, csrfProtection, restrictTo("admin", "editor"), deleteMedia);
+router.delete("/:id?", protect, restrictTo("admin", "editor"), deleteMedia);
 
 export default router;

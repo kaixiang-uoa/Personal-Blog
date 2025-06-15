@@ -172,7 +172,7 @@ api.interceptors.response.use(
 // Export CRUD functions
 export const apiService = {
   // General CRUD operations
-  get: <T>(url: string, params?: Record<string, string | number | boolean>): Promise<ApiResponse<T>> =>
+  get: <T>(url: string, params?: Record<string, any>): Promise<ApiResponse<T>> =>
     api.get(url, { params }),
 
   post: <T>(url: string, data?: Record<string, unknown> | FormData): Promise<ApiResponse<T>> => {
@@ -192,7 +192,7 @@ export const apiService = {
       .then((response) => response.data);
   },
 
-  put: <T>(url: string, data?: Record<string, unknown>): Promise<ApiResponse<T>> =>
+  put: <T>(url: string, data?: any): Promise<ApiResponse<T>> =>
     api.put(url, data),
 
   delete: <T>(url: string): Promise<ApiResponse<T>> => api.delete(url),

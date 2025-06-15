@@ -7,6 +7,7 @@ import {
   deleteMedia,
 } from "../controllers/mediaController.js";
 import { protect, restrictTo } from "../middleware/authMiddleware.js";
+import { csrfProtection } from "../middleware/csrfMiddleware.js";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -69,12 +70,12 @@ router.get("/", protect, getAllMedia);
 router.get("/:id", protect, getMediaById);
 
 // upload media file
-router.post("/", protect, upload.array("files", 10), uploadMedia);
+router.post("/", protect, csrfProtection, upload.array("files", 10), uploadMedia);
 
 // update media file information
-router.put("/:id", protect, updateMedia);
+router.put("/:id", protect, csrfProtection, updateMedia);
 
 // delete media file (single or batch)
-router.delete("/:id?", protect, restrictTo("admin", "editor"), deleteMedia);
+router.delete("/:id?", protect, csrfProtection, restrictTo("admin", "editor"), deleteMedia);
 
 export default router;

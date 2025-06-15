@@ -119,9 +119,9 @@ const router = express.Router();
  *                   type: string
  *                   example: Error sending message. Please try again later.
  */
-router.post("/", contactLimiter(), validateRequest(contactRules), async (req, res) => {
+router.post("/", contactLimiter(), validateRequest(contactRules.submit), async (req, res) => {
   const { name, email, subject, message } = req.body;
-
+  console.log(req.body);
   try {
     // Check if email credentials are configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {

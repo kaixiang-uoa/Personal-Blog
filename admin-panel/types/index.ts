@@ -3,13 +3,6 @@
  * Consolidated type definitions for the Admin Panel
  */
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useForm,
-  UseFormReturn,
-  FieldValues,
-  DefaultValues,
-} from "react-hook-form";
 import { z, AnyZodObject } from "zod";
 
 // ====================

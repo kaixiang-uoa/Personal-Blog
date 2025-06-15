@@ -5,20 +5,20 @@ import { VariantProps, cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
 import * as React from "react";
 
-// import { useIsMobile } from "@/hooks/use-mobile"
+import { useMobile } from "@/hooks/use-mobile"
 import { Skeleton } from "@/components/ui/data-display/skeleton";
 import { Button } from "@/components/ui/inputs/button";
 import { Input } from "@/components/ui/inputs/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/feedback/sheet";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/ui/feedback/tooltip";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -68,7 +68,7 @@ const SidebarProvider = React.forwardRef<
     },
     ref,
   ) => {
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
 
     // This is the internal state of the sidebar.

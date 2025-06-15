@@ -244,9 +244,9 @@ export const apiService = {
     api.get("/media", { params }),
 
   uploadMedia: <T = any>(formData: FormData): Promise<ApiResponse<T>> => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+
     return axios
       .post(`${baseUrl}/media`, formData, {
         headers: {
@@ -254,7 +254,13 @@ export const apiService = {
           Authorization: token ? `Bearer ${token}` : "",
         },
       })
-      .then((response) => response.data);
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error) => {
+        console.error('UploadMedia error:', error);
+        throw error;
+      });
   },
 
   deleteMedia: <T = any>(id: string): Promise<ApiResponse<T>> =>

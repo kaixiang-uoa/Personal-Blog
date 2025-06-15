@@ -10,7 +10,7 @@ import {
   FieldValues,
   DefaultValues,
 } from "react-hook-form";
-import { z } from "zod";
+import { z, AnyZodObject } from "zod";
 
 // ====================
 // Base API Types
@@ -130,20 +130,6 @@ export interface FieldItem {
 // Form Types and Hooks
 // ====================
 
-// Typed form hook
-export function useTypedForm<
-  TSchema extends z.ZodType<any, any, any>,
-  TValues extends FieldValues = z.infer<TSchema>,
->(
-  schema: TSchema,
-  defaultValues?: DefaultValues<TValues>,
-): UseFormReturn<TValues> {
-  return useForm<TValues>({
-    resolver: zodResolver(schema),
-    defaultValues,
-  });
-}
-
 // Login form schema
 export const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -220,7 +206,7 @@ export interface EntityFormDialogProps {
   title: string;
   description?: string;
   defaultValues?: any;
-  schema: z.ZodType<any>;
+  schema: AnyZodObject;
   onSubmit: (values: any) => Promise<void>;
   fields: FormField[];
   loading?: boolean;

@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect } from "react";
-import { useForm, FieldValues } from "react-hook-form";
-
+import { useForm } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +34,7 @@ export function EntityFormDialog({
   loading,
   submitText = "Submit",
 }: EntityFormDialogProps) {
-  const form = useForm<FieldValues>({
+  const form = useForm({
     resolver: zodResolver(schema),
     defaultValues,
   });
@@ -46,7 +45,7 @@ export function EntityFormDialog({
     }
   }, [defaultValues, form]);
 
-  const handleSubmit = async (values: FieldValues) => {
+  const handleSubmit = async (values: any) => {
     await onSubmit(values);
   };
 

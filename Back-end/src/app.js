@@ -30,7 +30,7 @@ import {
   enableQueryMonitoring,
   getQueryStats,
 } from "./middleware/queryMonitorMiddleware.js";
-import { csrfProtection } from "./middleware/csrfMiddleware.js";
+// import { csrfProtection } from "./middleware/csrfMiddleware.js";
 import {
   configureSecureHeaders,
   apiLimiter,
@@ -47,7 +47,7 @@ const __dirname = dirname(__filename);
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(",")
-    : "*",
+    : ["http://localhost:3000", "http://localhost:3001"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",

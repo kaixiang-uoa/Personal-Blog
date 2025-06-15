@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import AuthLayout from "@/components/layouts/auth-layout";
 import {
@@ -28,7 +30,6 @@ import {
 import { Input } from "@/components/ui/inputs/input";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/ui/use-toast";
-import { useTypedForm } from "@/types/index";
 
 // Login form validation schema - keep UI field names unchanged
 const formSchema = z.object({
@@ -52,11 +53,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // Use custom form hook to simplify type handling
-  const form = useTypedForm(formSchema, {
-    email: "",
-    password: "",
-    rememberMe: false,
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
   });
 
   // Login handler function

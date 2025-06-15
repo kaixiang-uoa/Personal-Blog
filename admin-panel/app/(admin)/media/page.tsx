@@ -56,13 +56,17 @@ const API_BASE_URL =
 // helper function to get full url
 const getFullUrl = (path: string): string => {
   if (path.startsWith("http")) return path;
+  
   // ensure path starts with /
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-  // try different url formats
-  const baseUrl = API_BASE_URL.replace("/api/v1", ""); // remove /api/v1
-  const fullUrl = `${baseUrl}${normalizedPath}`;
-  return fullUrl;
+  
+  // 如果路径已经包含 /api/v1，直接使用
+  if (normalizedPath.includes("/api/v1")) {
+    return `${API_BASE_URL.replace("/api/v1", "")}${normalizedPath}`;
+  }
+  
+  // 否则添加 /api/v1/media/uploads 前缀
+  return `${API_BASE_URL.replace("/api/v1", "")}/api/v1/media/uploads${normalizedPath}`;
 };
 
 // helper function to format file size

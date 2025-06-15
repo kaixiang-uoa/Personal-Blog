@@ -153,7 +153,7 @@ export const uploadMedia = async (req, res) => {
         mimetype,
         size,
         path: filePath,
-        url: `/uploads/${filename}`, // add url field
+        url: `/api/v1/media/uploads/${filename}`, // 修改 URL 路径
         uploadedBy: req.user.id,
       });
 

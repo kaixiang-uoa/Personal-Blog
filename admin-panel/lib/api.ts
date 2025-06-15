@@ -194,14 +194,22 @@ export const apiService = {
       return api.post(url, data);
     }
     // Handle FormData specially for file uploads
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const csrfToken = typeof window !== "undefined" 
+      ? document.cookie
+          .split('; ')
+          .find(row => row.startsWith('XSRF-TOKEN='))
+          ?.split('=')[1]
+      : null;
+
     return axios
       .post(`${process.env.NEXT_PUBLIC_API_URL}${url}`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: token ? `Bearer ${token}` : "",
+          "X-CSRF-Token": csrfToken || "",
         },
+        withCredentials: true,
       })
       .then((response) => response.data);
   },

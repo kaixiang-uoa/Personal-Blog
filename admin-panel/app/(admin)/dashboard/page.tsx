@@ -262,7 +262,7 @@ export default function DashboardPage() {
                       <Edit3 className="h-4 w-4 text-gray-400" />
                     )}
                     <span className="font-medium hover:underline">
-                      <Link href={`/posts/${post.id}`}>{post.title}</Link>
+                      <Link href={`/admin/posts/${post.id}/preview`}>{post.title}</Link>
                     </span>
                   </div>
                   <div className="flex items-center gap-4">

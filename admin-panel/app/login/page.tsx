@@ -98,6 +98,7 @@ export default function LoginPage() {
     } catch (error: any) {
       // directly show API returned error message
       const errorMessage = error.message || "Login failed, please try again";
+
       setApiError(errorMessage);
 
       toast({

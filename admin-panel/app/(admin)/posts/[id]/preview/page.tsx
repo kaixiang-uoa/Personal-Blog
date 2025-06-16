@@ -23,7 +23,6 @@ export default function PostPreviewPage() {
       try {
         const id = params.id as string;
         const response = await apiService.getPostById(id);
-        console.log(response);
         if (response.data) {
           setPost(response.data.post);
         }

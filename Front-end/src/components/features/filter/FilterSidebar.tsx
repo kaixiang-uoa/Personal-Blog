@@ -107,13 +107,10 @@ export default function FilterSidebar({
     setSelectedTags(activeTags || []);
   }, [activeTags]);
 
-  // Sync sort order with default sort from settings
+  // Sync sort order with prop
   useEffect(() => {
-    // If no sort selected or reset to default, use default sort from settings
-    if (!sortOrder || sortOrder === defaultSort) {
-      onFilterChangeAction({ type: 'sort', value: defaultSort });
-    }
-  }, [defaultSort, sortOrder, onFilterChangeAction]);
+    setSelectedSortOrder(sortOrder);
+  }, [sortOrder]);
 
   // Return null if sidebar is disabled in settings
   if (!showSidebar) {
@@ -163,9 +160,9 @@ export default function FilterSidebar({
         value={selectedSortOrder}
         onChange={(value: string) => handleSortChange(value)}
         options={[
-          { value: 'latest', label: t('newest') },
-          { value: 'oldest', label: t('oldest') },
-          { value: 'popular', label: t('popular') }
+          { value: 'latest', label: t('newestFirst') },
+          { value: 'oldest', label: t('oldestFirst') },
+          { value: 'popular', label: t('mostPopular') }
         ]}
         isHorizontal={isHorizontal}
       />

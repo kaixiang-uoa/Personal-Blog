@@ -55,9 +55,17 @@ const API_BASE_URL =
 
 // helper function to get full url
 const getFullUrl = (path: string): string => {
-  if (path.startsWith("http")) return path;
+  // 如果是完整的 URL（包括 http 或 https），直接返回
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
   
-  // ensure path starts with /
+  // 如果是 S3 URL（包含 .amazonaws.com），直接返回
+  if (path.includes(".amazonaws.com")) {
+    return path;
+  }
+  
+  // 确保路径以 / 开头
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   
   // 如果路径已经包含 /api/v1，直接使用
@@ -81,11 +89,21 @@ function formatFileSize(bytes: number): string {
 // test if url is accessible
 const testUrl = async (url: string) => {
   try {
-    // try to access image directly
+    // 如果是 S3 URL，直接返回成功
+    if (url.includes('.amazonaws.com')) {
+      return {
+        status: 200,
+        ok: true,
+        contentType: 'image/*',
+        url,
+      };
+    }
+
+    // 尝试访问图片
     const response = await fetch(url);
     const contentType = response.headers.get("content-type");
 
-    // if json response, read error information
+    // 如果是 JSON 响应，读取错误信息
     if (contentType?.includes("application/json")) {
       const errorData = await response.json();
       return {
@@ -124,7 +142,7 @@ export default function MediaPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Media | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [urlTestResult, setUrlTestResult] = useState<any>(null);
+  const [retryCount, setRetryCount] = useState({});
 
   // fetch media files
   useEffect(() => {
@@ -148,25 +166,6 @@ export default function MediaPage() {
 
     fetchMedia();
   }, [toast]);
-
-  // test url after fetching media files
-  useEffect(() => {
-    const testFirstImage = async () => {
-      if (mediaItems.length > 0) {
-        const url = getFullUrl(mediaItems[0].url);
-        const result = await testUrl(url);
-        setUrlTestResult(result);
-
-        // if test fails, try other url formats
-        if (!result.ok) {
-          const alternativeUrl = `${API_BASE_URL}/media${mediaItems[0].url}`;
-          await testUrl(alternativeUrl);
-        }
-      }
-    };
-
-    testFirstImage();
-  }, [mediaItems]);
 
   // filter media items based on search query
   const filteredItems = useMemo(() => 
@@ -300,6 +299,33 @@ export default function MediaPage() {
     });
   }, [toast]);
 
+  // Add retry logic for image loading
+  const handleImageError = (item, e) => {
+    console.error('Image load error:', {
+      url: item.url,
+      error: e,
+      retryCount: retryCount[item._id] || 0
+    });
+
+    // Retry up to 3 times
+    if ((retryCount[item._id] || 0) < 3) {
+      setRetryCount(prev => ({
+        ...prev,
+        [item._id]: (prev[item._id] || 0) + 1
+      }));
+      
+      // Force image reload
+      const img = e.target as HTMLImageElement;
+      img.src = item.url + '?retry=' + (retryCount[item._id] || 0);
+    } else {
+      toast({
+        title: "Image Load Error",
+        description: `Failed to load image after 3 attempts: ${item.filename}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -365,17 +391,11 @@ export default function MediaPage() {
                     {item.mimetype.startsWith("image/") ? (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <img
-                          src={getFullUrl(item.url)}
+                          src={item.url}
                           alt={item.filename}
                           className="object-cover w-full h-full rounded"
                           loading="lazy"
-                          onError={() => {
-                            toast({
-                              title: "Image Load Error",
-                              description: `Failed to load image: ${item.filename}`,
-                              variant: "destructive",
-                            });
-                          }}
+                          onError={(e) => handleImageError(item, e)}
                         />
                       </div>
                     ) : item.mimetype.startsWith("application/pdf") ? (
@@ -577,13 +597,7 @@ export default function MediaPage() {
                       alt={selectedItem.filename}
                       fill
                       className="object-contain"
-                      onError={() => {
-                        toast({
-                          title: "Image Load Error",
-                          description: `Failed to load image: ${selectedItem.filename}`,
-                          variant: "destructive",
-                        });
-                      }}
+                      onError={(e) => handleImageError(selectedItem, e)}
                     />
                   </div>
                 ) : selectedItem.mimetype.startsWith("application/pdf") ? (

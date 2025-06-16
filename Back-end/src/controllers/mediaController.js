@@ -9,13 +9,10 @@ import {
   getPaginationParams,
   createPaginationResponse,
 } from "../utils/paginationHelper.js";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { s3, s3Config } from "../config/s3.js";
+import { logUploadRequest, logFileProcessing, logUploadError } from "../utils/uploadLogger.js";
+import { generatePublicUrl } from "../utils/s3UrlGenerator.js";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 // get all media files
 export const getAllMedia = async (req, res) => {
@@ -116,18 +113,14 @@ export const getMediaById = async (req, res) => {
   }
 };
 
-// upload media files
+// upload media files - Handles file upload to AWS S3 and creates media records in database
 export const uploadMedia = async (req, res) => {
   try {
-    // add debug logs
-    console.log("Upload request received:");
-    console.log("Files:", req.files);
-    console.log("Body:", req.body);
-    console.log("Headers:", req.headers);
+    logUploadRequest(req);
 
     // check if files were uploaded
     if (!req.files || req.files.length === 0) {
-      console.log("No files found in request");
+      console.log('No files found in request');
       return error(res, "media.noFile", 400);
     }
 
@@ -136,25 +129,27 @@ export const uploadMedia = async (req, res) => {
 
     // create media records for each file
     for (const file of req.files) {
-      console.log("Processing file:", {
+      logFileProcessing(file);
+
+      // Generate public URL using our utility function
+      const publicUrl = generatePublicUrl(file.key);
+      console.log('Generated public URL:', publicUrl);
+
+      // create media record
+      const media = await Media.create({
+        filename: file.key,
         originalname: file.originalname,
-        filename: file.filename,
-        path: file.path,
-        size: file.size,
         mimetype: file.mimetype,
+        size: file.size,
+        path: file.key,
+        url: publicUrl, // Use generated public URL
+        uploadedBy: req.user.id,
       });
 
-      const { originalname, filename, path: filePath, size, mimetype } = file;
-
-      // create media record, ensure field names match model definition
-      const media = await Media.create({
-        filename,
-        originalname,
-        mimetype,
-        size,
-        path: filePath,
-        url: `/api/v1/media/uploads/${filename}`, // 修改 URL 路径
-        uploadedBy: req.user.id,
+      console.log('Created media record:', {
+        id: media._id,
+        filename: media.filename,
+        url: media.url
       });
 
       mediaFiles.push(media);
@@ -162,7 +157,7 @@ export const uploadMedia = async (req, res) => {
 
     return success(res, { media: mediaFiles }, 201, "media.uploaded");
   } catch (err) {
-    console.error("Upload error:", err);
+    logUploadError(err);
     return error(res, "media.uploadFailed", 500, err.message);
   }
 };
@@ -192,7 +187,7 @@ export const updateMedia = async (req, res) => {
   }
 };
 
-// delete media file
+// delete media file - Handles deletion of files from both AWS S3 and database
 export const deleteMedia = async (req, res) => {
   try {
     const { id } = req.params;
@@ -201,51 +196,71 @@ export const deleteMedia = async (req, res) => {
     // handle batch deletion
     if (ids && Array.isArray(ids)) {
       const mediaItems = await Media.find({ _id: { $in: ids } });
+      console.log('Found media items for batch deletion:', mediaItems.map(m => ({ id: m._id, path: m.path })));
 
-      // delete physical files
-      for (const media of mediaItems) {
-        const filePath = path.join(
-          __dirname,
-          "..",
-          "..",
-          "uploads",
-          path.basename(media.path),
-        );
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+      // delete files from S3
+      const deletePromises = mediaItems.map(async (media) => {
+        try {
+          await s3.send(new DeleteObjectCommand({
+            Bucket: s3Config.bucket,
+            Key: media.path,
+          }));
+          console.log('Successfully deleted from S3:', media.path);
+        } catch (s3Error) {
+          console.error('S3 deletion error for file:', media.path, s3Error);
+          // If file doesn't exist in S3, continue with database deletion
+          if (s3Error.name === 'NoSuchKey') {
+            return;
+          }
+          throw s3Error;
         }
-      }
+      });
+
+      // Wait for all S3 deletions to complete
+      await Promise.all(deletePromises);
 
       // delete database records
-      await Media.deleteMany({ _id: { $in: ids } });
+      const deleteResult = await Media.deleteMany({ _id: { $in: ids } });
+      console.log('Deleted database records:', deleteResult);
 
       return success(res, null, 200, "media.deleted");
     }
 
     // single deletion
     const media = await Media.findById(id);
+    console.log('Found media for deletion:', media ? { id: media._id, path: media.path } : 'Not found');
 
     if (!media) {
       return error(res, "media.notFound", 404);
     }
 
-    // delete physical file
-    const filePath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "uploads",
-      path.basename(media.path),
-    );
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    try {
+      // delete file from S3
+      await s3.send(new DeleteObjectCommand({
+        Bucket: s3Config.bucket,
+        Key: media.path,
+      }));
+      console.log('Successfully deleted from S3:', media.path);
+
+      // delete database record
+      await Media.findByIdAndDelete(id);
+      console.log('Successfully deleted from database:', id);
+
+      return success(res, null, 200, "media.deleted");
+    } catch (s3Error) {
+      console.error('S3 deletion error:', s3Error);
+      
+      // If S3 deletion fails but file doesn't exist, still delete from database
+      if (s3Error.name === 'NoSuchKey') {
+        await Media.findByIdAndDelete(id);
+        console.log('File not found in S3, deleted from database:', id);
+        return success(res, null, 200, "media.deleted");
+      }
+      
+      throw s3Error;
     }
-
-    // delete database record
-    await Media.findByIdAndDelete(id);
-
-    return success(res, null, 200, "media.deleted");
   } catch (err) {
+    console.error('Delete media error:', err);
     return error(res, "media.deleteFailed", 500, err.message);
   }
 };

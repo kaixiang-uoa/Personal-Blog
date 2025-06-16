@@ -110,17 +110,6 @@ app.use(i18nMiddleware);
 // Apply global rate limiting
 app.use(apiLimiter());
 
-// Static file directories - add CORS headers for static files
-app.use(
-  "/api/v1/media/uploads",
-  (req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Cross-Origin-Resource-Policy", "cross-origin");
-    next();
-  },
-  express.static(path.join(process.cwd(), "uploads")),
-);
-
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 // API prefix

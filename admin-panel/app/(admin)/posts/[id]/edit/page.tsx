@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 
 import { CategorySelector } from "@/components/categories/CategorySelector";
 import { TagSelector } from "@/components/posts/TagSelector";
-import { PostEditor } from "@/components/posts/post-editor";
+import { PostEditor } from "@/components/posts/editor/PostEditor";
 import { Card, CardContent } from "@/components/ui/data-display/card";
 import { Skeleton } from "@/components/ui/data-display/skeleton";
 import { Button } from "@/components/ui/inputs/button";
@@ -358,7 +358,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
                         <FormLabel>Content</FormLabel>
                         <FormControl>
                           <PostEditor
-                            value={field.value || ""}
+                            content={field.value || ""}
                             onChange={(value) =>
                               handleInputChange("content", value)
                             }

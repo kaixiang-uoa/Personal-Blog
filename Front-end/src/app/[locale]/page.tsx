@@ -189,7 +189,7 @@ export default function Home() {
   const searchParams = useSearchParams();
   
   // Parse and validate URL parameters
-  const sort = validateSortOrder(searchParams.get('sort'), 'publishedAt-desc');
+  const sort = validateSortOrder(searchParams.get('sort'), 'latest');
   const tagsParam = getArrayParam(searchParams.get('tag'));
   const category = getStringParam(searchParams.get('category'));
   const search = getStringParam(searchParams.get('search'));
@@ -228,15 +228,37 @@ export default function Home() {
     value: string | string[] | SortOrder;
   }) => {
     const urlParams = new URLSearchParams(searchParams.toString());
+    
     if (params.type === 'category') {
-      urlParams.set('category', params.value as string);
+      if (params.value) {
+        urlParams.set('category', params.value as string);
+      } else {
+        urlParams.delete('category');
+      }
     } else if (params.type === 'sort') {
-      urlParams.set('sort', params.value as string);
+      if (params.value !== 'latest') {
+        urlParams.set('sort', params.value as string);
+      } else {
+        urlParams.delete('sort');
+      }
     } else if (params.type === 'tags') {
       const tagArray = params.value as string[];
-      urlParams.set('tag', tagArray.join(','));
+      if (tagArray.length > 0) {
+        urlParams.set('tag', tagArray.join(','));
+      } else {
+        urlParams.delete('tag');
+      }
     }
-    router.push(`/${locale}?${urlParams.toString()}`);
+    
+    // Only keep non-empty parameters
+    const finalParams = new URLSearchParams();
+    for (const [key, value] of urlParams.entries()) {
+      if (value) {
+        finalParams.set(key, value);
+      }
+    }
+    
+    router.push(`/${locale}${finalParams.toString() ? `?${finalParams.toString()}` : ''}`);
   };
 
   /**

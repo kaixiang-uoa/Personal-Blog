@@ -20,9 +20,10 @@ import { LinkPopover } from "./LinkPopover";
 
 interface EditorToolbarProps {
   editor: any;
+  onImageUpload?: (file: File) => Promise<string | null>;
 }
 
-export function EditorToolbar({ editor }: EditorToolbarProps) {
+export function EditorToolbar({ editor, onImageUpload }: EditorToolbarProps) {
   if (!editor) {
     return null;
   }
@@ -126,7 +127,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       <div className="h-4 w-px bg-border mx-1" />
 
       <LinkPopover editor={editor} isActive={editor.isActive("link")} />
-      <ImagePopover editor={editor} />
+      <ImagePopover editor={editor} onImageUpload={onImageUpload} />
 
       <div className="ml-auto flex items-center gap-1">
         <EditorMenuButton

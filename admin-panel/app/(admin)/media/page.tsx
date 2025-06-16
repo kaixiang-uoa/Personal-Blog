@@ -300,7 +300,7 @@ export default function MediaPage() {
   }, [toast]);
 
   // Add retry logic for image loading
-  const handleImageError = (item, e) => {
+  const handleImageError = (item: Media, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.error('Image load error:', {
       url: item.url,
       error: e,
@@ -309,20 +309,32 @@ export default function MediaPage() {
 
     // Retry up to 3 times
     if ((retryCount[item._id] || 0) < 3) {
-      setRetryCount(prev => ({
+      setRetryCount((prev: Record<string, number>) => ({
         ...prev,
         [item._id]: (prev[item._id] || 0) + 1
       }));
       
-      // Force image reload
+      // Force image reload with a different URL format
       const img = e.target as HTMLImageElement;
-      img.src = item.url + '?retry=' + (retryCount[item._id] || 0);
+      if (item.url.includes('.amazonaws.com')) {
+        // For S3 URLs, try direct URL without Next.js image optimization
+        img.src = item.url;
+      } else {
+        // For other URLs, try with retry parameter
+        img.src = item.url + '?retry=' + (retryCount[item._id] || 0);
+      }
     } else {
+      // After 3 retries, show error toast and set a fallback image
       toast({
         title: "Image Load Error",
         description: `Failed to load image after 3 attempts: ${item.filename}`,
         variant: "destructive",
       });
+      
+      // Set a fallback image
+      const img = e.target as HTMLImageElement;
+      img.src = '/images/fallback-image.png'; // Make sure to add a fallback image in your public folder
+      img.onerror = null; // Remove the error handler to prevent infinite loop
     }
   };
 

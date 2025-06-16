@@ -27,6 +27,11 @@ const nextConfig: NextConfig = {
         hostname: "personal-blog-w2y9.onrender.com",
         pathname: "/api/v1/media/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "my-blog-media-storage.s3.ap-southeast-2.amazonaws.com",
+        pathname: "/media/**",
+      },
     ],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],

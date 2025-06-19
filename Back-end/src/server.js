@@ -8,6 +8,7 @@ import app from "./app.js";
 import { logger } from "./utils/logger.js";
 import { validateSettings } from "./scripts/initSettings.js";
 import { validateEnvironmentOrExit } from "./utils/envValidator.js";
+import { initializeService } from "./services/keepAlive/index.js";
 
 // Async function to start the server
 const startServer = async () => {
@@ -31,7 +32,7 @@ const startServer = async () => {
       // create server but not listen immediately
       const server = app
         .listen(PORT)
-        .on("listening", () => {
+        .on("listening", async () => {
           logger.info(`Server is running on port ${PORT}`);
           console.log(`
 ====================================
@@ -40,6 +41,20 @@ const startServer = async () => {
 ✅ Security enhancements active
 ====================================
           `);
+
+          // 服务器完全启动后，初始化 keepAlive 服务
+          try {
+            logger.info('Initializing KeepAlive service...');
+            const pingResult = await initializeService();
+            logger.info('KeepAlive service initialized successfully', {
+              enabled: true,
+              isRunning: pingResult.isRunning,
+              status: pingResult.status,
+              duration: pingResult.duration
+            });
+          } catch (error) {
+            logger.error('Failed to initialize KeepAlive service', error);
+          }
         })
         .on("error", (err) => {
           if (err.code === "EADDRINUSE" && retries < maxRetries) {

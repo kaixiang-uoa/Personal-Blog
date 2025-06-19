@@ -1,19 +1,19 @@
 // jest.config.js
 export default {
-  // 指定测试环境为Node.js
+  // Node.js environment
   testEnvironment: 'node',
   
-  // 处理ES模块的设置
+  // Handle ESM settings
   transform: {},
   extensionsToTreatAsEsm: ['.js'],
   
-  // 测试文件匹配模式
-  testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
+  // Test file matching pattern
+  testMatch: ['**/test/**/*.test.js'],
   
-  // 忽略的目录
+  // Ignored directories
   testPathIgnorePatterns: ['/node_modules/', '/public/', '/uploads/'],
   
-  // 覆盖率收集设置
+  // Coverage collection settings
   collectCoverage: true,
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
@@ -24,7 +24,7 @@ export default {
     '!**/node_modules/**'
   ],
   
-  // 覆盖率阈值设置
+  // Coverage threshold settings
   coverageThreshold: {
     global: {
       statements: 50,
@@ -34,23 +34,29 @@ export default {
     }
   },
   
-  // 在每次测试前重置模拟
+  // Reset mocks before each test
   resetMocks: true,
   
-  // 测试超时设置 (默认是5000ms，这里增加到10000ms)
+  // Test timeout settings (default is 5000ms, here increased to 10000ms)
   testTimeout: 10000,
   
-  // 启用检测测试泄漏
+  // Enable detection of test leaks
   detectOpenHandles: true,
   
-  // 默认情况下，禁用测试监视模式
+  // By default, disable test watch mode
   watchman: false,
   
-  // 为ESM设置实验性支持
-  // Node.js ESM支持
+  // Experimental support for ESM
+  // Node.js ESM support
   // https://jestjs.io/docs/ecmascript-modules
   experimental: {
-    // 需要Node.js支持ESM的配置
+    // Configuration for Node.js support for ESM
     useExperimentalESM: true
-  }
+  },
+  
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+  
+  verbose: true,
 }; 

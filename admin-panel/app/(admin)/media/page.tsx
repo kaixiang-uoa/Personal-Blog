@@ -321,7 +321,7 @@ export default function MediaPage() {
         img.src = item.url;
       } else {
         // For other URLs, try with retry parameter
-        img.src = item.url + '?retry=' + (retryCount[item._id] || 0);
+      img.src = item.url + '?retry=' + (retryCount[item._id] || 0);
       }
     } else {
       // After 3 retries, show error toast and set a fallback image

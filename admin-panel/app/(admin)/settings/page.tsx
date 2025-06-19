@@ -9,6 +9,7 @@ import { z } from "zod";
 import AboutSettingsForm from "@/components/settings/AboutSettingsForm";
 import AppearanceSettingsForm from "@/components/settings/AppearanceSettingsForm";
 import GeneralSettingsForm from "@/components/settings/GeneralSettingsForm";
+import KeepAliveSettingsForm from "@/components/settings/KeepAliveSettingsForm";
 import PasswordChangeForm from "@/components/settings/PasswordChangeForm";
 import PostsSettingsForm from "@/components/settings/PostsSettingsForm";
 import { Skeleton } from "@/components/ui/data-display/skeleton";
@@ -22,6 +23,7 @@ import { useToast } from "@/hooks/ui/use-toast";
 import { settingsService } from "@/lib/services/settings-service";
 import { aboutFormSchema } from "@/lib/validators/settings-schemas";
 import { Settings } from "@/types/settings";
+import { keepAliveService } from "@/lib/services/keep-alive-service";
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -29,9 +31,20 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [keepAliveConfig, setKeepAliveConfig] = useState({
+    interval: 300000,
+    enabled: true,
+    isRunning: false,
+    targetUrl: "",
+    lastPingTime: null,
+    lastPingStatus: null,
+    lastPingError: null,
+    nextPingTime: null,
+  });
 
   useEffect(() => {
     fetchSettings();
+    fetchKeepAliveConfig();
   }, []);
 
   // fetch all settings
@@ -50,6 +63,18 @@ export default function SettingsPage() {
       });
     } finally {
       setLoading(false);
+    }
+  }
+
+  // fetch keep alive config
+  async function fetchKeepAliveConfig() {
+    try {
+      const response = await keepAliveService.getConfig();
+      if (response.success && response.data) {
+        setKeepAliveConfig(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch keep alive config:", error);
     }
   }
 
@@ -145,6 +170,30 @@ export default function SettingsPage() {
     }
   }
 
+  // save keep alive settings
+  async function saveKeepAliveSettings(values: any) {
+    try {
+      setIsSaving(true);
+      const response = await keepAliveService.updateConfig(values);
+      if (response.success && response.data) {
+        setKeepAliveConfig(response.data);
+        toast({
+          title: "Success",
+          description: "Keep alive settings saved successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving keep alive settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save keep alive settings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   // refresh settings
   async function refreshSettings() {
     await fetchSettings();
@@ -196,70 +245,58 @@ export default function SettingsPage() {
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="system">System</TabsTrigger>
           </TabsList>
 
-          {/* General Settings */}
-          <TabsContent value="general" className="space-y-4">
+          <TabsContent value="general">
             <GeneralSettingsForm
-              defaultValues={
-                settings?.general || {
-                  siteName: "",
-                  siteDescription: "",
-                  siteUrl: "",
-                  logo: "",
-                  favicon: "",
-                  metaKeywords: "",
-                }
-              }
+              defaultValues={settings?.general || {}}
               onSubmit={(values) => saveSettings("general", values)}
               loading={loading}
               isSaving={isSaving}
             />
           </TabsContent>
 
-          {/* Posts Settings */}
-          <TabsContent value="posts" className="space-y-4">
+          <TabsContent value="posts">
             <PostsSettingsForm
-              defaultValues={
-                settings?.posts || {
-                  postsPerPage: 10,
-                }
-              }
+              defaultValues={settings?.posts || {}}
               onSubmit={(values) => saveSettings("posts", values)}
               loading={loading}
               isSaving={isSaving}
             />
           </TabsContent>
 
-          <TabsContent value="appearance" className="space-y-4">
+          <TabsContent value="appearance">
             <AppearanceSettingsForm
-              defaultValues={
-                settings?.appearance || {
-                  homeBanner: "",
-                  aboutBanner: "",
-                  contactBanner: "",
-                  homeBannerMobile: "",
-                  aboutBannerMobile: "",
-                  contactBannerMobile: "",
-                }
-              }
+              defaultValues={settings?.appearance || {}}
               onSubmit={(values) => saveSettings("appearance", values)}
               loading={loading}
               isSaving={isSaving}
             />
           </TabsContent>
 
-          <TabsContent value="security" className="space-y-4">
+          <TabsContent value="security">
             <PasswordChangeForm />
           </TabsContent>
 
-          <TabsContent value="about" className="space-y-4">
+          <TabsContent value="about">
             <AboutSettingsForm
               defaultValues={settings?.about || defaultAboutSettings}
               onSubmit={(values) => saveSettings("about", values)}
               loading={loading}
               isSaving={isSaving}
             />
+          </TabsContent>
+
+          <TabsContent value="system">
+            <div className="space-y-6">
+              <KeepAliveSettingsForm
+                defaultValues={keepAliveConfig}
+                onSubmit={saveKeepAliveSettings}
+                loading={loading}
+                isSaving={isSaving}
+              />
+            </div>
           </TabsContent>
         </Tabs>
       )}

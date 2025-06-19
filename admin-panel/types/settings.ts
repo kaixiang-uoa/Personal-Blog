@@ -22,9 +22,18 @@ export interface SettingsResponse {
 
 // Processed settings types
 export interface Settings {
-  general: z.infer<typeof generalFormSchema>;
-  posts: z.infer<typeof postsFormSchema>;
-  appearance: {
+  general?: {
+    siteName: string;
+    siteDescription: string;
+    siteUrl: string;
+    logo: string;
+    favicon: string;
+    metaKeywords: string;
+  };
+  posts?: {
+    postsPerPage: number;
+  };
+  appearance?: {
     homeBanner: string;
     aboutBanner: string;
     contactBanner: string;
@@ -32,8 +41,32 @@ export interface Settings {
     aboutBannerMobile: string;
     contactBannerMobile: string;
   };
-  advanced: z.infer<typeof advancedFormSchema>;
-  about: AboutSettings;
+  about?: {
+    intro: string;
+    intro_zh: string;
+    contact: {
+      email: string;
+      phone: string;
+      location: string;
+    };
+    skills: string[];
+    education: any[];
+    experience: any[];
+    projects: any[];
+    social: {
+      github: string;
+      linkedin: string;
+      twitter: string;
+      website: string;
+    };
+  };
+  system?: {
+    keepAlive: {
+      interval: number;
+      enabled: boolean;
+      isRunning: boolean;
+    };
+  };
 }
 
 export interface AboutSettings {

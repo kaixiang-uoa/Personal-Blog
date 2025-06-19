@@ -75,6 +75,7 @@ export default function KeepAliveSettingsForm({
     try {
       console.log(`[${new Date().toLocaleTimeString()}] Fetching service status...`);
       const response = await keepAliveService.getConfig();
+      console.log("response", response);
       if (response.success && response.data) {
         setServiceStatus({
           isRunning: response.data.isRunning,
@@ -100,7 +101,7 @@ export default function KeepAliveSettingsForm({
     try {
       setPingStatus('loading');
       const response = await keepAliveService.triggerPing();
-      console.log("response", response);
+      // console.log("response", response);
       if (!response.success) {
         throw new Error(response.message || 'Ping failed');
       }

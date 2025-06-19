@@ -63,14 +63,8 @@ class KeepAliveService {
   async initializeService() {
     try {
       logger.service('Performing initial ping for service initialization', {});
-      
-      // 1. set enabled state
       this.config.enabled = true;
-      
-      // 2. perform initial ping
       const pingResult = await this.ping();
-      
-      // 3. directly set cron job
       const cronExpression = `0 */${this.config.defaultInterval / 60000} * * * *`;
       this.scheduler = schedule.scheduleJob(cronExpression, async () => {
         try {
@@ -80,20 +74,16 @@ class KeepAliveService {
           logger.error('Scheduled ping failed', error);
         }
       });
-
       logger.service('Scheduling ping', { 
         interval: this.config.defaultInterval / 60000,
         cronExpression 
       });
-      
       logger.service('Service initialized successfully', {
         enabled: this.config.enabled,
         isRunning: this.isRunning
       });
-      
       return pingResult;
     } catch (error) {
-      // if initialization fails, reset enabled state
       this.config.enabled = false;
       logger.error('Service initialization failed', error);
       throw error;
@@ -154,7 +144,6 @@ class KeepAliveService {
    */
   async updateConfig(newConfig) {
     try {
-      // validate config
       if (newConfig.defaultInterval) {
         const minInterval = 60000; // 1 minute
         const maxInterval = 840000; // 14 minutes
@@ -162,19 +151,16 @@ class KeepAliveService {
           throw new Error(`Interval must be between ${minInterval} and ${maxInterval} milliseconds`);
         }
       }
-
-      // update config
+      console.log('newConfig', newConfig);
       this.config = {
         ...this.config,
-        ...newConfig
+        ...newConfig,
       };
-
-      // if service is running, need to restart to apply new config
-      if (this.isRunning) {
-        await this.stop();
+      await this.stop();
+      if(this.config.enabled) {
         await this.start();
       }
-
+      console.log('this.config', this.config);
       logger.service('Configuration updated', this.config);
       return this.config;
     } catch (error) {
@@ -223,7 +209,7 @@ class KeepAliveService {
     }
 
     this.nextPingTime = null;
-    this.config.enabled = false;  // service stopped, must set enabled to false
+    // this.config.enabled = false;  // service stopped, must set enabled to false
     logger.service('Service stopped', { config });
   }
 
@@ -232,30 +218,13 @@ class KeepAliveService {
    */
   async start() {
     try {
-      // check database connection
       if (mongoose.connection.readyState !== 1) {
         logger.error('Database not connected', { readyState: mongoose.connection.readyState });
         throw new Error('Database not connected');
       }
-
-      // ensure config exists
       if (!this.config) {
         throw new Error('Service configuration is not initialized');
       }
-
-      // only perform initial ping if config is enabled
-      if (this.config.enabled) {
-        logger.service('Performing initial ping after startup', {});
-        
-        try {
-          await this.ping();
-          logger.service('Initial ping successful', {});
-        } catch (error) {
-          logger.warn('Initial ping failed, but service will continue running', error);
-        }
-      }
-
-      // only schedule ping if config is enabled
       if (this.config.enabled) {
         const cronExpression = `0 */${this.config.defaultInterval / 60000} * * * *`;
         this.scheduler = schedule.scheduleJob(cronExpression, async () => {
@@ -266,14 +235,12 @@ class KeepAliveService {
             logger.error('Scheduled ping failed', error);
           }
         });
-
         logger.service('Scheduling ping', { 
           interval: this.config.defaultInterval / 60000,
           cronExpression 
         });
       }
-
-      this.config.enabled = true;  // service started, must set enabled to true
+      this.config.enabled = true;
       logger.service('Service started with scheduled pings', { config: this.config });
     } catch (error) {
       logger.error('Failed to start service', error);
@@ -286,9 +253,9 @@ class KeepAliveService {
    * Handles automatic ping scheduling and rescheduling based on manual pings
    */
   async schedulePing() {
-    if (!config.enabled) return;
+    if (!this.config.enabled) return;
 
-    const minutes = Math.floor(config.defaultInterval / (60 * 1000));
+    const minutes = Math.floor(this.config.defaultInterval / (60 * 1000));
     const safeMinutes = Math.max(1, minutes);
     const cronExpression = `0 */${safeMinutes} * * * *`;
     
@@ -305,12 +272,12 @@ class KeepAliveService {
       }
 
       // Only check rescheduling if service is enabled
-      if (config.enabled && this.nextPingTime) {
+      if (this.config.enabled && this.nextPingTime) {
         const timeSinceLastManualPing = Date.now() - this.nextPingTime.getTime();
 
         // If last manual ping was too recent, reschedule
-        if (timeSinceLastManualPing < config.defaultInterval) {
-          const newNextPingTime = new Date(this.nextPingTime.getTime() + config.defaultInterval);
+        if (timeSinceLastManualPing < this.config.defaultInterval) {
+          const newNextPingTime = new Date(this.nextPingTime.getTime() + this.config.defaultInterval);
           this.nextPingTime = newNextPingTime;
           logger.info('Rescheduling next ping due to recent manual ping', {
             lastManualPingTime: this.nextPingTime,
@@ -416,10 +383,8 @@ class KeepAliveService {
         type: 'auto',
         error: null
       };
-
       // update status
       this.lastPingTime = pingResult.timestamp;
-      console.log('lastPingTime', this.lastPingTime);
       this.lastPingStatus = pingResult.status;
       this.lastPingError = null;
 

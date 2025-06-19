@@ -12,6 +12,9 @@
  * - KEEP_ALIVE_ENABLED: Whether the service is enabled by default (default: false)
  */
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 // Configuration object
 export const config = {
   // Default interval in milliseconds (5 minutes)
@@ -29,6 +32,7 @@ export const config = {
   // Service enabled by default
   enabled: process.env.KEEP_ALIVE_ENABLED === 'true' || false
 };
+
 
 /**
  * Validate the configuration

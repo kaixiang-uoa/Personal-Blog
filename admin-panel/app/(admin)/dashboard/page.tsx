@@ -28,11 +28,16 @@ import { useAuth } from "@/contexts/auth-context";
 import { apiService } from "@/lib/api";
 import { DashboardData } from "@/types/index";
 import { PostQueryParams, PostStatus } from "@/types/posts";
+import { keepAliveService } from "@/lib/services/keep-alive-service";
 
 export default function DashboardPage() {
   const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
+  const [serverStatus, setServerStatus] = useState<{
+    isRunning: boolean;
+    lastPingTime: string | null;
+  } | null>(null);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -134,6 +139,23 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    async function fetchServerStatus() {
+      try {
+        const response = await keepAliveService.getConfig();
+        if (response.success && response.data) {
+          setServerStatus({
+            isRunning: response.data.isRunning,
+            lastPingTime: response.data.lastPingTime,
+          });
+        }
+      } catch (error) {
+        setServerStatus(null);
+      }
+    }
+    fetchServerStatus();
+  }, []);
+
   // Return early if not authenticated
   if (!isAuthenticated) {
     return null;
@@ -168,10 +190,12 @@ export default function DashboardPage() {
             ) : (
               <div className="text-2xl font-bold">{data?.postCount}</div>
             )}
+            {/* 
             <p className="text-xs text-muted-foreground mt-1">
               <TrendingUp className="inline h-3 w-3 mr-1" />
               Up 12% from last month
             </p>
+            */}
           </CardContent>
         </Card>
 
@@ -186,28 +210,45 @@ export default function DashboardPage() {
             ) : (
               <div className="text-2xl font-bold">{data?.viewCount}</div>
             )}
+            {/* 
             <p className="text-xs text-muted-foreground mt-1">
               <TrendingUp className="inline h-3 w-3 mr-1" />
               Up 18% from last month
             </p>
+            */}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Comments</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Back-end Server</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <Skeleton className="h-7 w-12" />
+            {loading || !serverStatus ? (
+              <Skeleton className="h-7 w-24" />
             ) : (
-              <div className="text-2xl font-bold">{data?.commentCount}</div>
+              <>
+                <div className="text-2xl font-bold">
+                  {serverStatus.isRunning ? (
+                    <span className="text-green-600">Running</span>
+                  ) : (
+                    <span className="text-red-600">Stopped</span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Last ping: {serverStatus.lastPingTime
+                    ? new Date(serverStatus.lastPingTime).toLocaleString()
+                    : "N/A"}
+                </div>
+              </>
             )}
+            {/* 
             <p className="text-xs text-muted-foreground mt-1">
               <TrendingUp className="inline h-3 w-3 mr-1" />
               Up 8% from last month
             </p>
+            */}
           </CardContent>
         </Card>
 
@@ -222,10 +263,12 @@ export default function DashboardPage() {
             ) : (
               <div className="text-2xl font-bold">{data?.categoryCount}</div>
             )}
+            {/* 
             <p className="text-xs text-muted-foreground mt-1">
               <Activity className="inline h-3 w-3 mr-1" />
               No change from last month
             </p>
+            */}
           </CardContent>
         </Card>
       </div>

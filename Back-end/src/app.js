@@ -18,6 +18,8 @@ import settingRouter from "./routers/settingRouters.js";
 import authRouter from "./routers/authRouters.js";
 import i18nRouters from "./routers/i18nRouters.js";
 import contactRouter from "./routers/contactRouters.js";
+import { router as keepAliveRouter } from "./services/keepAlive/index.js";
+import healthRouter from './routers/healthRouters.js';
 
 // Import middleware
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
@@ -139,6 +141,8 @@ app.use(`${API_PREFIX}/auth`, sensitiveApiLimiter(), authRouter);
 
 app.use(`${API_PREFIX}/i18n`, i18nRouters);
 app.use(`${API_PREFIX}/contact`, contactRouter);
+app.use(`${API_PREFIX}/keep-alive`, keepAliveRouter);
+app.use(`${API_PREFIX}/health`, healthRouter);
 
 // Root route
 app.get("/", (req, res) => {

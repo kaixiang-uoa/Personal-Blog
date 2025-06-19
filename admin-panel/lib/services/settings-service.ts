@@ -64,12 +64,14 @@ function processSettingsResponse(data: SettingsResponse): Settings {
       aboutBannerMobile: data["appearance.aboutBannerMobile"] || "",
       contactBannerMobile: data["appearance.contactBannerMobile"] || "",
     },
-    advanced: {
-      cacheTimeout: Number(data["advanced.cacheTimeout"]) || 3600,
-      apiKey: data["advanced.apiKey"] || "",
-      debugMode: data["advanced.debugMode"] === "true",
-    },
     about: processAboutSettings(data),
+    system: {
+      keepAlive: {
+        interval: Number(data["system.keepAlive.interval"]) || 1 * 60 * 1000,
+        enabled: data["system.keepAlive.enabled"] === "true",
+        isRunning: data["system.keepAlive.isRunning"] === "true",
+      },
+    },
   };
 }
 

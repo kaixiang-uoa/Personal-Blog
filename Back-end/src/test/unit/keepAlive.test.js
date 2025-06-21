@@ -1,205 +1,386 @@
-import { describe, it, before, after, beforeEach, afterEach } from 'mocha';
-import { expect } from 'chai';
-import { service as keepAliveService } from '../../services/keepAlive/index.js';
-import { config } from '../../services/keepAlive/config.js';
-import mongoose from 'mongoose';
+import { jest } from '@jest/globals';
+import request from 'supertest';
+import app from '../../app.js';
+import keepAliveService from '../../services/keepAlive/index.js';
+import ConfigManager from '../../services/keepAlive/config.js';
 
-// test config
-const testConfig = {
-  defaultInterval: 60 * 1000, // 1min
-  targetUrl: 'http://localhost:3001/api/v1/health',
-  enabled: true
+// 设置测试环境变量
+process.env.KEEP_ALIVE_TARGET_URL = 'http://localhost:3001/api/v1/health';
+
+// Mock axios
+const mockAxios = {
+  get: jest.fn()
+};
+jest.mock('axios', () => mockAxios);
+
+// Mock PingRecord model
+jest.mock('../../models/PingRecord.js', () => ({
+  create: jest.fn().mockResolvedValue({})
+}));
+
+// Mock croner
+const mockCron = {
+  isRunning: jest.fn(),
+  isStopped: jest.fn(),
+  isBusy: jest.fn(),
+  stop: jest.fn(),
+  nextRun: jest.fn(),
+  previousRun: jest.fn(),
+  currentRun: jest.fn(),
+  msToNext: jest.fn(),
+  getPattern: jest.fn()
 };
 
-/**
- * KeepAlive Service Admin Panel Test Suite
- * 
- * 注意：这些测试假设后端服务已经启动，并且 node-cron 正在运行。
- * 测试用例设计考虑了以下因素：
- * 1. 不干扰正在运行的 node-cron 服务
- * 2. 测试用例与定时任务不会冲突
- * 3. 验证 admin-panel 操作的正确性
- */
-describe('KeepAlive Service - Admin Panel Operations', function() {
-  this.timeout(10000);
+jest.mock('croner', () => ({
+  Cron: jest.fn().mockImplementation(() => mockCron)
+}));
 
-  // save original config
-  const originalConfig = { ...config };
-  
-  before(async () => {
-    console.log('\n=== KeepAlive Service Admin Panel Test Suite Started ===\n');
-    console.log('注意：测试假设后端服务已启动，node-cron 正在运行');
-    await mongoose.connect('mongodb://localhost:27017/test');
-  });
+// Mock auth middleware
+jest.mock('../../middleware/authMiddleware.js', () => ({
+  protect: jest.fn((req, res, next) => next())
+}));
 
-  after(async () => {
-    console.log('\n=== KeepAlive Service Admin Panel Test Suite Completed ===\n');
-    await mongoose.connection.close();
-  });
-
+describe('Keep-Alive Service Tests', () => {
   beforeEach(async () => {
-    // 保存当前配置，但不修改运行中的服务状态
-    Object.assign(config, testConfig);
-    console.log('\n--- Test Case Setup ---');
-    console.log('Current Config:', {
-      interval: config.defaultInterval,
-      enabled: config.enabled,
-      targetUrl: config.targetUrl
+    // 清理服务状态
+    await keepAliveService.stop();
+    jest.clearAllMocks();
+    
+    // 重置mock状态
+    mockCron.isRunning.mockReturnValue(false);
+    mockCron.isStopped.mockReturnValue(true);
+    mockCron.isBusy.mockReturnValue(false);
+    mockCron.stop.mockImplementation(() => {
+      mockCron.isRunning.mockReturnValue(false);
+      mockCron.isStopped.mockReturnValue(true);
+    });
+    mockCron.nextRun.mockReturnValue(new Date(Date.now() + 60000));
+    mockCron.previousRun.mockReturnValue(new Date());
+    mockCron.currentRun.mockReturnValue(null);
+    mockCron.msToNext.mockReturnValue(60000);
+    mockCron.getPattern.mockReturnValue('*/10 * * * *');
+    
+    // 重置axios mock
+    mockAxios.get.mockReset();
+  });
+
+  describe('ConfigManager Tests', () => {
+    test('should load targetUrl from environment variable', () => {
+      const config = ConfigManager.getConfig();
+      expect(config.targetUrl).toBe('http://localhost:3001/api/v1/health');
+    });
+
+    test('should use Adelaide timezone', () => {
+      const config = ConfigManager.getConfig();
+      expect(config.timezone).toBe('Australia/Adelaide');
+    });
+
+    test('should convert minutes to cron expression correctly', () => {
+      expect(ConfigManager.minutesToCron(5)).toBe('*/5 * * * *');
+      expect(ConfigManager.minutesToCron(10)).toBe('*/10 * * * *');
+    });
+
+    test('should limit minutes to valid range (1-14)', () => {
+      expect(ConfigManager.minutesToCron(0)).toBe('*/1 * * * *');
+      expect(ConfigManager.minutesToCron(15)).toBe('*/14 * * * *');
+      expect(ConfigManager.minutesToCron(20)).toBe('*/14 * * * *');
+    });
+
+    test('should convert cron expression to minutes correctly', () => {
+      expect(ConfigManager.cronToMinutes('*/5 * * * *')).toBe(5);
+      expect(ConfigManager.cronToMinutes('*/10 * * * *')).toBe(10);
+    });
+
+    test('should validate interval correctly', () => {
+      expect(ConfigManager.isValidInterval(1)).toBe(true);
+      expect(ConfigManager.isValidInterval(10)).toBe(true);
+      expect(ConfigManager.isValidInterval(14)).toBe(true);
+      expect(ConfigManager.isValidInterval(0)).toBe(false);
+      expect(ConfigManager.isValidInterval(15)).toBe(false);
+    });
+
+    test('should get and set config correctly', () => {
+      const originalConfig = ConfigManager.getConfig();
+      ConfigManager.setInterval('*/7 * * * *');
+      const newConfig = ConfigManager.getConfig();
+      expect(newConfig.interval).toBe('*/7 * * * *');
+      // 恢复原始配置
+      ConfigManager.setInterval(originalConfig.interval);
     });
   });
 
-  afterEach(async () => {
-    // 恢复原始配置，但不停止服务
-    Object.assign(config, originalConfig);
-    console.log('--- Test Case Cleanup ---\n');
-  });
-
-  describe('Configuration Management', () => {
-    it('should update configuration and reflect changes in status', async () => {
-      // 1. 获取当前运行状态
-      const initialStatus = await keepAliveService.getStatus();
-      console.log('Current service status:', initialStatus);
-
-      // 2. 更新配置（不影响正在运行的服务）
-      const newConfig = {
-        enabled: false,
-        defaultInterval: 120 * 1000 // 2 minutes
-      };
-      await keepAliveService.updateConfig(newConfig);
-      
-      // 3. 验证配置更新
-      const updatedStatus = await keepAliveService.getStatus();
-      console.log('Updated status:', updatedStatus);
-
-      expect(updatedStatus.enabled).to.equal(newConfig.enabled);
-      expect(updatedStatus.defaultInterval).to.equal(newConfig.defaultInterval);
-    });
-
-    it('should validate interval constraints', async () => {
-      const invalidConfig = {
-        defaultInterval: 30 * 1000 // 30 seconds, too short
-      };
-      
-      try {
-        await keepAliveService.updateConfig(invalidConfig);
-        expect.fail('Should have thrown an error');
-      } catch (error) {
-        expect(error.message).to.include('Interval must be between');
-      }
-    });
-  });
-
-  describe('Service Control', () => {
-    it('should handle service state changes through admin-panel', async () => {
-      // 1. 获取当前状态
-      const currentStatus = await keepAliveService.getStatus();
-      console.log('Current service status:', currentStatus);
-      
-      // 2. 通过 updateConfig 禁用服务
-      await keepAliveService.updateConfig({ enabled: false });
-      const disabledStatus = await keepAliveService.getStatus();
-      console.log('Service disabled through admin-panel:', disabledStatus);
-      
-      // 3. 通过 updateConfig 重新启用服务
-      await keepAliveService.updateConfig({ enabled: true });
-      const enabledStatus = await keepAliveService.getStatus();
-      console.log('Service enabled through admin-panel:', enabledStatus);
-
-      // 验证状态变化
-      expect(disabledStatus.enabled).to.be.false;
-      expect(enabledStatus.enabled).to.be.true;
-    });
-
-    it('should handle service state changes through direct stop/start', async () => {
-      // 1. 获取当前状态
-      const currentStatus = await keepAliveService.getStatus();
-      console.log('Current service status:', currentStatus);
-      
-      // 2. 直接调用 stop()
-      await keepAliveService.stop();
-      const stoppedStatus = await keepAliveService.getStatus();
-      console.log('Service stopped directly:', stoppedStatus);
-
-      // 3. 直接调用 start()
+  describe('KeepAliveService Tests', () => {
+    test('should start service successfully', async () => {
+      // 启动服务
       await keepAliveService.start();
-      const startedStatus = await keepAliveService.getStatus();
-      console.log('Service started directly:', startedStatus);
       
-      // 验证状态变化
-      expect(stoppedStatus.enabled).to.be.false;  // stop() 应该设置 enabled = false
-      expect(startedStatus.enabled).to.be.true;   // start() 应该设置 enabled = true
+      // 设置mock状态 - 启动后应该返回true
+      mockCron.isRunning.mockReturnValue(true);
+      mockCron.isStopped.mockReturnValue(false);
+      
+      const status = keepAliveService.getStatus();
+      expect(status.isRunning).toBe(true);
     });
 
-    it('should handle admin-panel sync after direct stop', async () => {
-      // 1. 直接停止服务
+    test('should stop service successfully', async () => {
+      // 先启动服务
+      await keepAliveService.start();
+      
+      // 设置运行状态
+      mockCron.isRunning.mockReturnValue(true);
+      mockCron.isStopped.mockReturnValue(false);
+      
+      // 然后停止
+      mockCron.isRunning.mockReturnValue(false);
+      mockCron.isStopped.mockReturnValue(true);
       await keepAliveService.stop();
-      const stoppedStatus = await keepAliveService.getStatus();
-      console.log('Service stopped directly:', stoppedStatus);
       
-      // 2. 模拟 admin-panel 连接，获取当前状态
-      const currentStatus = await keepAliveService.getStatus();
-      console.log('Current status for admin-panel:', currentStatus);
+      const status = keepAliveService.getStatus();
+      expect(status.isRunning).toBe(false);
+    });
+
+    test('should not start service if already running', async () => {
+      // 先启动服务
+      await keepAliveService.start();
       
-      // 3. 如果 admin-panel 显示 enabled = true，应该调用 start()
-      if (currentStatus.enabled) {
-        await keepAliveService.start();
-        const startedStatus = await keepAliveService.getStatus();
-        console.log('Service started after admin-panel sync:', startedStatus);
-        expect(startedStatus.enabled).to.be.true;
-      }
+      // 设置已运行状态
+      mockCron.isRunning.mockReturnValue(true);
+      mockCron.isStopped.mockReturnValue(false);
+      
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      await keepAliveService.start();
+      expect(consoleSpy).toHaveBeenCalledWith('Keep-Alive service is already running');
+      consoleSpy.mockRestore();
+    });
+
+    test('should not stop service if not running', async () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      await keepAliveService.stop();
+      expect(consoleSpy).toHaveBeenCalledWith('Keep-Alive service is not running');
+      consoleSpy.mockRestore();
+    });
+
+    test('should update interval successfully', async () => {
+      // 先启动服务
+      await keepAliveService.start();
+      
+      mockCron.isRunning.mockReturnValue(true);
+      await keepAliveService.updateInterval(7);
+      const status = keepAliveService.getStatus();
+      expect(status.config.intervalMinutes).toBe(7);
+    });
+
+    test('should reject invalid interval (too small)', async () => {
+      await expect(keepAliveService.updateInterval(0)).rejects.toThrow(
+        'Interval must be between 1 and 14 minutes to avoid Render sleep state'
+      );
+    });
+
+    test('should reject invalid interval (too large)', async () => {
+      await expect(keepAliveService.updateInterval(15)).rejects.toThrow(
+        'Interval must be between 1 and 14 minutes to avoid Render sleep state'
+      );
+    });
+
+    test('should perform ping successfully', async () => {
+      // 设置axios mock立即返回
+      mockAxios.get.mockResolvedValueOnce({
+        status: 200,
+        data: { message: 'OK' }
+      });
+
+      // 直接测试ping逻辑，不依赖服务状态
+      await keepAliveService.performPing();
+      
+      // 验证axios被调用
+      expect(mockAxios.get).toHaveBeenCalledWith(
+        'http://localhost:3001/api/v1/health',
+        { timeout: 10000 }
+      );
+      
+      // 验证状态更新
+      const status = keepAliveService.getStatus();
+      expect(status.isLiving).toBe(true);
+      expect(status.lastPingResult.success).toBe(true);
+      expect(status.lastPingResult.status).toBe(200);
+    }, 10000); // 增加超时时间
+
+    test('should handle ping failure', async () => {
+      // 设置axios mock立即抛出错误
+      mockAxios.get.mockRejectedValueOnce(new Error('Network error'));
+
+      // 直接测试ping逻辑，不依赖服务状态
+      await keepAliveService.performPing();
+      
+      // 验证axios被调用
+      expect(mockAxios.get).toHaveBeenCalledWith(
+        'http://localhost:3001/api/v1/health',
+        { timeout: 10000 }
+      );
+      
+      // 验证状态更新
+      const status = keepAliveService.getStatus();
+      expect(status.isLiving).toBe(false);
+      expect(status.lastPingResult.success).toBe(false);
+    }, 10000); // 增加超时时间
+
+    test('should return correct status when not running', () => {
+      const status = keepAliveService.getStatus();
+      expect(status.isRunning).toBe(false);
+      expect(status.isStopped).toBe(true);
+      expect(status.config).toBeDefined();
+      expect(status.config.timezone).toBe('Australia/Adelaide');
     });
   });
 
-  describe('Manual Ping Operations', () => {
-    it('should handle manual ping requests correctly', async () => {
-      // 1. 执行手动 ping（与定时任务并行）
-      const pingResult = await keepAliveService.manualPing();
-      console.log('Manual ping result:', pingResult);
+  describe('Health API Tests', () => {
+    test('GET /api/v1/health - should return 200 and health status', async () => {
+      const response = await request(app)
+        .get('/api/v1/health')
+        .expect(200);
 
-      // 2. 验证结果
-      expect(pingResult).to.have.property('timestamp');
-      expect(pingResult).to.have.property('status');
-      expect(pingResult).to.have.property('duration');
-      expect(pingResult).to.have.property('isRunning');
-      expect(pingResult).to.have.property('enabled');
+      expect(response.body).toHaveProperty('status', 'ok');
+      expect(response.body).toHaveProperty('timestamp');
+      expect(response.body).toHaveProperty('uptime');
+      expect(typeof response.body.uptime).toBe('number');
+    });
 
-      // 3. 验证状态更新
-      const status = await keepAliveService.getStatus();
-      expect(status.lastPingTime).to.deep.equal(pingResult.timestamp);
-      expect(status.lastPingStatus).to.equal(pingResult.status);
+    test('GET /health - should return 200 and detailed health status', async () => {
+      const response = await request(app)
+        .get('/health')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('status', 'OK');
+      expect(response.body).toHaveProperty('timestamp');
+      expect(response.body).toHaveProperty('uptime');
+      expect(response.body).toHaveProperty('memoryUsage');
+      expect(typeof response.body.uptime).toBe('number');
     });
   });
 
-  describe('Status Reporting', () => {
-    it('should provide accurate service status information', async () => {
-      // 1. 获取当前运行状态
-      const currentStatus = await keepAliveService.getStatus();
-      console.log('Current service status:', currentStatus);
+  describe('Keep-Alive API Tests', () => {
+    test('POST /api/v1/keep-alive/start - should start service', async () => {
+      mockCron.isRunning.mockReturnValue(true);
       
-      // 2. 执行一次 ping（与定时任务并行）
-      await keepAliveService.ping();
+      const response = await request(app)
+        .post('/api/v1/keep-alive/start')
+        .expect(200);
 
-      // 3. 获取更新后的状态
-      const updatedStatus = await keepAliveService.getStatus();
-      console.log('Updated status:', updatedStatus);
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Keep-Alive service started successfully');
+      expect(response.body.status.isRunning).toBe(true);
+    });
 
-      // 4. 验证状态信息完整性
-      expect(updatedStatus).to.have.all.keys([
-        'isRunning',
-        'enabled',
-        'lastPingTime',
-        'lastPingStatus',
-        'lastPingError',
-        'nextPingTime',
-        'defaultInterval'
-      ]);
+    test('POST /api/v1/keep-alive/stop - should stop service', async () => {
+      // 先启动服务
+      mockCron.isRunning.mockReturnValue(true);
+      await keepAliveService.start();
+      
+      // 然后停止
+      mockCron.isRunning.mockReturnValue(false);
+      const response = await request(app)
+        .post('/api/v1/keep-alive/stop')
+        .expect(200);
 
-      // 5. 验证状态值类型
-      expect(updatedStatus.isRunning).to.be.a('boolean');
-      expect(updatedStatus.enabled).to.be.a('boolean');
-      expect(updatedStatus.lastPingTime).to.be.a('Date');
-      expect(updatedStatus.lastPingStatus).to.be.a('number');
-      expect(updatedStatus.defaultInterval).to.be.a('number');
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Keep-Alive service stopped successfully');
+      expect(response.body.status.isRunning).toBe(false);
+    });
+
+    test('GET /api/v1/keep-alive/status - should return service status', async () => {
+      mockCron.isRunning.mockReturnValue(true);
+      await keepAliveService.start();
+      
+      const response = await request(app)
+        .get('/api/v1/keep-alive/status')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.status).toBeDefined();
+      expect(response.body.status.isRunning).toBeDefined();
+      expect(response.body.status.isLiving).toBeDefined();
+      expect(response.body.status.config).toBeDefined();
+      expect(response.body.status.config.timezone).toBe('Australia/Adelaide');
+    });
+
+    test('PUT /api/v1/keep-alive/interval - should update interval successfully', async () => {
+      mockCron.isRunning.mockReturnValue(true);
+      await keepAliveService.start();
+      
+      const response = await request(app)
+        .put('/api/v1/keep-alive/interval')
+        .send({ minutes: 7 })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Interval updated to 7 minutes successfully');
+      expect(response.body.status.config.intervalMinutes).toBe(7);
+    });
+
+    test('PUT /api/v1/keep-alive/interval - should reject invalid minutes (too small)', async () => {
+      const response = await request(app)
+        .put('/api/v1/keep-alive/interval')
+        .send({ minutes: 0 })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('Interval must be between 1 and 14 minutes');
+    });
+
+    test('PUT /api/v1/keep-alive/interval - should reject invalid minutes (too large)', async () => {
+      const response = await request(app)
+        .put('/api/v1/keep-alive/interval')
+        .send({ minutes: 15 })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('Interval must be between 1 and 14 minutes');
+    });
+
+    test('PUT /api/v1/keep-alive/interval - should reject missing minutes parameter', async () => {
+      const response = await request(app)
+        .put('/api/v1/keep-alive/interval')
+        .send({})
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('Minutes parameter is required');
+    });
+
+    test('PUT /api/v1/keep-alive/interval - should reject non-numeric minutes', async () => {
+      const response = await request(app)
+        .put('/api/v1/keep-alive/interval')
+        .send({ minutes: 'invalid' })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('Minutes parameter is required and must be a number');
+    });
+  });
+
+  describe('Integration Tests', () => {
+    test('should handle complete workflow: start -> update interval -> ping -> stop', async () => {
+      // 启动服务
+      mockCron.isRunning.mockReturnValue(true);
+      await keepAliveService.start();
+      expect(keepAliveService.getStatus().isRunning).toBe(true);
+
+      // 更新间隔
+      await keepAliveService.updateInterval(5);
+      expect(keepAliveService.getStatus().config.intervalMinutes).toBe(5);
+
+      // 执行ping
+      mockAxios.get.mockResolvedValueOnce({
+        status: 200,
+        data: { message: 'OK' }
+      });
+      await keepAliveService.performPing();
+      expect(keepAliveService.getStatus().isLiving).toBe(true);
+
+      // 停止服务
+      mockCron.isRunning.mockReturnValue(false);
+      await keepAliveService.stop();
+      expect(keepAliveService.getStatus().isRunning).toBe(false);
     });
   });
 }); 

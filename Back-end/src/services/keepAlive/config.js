@@ -1,54 +1,56 @@
-/**
- * Keep Alive Service Configuration
- * 
- * This module exports the configuration for the Keep Alive Service.
- * The service periodically pings a target URL to keep it alive.
- * 
- * Environment Variables:
- * - KEEP_ALIVE_TARGET_URL: The URL to ping (default: http://localhost:3001/api/v1/health)
- * - KEEP_ALIVE_DEFAULT_INTERVAL: Default interval in milliseconds (default: 5 minutes)
- * - KEEP_ALIVE_MIN_INTERVAL: Minimum allowed interval in milliseconds (default: 1 minute)
- * - KEEP_ALIVE_MAX_INTERVAL: Maximum allowed interval in milliseconds (default: 14 minutes)
- * - KEEP_ALIVE_ENABLED: Whether the service is enabled by default (default: false)
- */
-
-import dotenv from 'dotenv';
-dotenv.config();
-
-// Configuration object
-export const config = {
-  // Default interval in milliseconds (5 minutes)
-  defaultInterval: parseInt(process.env.KEEP_ALIVE_DEFAULT_INTERVAL) || 5 * 60 * 1000,
-  
-  // Minimum allowed interval (1 minute)
-  minInterval: parseInt(process.env.KEEP_ALIVE_MIN_INTERVAL) || 60 * 1000,
-  
-  // Maximum allowed interval (14 minutes)
-  maxInterval: parseInt(process.env.KEEP_ALIVE_MAX_INTERVAL) || 14 * 60 * 1000,
-  
-  // Target URL to ping
+// 默认配置
+const defaultConfig = {
+  interval: '*/10 * * * *', // 每 10 分钟
   targetUrl: process.env.KEEP_ALIVE_TARGET_URL || 'http://localhost:3001/api/v1/health',
-  
-  // Service enabled by default
-  enabled: process.env.KEEP_ALIVE_ENABLED === 'true' || false
+  timezone: 'Australia/Adelaide',
+  maxRetries: 3
 };
 
+// 动态配置对象
+let dynamicConfig = { ...defaultConfig };
 
-/**
- * Validate the configuration
- * @throws {Error} If the configuration is invalid
- */
-export function validateConfig() {
-  if (config.defaultInterval < config.minInterval || config.defaultInterval > config.maxInterval) {
-    throw new Error(`Default interval must be between ${config.minInterval} and ${config.maxInterval} milliseconds`);
+// 配置管理类
+class ConfigManager {
+  static getConfig() {
+    return { ...dynamicConfig };
   }
-  
-  try {
-    new URL(config.targetUrl);
-  } catch (error) {
-    throw new Error(`Invalid target URL: ${error.message}`);
+
+  static updateConfig(newConfig) {
+    dynamicConfig = { ...dynamicConfig, ...newConfig };
+    return this.getConfig();
+  }
+
+  static getInterval() {
+    return dynamicConfig.interval;
+  }
+
+  static setInterval(interval) {
+    dynamicConfig.interval = interval;
+    return this.getConfig();
+  }
+
+  // 将分钟数转换为 cron 表达式
+  static minutesToCron(minutes) {
+    // 限制最小1分钟，最大14分钟（避免Render 15分钟sleep）
+    if (minutes < 1) minutes = 1;
+    if (minutes > 14) minutes = 14;
+    return `*/${minutes} * * * *`;
+  }
+
+  // 将 cron 表达式转换为分钟数
+  static cronToMinutes(cronExpression) {
+    const match = cronExpression.match(/^\*\/(\d+) \* \* \* \*$/);
+    const minutes = match ? parseInt(match[1]) : 10;
+    // 确保返回的分钟数在有效范围内
+    if (minutes < 1) return 1;
+    if (minutes > 14) return 14;
+    return minutes;
+  }
+
+  // 验证间隔是否有效
+  static isValidInterval(minutes) {
+    return minutes >= 1 && minutes <= 14;
   }
 }
 
-// Validate configuration on module load
-validateConfig();
+export default ConfigManager; 

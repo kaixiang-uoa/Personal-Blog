@@ -226,5 +226,5 @@ export interface DashboardData {
 }
 
 // Re-export types from other files
-export * from "./auth";
 export * from "./posts";
+export * from "./keep-alive";

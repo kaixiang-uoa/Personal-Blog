@@ -28,16 +28,13 @@ import { useAuth } from "@/contexts/auth-context";
 import { apiService } from "@/lib/api";
 import { DashboardData } from "@/types/index";
 import { PostQueryParams, PostStatus } from "@/types/posts";
-import { keepAliveService } from "@/lib/services/keep-alive-service";
+import { useKeepAlive } from "@/contexts/keep-alive-context";
 
 export default function DashboardPage() {
   const { isAuthenticated, user } = useAuth();
+  const { status: keepAliveStatus } = useKeepAlive();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
-  const [serverStatus, setServerStatus] = useState<{
-    isRunning: boolean;
-    lastPingTime: string | null;
-  } | null>(null);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -139,23 +136,6 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    async function fetchServerStatus() {
-      try {
-        const response = await keepAliveService.getConfig();
-        if (response.success && response.data) {
-          setServerStatus({
-            isRunning: response.data.isRunning,
-            lastPingTime: response.data.lastPingTime,
-          });
-        }
-      } catch (error) {
-        setServerStatus(null);
-      }
-    }
-    fetchServerStatus();
-  }, []);
-
   // Return early if not authenticated
   if (!isAuthenticated) {
     return null;
@@ -225,30 +205,34 @@ export default function DashboardPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {loading || !serverStatus ? (
+            {loading || !keepAliveStatus ? (
               <Skeleton className="h-7 w-24" />
             ) : (
               <>
-                <div className="text-2xl font-bold">
-                  {serverStatus.isRunning ? (
-                    <span className="text-green-600">Running</span>
-                  ) : (
-                    <span className="text-red-600">Stopped</span>
-                  )}
+                <div className={`text-2xl font-bold ${
+                  keepAliveStatus.isRunning
+                    ? keepAliveStatus.isLiving
+                      ? 'text-green-600'
+                      : 'text-yellow-600'
+                    : keepAliveStatus.isLiving
+                    ? 'text-green-600'
+                    : 'text-red-600'
+                }`}>
+                  {keepAliveStatus.isRunning
+                    ? keepAliveStatus.isLiving
+                      ? 'Running & Alive'
+                      : 'Running but Sleeping'
+                    : keepAliveStatus.isLiving
+                    ? 'Server Alive'
+                    : 'Stopped'}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Last ping: {serverStatus.lastPingTime
-                    ? new Date(serverStatus.lastPingTime).toLocaleString()
-                    : "N/A"}
+                  {keepAliveStatus.lastPingResult
+                    ? `Last ping: ${new Date(keepAliveStatus.lastPingResult.timestamp).toLocaleString()}`
+                    : "No ping data available"}
                 </div>
               </>
             )}
-            {/* 
-            <p className="text-xs text-muted-foreground mt-1">
-              <TrendingUp className="inline h-3 w-3 mr-1" />
-              Up 8% from last month
-            </p>
-            */}
           </CardContent>
         </Card>
 

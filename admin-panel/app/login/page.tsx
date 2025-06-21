@@ -4,9 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, EyeIcon, EyeOffIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import AuthLayout from "@/components/layouts/auth-layout";
 import {
@@ -30,20 +29,7 @@ import {
 import { Input } from "@/components/ui/inputs/input";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/ui/use-toast";
-
-// Login form validation schema - keep UI field names unchanged
-const formSchema = z.object({
-  email: z
-    .string()
-    .min(3, { message: "Username must be at least 3 characters" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
-  rememberMe: z.boolean().default(false),
-});
-
-// Type for form values
-type FormValues = z.infer<typeof formSchema>;
+import { loginSchema, LoginFormValues } from "@/types";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -52,9 +38,10 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -62,8 +49,24 @@ export default function LoginPage() {
     },
   });
 
+  // client initialization, read remembered data
+  useEffect(() => {
+    setIsClient(true);
+    
+    const rememberedEmail = localStorage.getItem("rememberedEmail");
+    const rememberMe = localStorage.getItem("rememberMe") === "true";
+    
+    if (rememberedEmail || rememberMe) {
+      form.reset({
+        email: rememberedEmail || "",
+        password: "",
+        rememberMe: rememberMe
+      });
+    }
+  }, [form]);
+
   // Login handler function
-  const onSubmit = form.handleSubmit(async (values: FormValues) => {
+  const onSubmit = form.handleSubmit(async (values: LoginFormValues) => {
     try {
       setIsLoading(true);
       setApiError(null); //reset error state
@@ -71,9 +74,15 @@ export default function LoginPage() {
       // call login method
       await login(values.email, values.password);
 
-      // if need to remember login state
+      // handle Remember Me logic
       if (values.rememberMe) {
+        // remember email and status
+        localStorage.setItem("rememberedEmail", values.email);
         localStorage.setItem("rememberMe", "true");
+      } else {
+        // clear remembered dataemembered data
+        localStorage.removeItem("rememberedEmail");
+        localStorage.removeItem("rememberMe");
       }
 
       // login successful toast
@@ -194,7 +203,7 @@ export default function LoginPage() {
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          disabled={isLoading}
+                          disabled={isLoading || !isClient}
                         />
                       </FormControl>
                       <FormLabel className="text-sm font-normal">
@@ -205,37 +214,32 @@ export default function LoginPage() {
                 />
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Forgot password?
                 </Link>
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
-                  </>
-                ) : (
-                  "Login"
-                )}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sign in
               </Button>
             </form>
           </Form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline">
-                Register
-              </Link>
-            </p>
-          </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2 justify-center">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Blog Management System
-          </p>
+        <CardFooter className="flex flex-col space-y-2">
+          <div className="text-sm text-muted-foreground text-center">
+            Don't have an account?{" "}
+            <Link
+              href="/register"
+              className="text-primary hover:text-primary/80"
+            >
+              Sign up
+            </Link>
+          </div>
         </CardFooter>
       </Card>
     </AuthLayout>

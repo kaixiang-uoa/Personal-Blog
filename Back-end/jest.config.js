@@ -5,7 +5,6 @@ export default {
   
   // Handle ESM settings
   transform: {},
-  extensionsToTreatAsEsm: ['.js'],
   
   // Test file matching pattern
   testMatch: ['**/test/**/*.test.js'],
@@ -45,14 +44,6 @@ export default {
   
   // By default, disable test watch mode
   watchman: false,
-  
-  // Experimental support for ESM
-  // Node.js ESM support
-  // https://jestjs.io/docs/ecmascript-modules
-  experimental: {
-    // Configuration for Node.js support for ESM
-    useExperimentalESM: true
-  },
   
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',

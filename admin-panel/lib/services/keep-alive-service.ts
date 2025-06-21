@@ -1,72 +1,111 @@
-import apiClient from "@/lib/api";
+import { apiService } from "@/lib/api";
 import type { ApiResponse } from "@/types/api";
-
-export interface KeepAliveConfig {
-  interval: number;
-  enabled: boolean;
-  isRunning: boolean;
-  targetUrl: string;
-  lastPingTime: string | null;
-  lastPingStatus: number | null;
-  lastPingError: string | null;
-  nextPingTime: string | null;
-}
-
-export interface PingResult {
-  status: number;
-  duration: number;
-  timestamp: string;
-}
+import type { 
+  KeepAliveStatus, 
+  KeepAliveResponse, 
+  UpdateIntervalResponse, 
+  PingResult 
+} from "@/types/keep-alive";
 
 export const keepAliveService = {
   /**
-   * Get Keep Alive service configuration
+   * Start keep alive service
    */
-  async getConfig(): Promise<ApiResponse<KeepAliveConfig>> {
+  async startService(): Promise<ApiResponse<KeepAliveResponse>> {
     try {
-      const response = await apiClient.get<KeepAliveConfig>("/keep-alive/config");
-      return {
-        success: true,
-        data: response.data,
-        message: "Configuration retrieved successfully",
-      };
+      const response = await apiService.post<KeepAliveResponse>("/keep-alive/start");
+      return response;
     } catch (error) {
-      console.error("Failed to get keep alive config:", error);
+      console.error("Failed to start keep alive service:", error);
       throw error;
     }
   },
 
   /**
-   * Update Keep Alive service configuration
+   * Stop keep alive service
    */
-  async updateConfig(config: Partial<KeepAliveConfig>): Promise<ApiResponse<KeepAliveConfig>> {
+  async stopService(): Promise<ApiResponse<KeepAliveResponse>> {
     try {
-      const response = await apiClient.put<KeepAliveConfig>("/keep-alive/config", config);
-      return {
-        success: true,
-        data: response.data,
-        message: "Configuration updated successfully",
-      };
+      const response = await apiService.post<KeepAliveResponse>("/keep-alive/stop");
+      return response;
     } catch (error) {
-      console.error("Failed to update keep alive config:", error);
+      console.error("Failed to stop keep alive service:", error);
       throw error;
     }
   },
 
   /**
-   * Manually trigger a ping
+   * Get keep alive service status
    */
-  async triggerPing(): Promise<ApiResponse<PingResult>> {
+  async getStatus(): Promise<ApiResponse<KeepAliveStatus>> {
     try {
-      const response = await apiClient.post<PingResult>("/keep-alive/ping");
+      const response = await apiService.get<{ status: KeepAliveStatus }>("/keep-alive/status");
+      // Transform response to extract status from nested structure
+      const status = response.data?.status || response.data;
       return {
-        success: true,
-        data: response.data,
-        message: "Ping triggered successfully",
+        success: response.success,
+        data: status as KeepAliveStatus,
+        message: response.message,
       };
     } catch (error) {
-      console.error("Failed to trigger ping:", error);
+      console.error("Failed to get keep alive status:", error);
       throw error;
+    }
+  },
+
+  /**
+   * Update keep alive service interval
+   */
+  async updateInterval(minutes: number): Promise<ApiResponse<UpdateIntervalResponse>> {
+    try {
+      const response = await apiService.put<UpdateIntervalResponse>("/keep-alive/interval", {
+        minutes
+      });
+      return response;
+    } catch (error) {
+      console.error("Failed to update keep alive interval:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Ping server directly (for testing)
+   */
+  async pingServer(): Promise<ApiResponse<PingResult>> {
+    try {
+      const startTime = Date.now();
+      const response = await apiService.get("/health");
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      
+      const pingResult: PingResult = {
+        timestamp: new Date().toISOString(),
+        status: 200, // Assuming successful response
+        duration,
+        success: true,
+        isLiving: true,
+      };
+
+      return {
+        success: true,
+        data: pingResult,
+        message: "Ping successful",
+      };
+    } catch (error) {
+      console.error("Ping server error:", error);
+      const pingResult: PingResult = {
+        timestamp: new Date().toISOString(),
+        status: 0,
+        duration: 0,
+        success: false,
+        isLiving: false,
+      };
+
+      return {
+        success: false,
+        data: pingResult,
+        message: "Ping failed",
+      };
     }
   },
 }; 

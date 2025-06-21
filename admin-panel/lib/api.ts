@@ -124,7 +124,7 @@ api.interceptors.response.use(
 
         // Attempt to refresh the token
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
           { refreshToken },
         );
 

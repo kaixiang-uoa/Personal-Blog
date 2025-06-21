@@ -3,9 +3,16 @@
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useState, useEffect } from "react";
 
-import { apiService } from "@/lib/api";
 import { User } from "@/types";
-import { AuthContextType, AuthResponse } from "@/types/auth";
+import { authService } from "@/lib/services/auth-service";
+
+export interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+}
 
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,24 +27,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const token = localStorage.getItem("token");
+        const token = authService.getToken();
         if (!token) {
           setLoading(false);
           return;
         }
 
-        // verify token validity
-        const response = await apiService.get<User>("/auth/me");
+        // verify token validity using service
+        const response = await authService.getCurrentUser();
 
         if (response && response.success && response.data) {
-          // API returns user data in response.data, no need to access .user
           setUser(response.data);
         } else {
           // token invalid, clear local storage
-          localStorage.removeItem("token");
+          authService.clearAuthData();
         }
       } catch (error) {
-        localStorage.removeItem("token");
+        authService.clearAuthData();
       } finally {
         setLoading(false);
       }
@@ -47,59 +53,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // login method
-  const login = async (
-    email: string,
-    password: string,
-  ): Promise<AuthResponse | undefined> => {
+  const login = async (email: string, password: string): Promise<void> => {
     try {
       setLoading(true);
 
-      try {
-        // use apiService's login method, convert return result to any to access properties
-        const responseData = (await apiService.login({
-          email,
-          password,
-        })) as any;
+      // use authService for login
+      const response = await authService.login({ email, password, rememberMe: false });
 
-        // if success, save token and user info
-        if (responseData && responseData.success) {
-          // get token and user info from response
-          const { token, user, refreshToken } = responseData;
+      // if success, save token and user info
+      if (response && response.success) {
+        // get token and user info from response
+        const { token, user, refreshToken } = response;
 
-          // save token to local storage
-          localStorage.setItem("token", token);
+        // store auth data using service
+        authService.storeAuthData(token, refreshToken);
 
-          // save refreshToken if exists
-          if (refreshToken) {
-            localStorage.setItem("refreshToken", refreshToken);
-          }
-
-          // update user state
-          setUser({
-            _id: user.id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-          });
-
-          return responseData as AuthResponse;
-        } else {
-          throw new Error(responseData?.message || "Login failed");
-        }
-      } catch (apiError: any) {
-        // get error message from API response
-        if (apiError.response?.status === 429) {
-          throw new Error("Too many requests, please try again later");
-        } else if (apiError.response?.status === 401) {
-          // use API returned error message
-          throw new Error(
-            apiError.response.data.message || "Email or password is incorrect",
-          );
-        } else if (apiError.response?.data?.message) {
-          throw new Error(apiError.response.data.message);
-        } else {
-          throw apiError;
-        }
+        // update user state
+        setUser({
+          _id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        });
+      } else {
+        throw new Error(response?.message || "Login failed");
       }
     } catch (error: any) {
       throw error;
@@ -110,13 +87,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // logout method
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken"); // clear refresh token
+    // use service to clear auth data
+    authService.clearAuthData();
     setUser(null);
 
-    // Use router for navigation instead of direct window location change
-    // This maintains better application state
-    router.push("/login");
+    // 增强登出逻辑，防止后退按钮绕过认证
+    // 1. 清除sessionStorage中的重定向信息
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("redirectAfterLogin");
+      // 2. 清除Remember Me数据（可选，取决于设计需求）
+      // 如果希望登出后也清除记住的邮箱，取消注释下面两行
+      // localStorage.removeItem("rememberedEmail");
+      // localStorage.removeItem("rememberMe");
+    }
+
+    // 2. 使用replace而不是push，这样后退按钮不会回到dashboard
+    router.replace("/login");
+    
+    // 3. 强制刷新页面以确保所有状态都被清除（可选，但更安全）
+    // 如果上面的方法不够，可以取消注释下面这行
+    // window.location.href = "/login";
   };
 
   return (

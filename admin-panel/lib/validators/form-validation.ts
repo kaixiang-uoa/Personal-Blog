@@ -122,20 +122,9 @@ export const userFormSchema = z
     path: ["confirmPassword"],
   });
 
-export const loginFormSchema = z.object({
-  username: z
-    .string()
-    .min(3, { message: "Username must be at least 3 characters" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
-  rememberMe: z.boolean().default(false),
-});
-
 // ===== Type Exports =====
 export type TextInputSchema = z.infer<typeof textInputSchema>;
 export type PostFormSchema = z.infer<typeof postFormSchema>;
 export type UserFormSchema = z.infer<typeof userFormSchema>;
 export type CategoryFormSchema = z.infer<typeof categoryFormSchema>;
 export type TagFormSchema = z.infer<typeof tagFormSchema>;
-export type LoginFormSchema = z.infer<typeof loginFormSchema>;

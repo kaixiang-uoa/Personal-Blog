@@ -242,12 +242,7 @@ export default function SettingsPage() {
 
           <TabsContent value="system">
             <div className="space-y-6">
-              <KeepAliveSettingsForm
-                defaultValues={{}}
-                onSubmit={async () => {}}
-                loading={loading}
-                isSaving={isSaving}
-              />
+              <KeepAliveSettingsForm />
             </div>
           </TabsContent>
         </Tabs>

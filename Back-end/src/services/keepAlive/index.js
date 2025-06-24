@@ -2,6 +2,7 @@ import { Cron } from 'croner';
 import axios from 'axios';
 import ConfigManager from './config.js';
 import PingRecord from '../../models/PingRecord.js';
+import { logger } from '../../utils/logger.js';
 
 class KeepAliveService {
   constructor() {
@@ -26,8 +27,12 @@ class KeepAliveService {
       this.cronJob = new Cron(
         config.interval,
         async () => {
-          console.log(`Cron job tick at ${new Date().toISOString()}`);
-          await this.performPing();
+          try {
+            logger.info(`Cron job tick at ${new Date().toISOString()}`);
+            await this.performPing();
+          } catch (err) {
+            logger.error(`Cron job tick error: ${err.message}`);
+          }
         }
       );
 
@@ -92,6 +97,8 @@ class KeepAliveService {
     const startTime = Date.now();
     const config = ConfigManager.getConfig();
     
+    logger.info(`开始 ping: ${config.targetUrl}`);
+
     try {
       console.log('Performing ping to:', config.targetUrl);
       
@@ -121,7 +128,7 @@ class KeepAliveService {
         isLiving: this.isLiving  // save alive status to database
       });
       
-      console.log(`Ping successful: ${response.status} (${duration}ms) - Server is ${this.isLiving ? 'LIVING' : 'SLEEPING'}`);
+      logger.info(`Ping 成功: 状态码 ${response.status}，耗时 ${duration}ms，服务器状态: ${this.isLiving ? 'LIVING' : 'SLEEPING'}`);
       
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -146,7 +153,7 @@ class KeepAliveService {
         isLiving: false
       });
       
-      console.error(`Ping failed: ${error.message} (${duration}ms) - Server is SLEEPING`);
+      logger.error(`Ping 失败: ${error.message}，耗时 ${duration}ms，服务器状态: SLEEPING`);
     }
   }
 

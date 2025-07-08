@@ -103,5 +103,8 @@ export default {
   // enabled Tailwind plugins
   // tailwindcss-animate: provides more powerful animation capabilities
   // @see https://github.com/jamiebuilds/tailwindcss-animate
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('@tailwindcss/typography'),
+  ],
 } satisfies Config;

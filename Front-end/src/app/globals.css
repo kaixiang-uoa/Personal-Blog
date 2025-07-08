@@ -1,3 +1,4 @@
+@import 'prismjs/themes/prism-tomorrow.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,24 +69,24 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  /* 修复select元素在暗色模式下的样式 */
+  /* fix select element style in dark mode */ 
   select {
     @apply bg-background text-foreground border-border;
   }
 
-  /* 暗色模式下修复select选项的颜色 */
+  /* fix select option color in dark mode */
   .dark select {
     color-scheme: dark;
   }
 
-  /* 针对某些浏览器，可能需要单独设置option样式 */
+  /* fix option style in dark mode */
   .dark option {
     background-color: var(--dark-bg);
     color: var(--dark-text);
   }
 }
 
-/* 直接设置明暗主题背景和文本颜色 */
+/* set light and dark theme background and text color */
 :root {
   --light-bg: #ffffff;
   --dark-bg: #0a0a0a;
@@ -104,17 +105,17 @@ html.dark {
   color: var(--dark-text) !important;
 }
 
-/* 最高优先级背景颜色设置 */
+/* set highest priority background color */
 .dark body, 
 .dark html, 
 .dark #__next, 
 .dark main, 
 .dark div[data-overlay-container="true"] {
-  background-color: var(--dark-bg) !important; /* 暗色背景 */
-  color: var(--dark-text) !important; /* 亮色文本 */
+  background-color: var(--dark-bg) !important; /* dark background */
+  color: var(--dark-text) !important; /* light text */
 }
 
-/* 为某些可能有背景颜色的容器设置透明背景 */
+/* set transparent background for some containers that may have background color */
 .dark header, 
 .dark footer, 
 .dark nav, 
@@ -123,7 +124,7 @@ html.dark {
   background-color: transparent !important;
 }
 
-/* 如果有特定组件设置了白色背景，我们需要覆盖它们 */
+/* if some specific components set white background, we need to override them */
 .dark [class*="bg-white"], 
 .dark [class*="bg-background"], 
 .dark [class*="bg-card"], 
@@ -131,7 +132,7 @@ html.dark {
   background-color: var(--dark-bg) !important;
 }
 
-/* 加强对比度 */
+/* enhance contrast */
 .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
   color: white !important;
 }
@@ -140,12 +141,12 @@ html.dark {
   color: white !important;
 }
 
-/* 确保所有暗色模式下的文本颜色足够亮 */
+/* ensure all text colors in dark mode are bright enough */
 .dark p, .dark span, .dark div {
   color: var(--dark-text);
 }
 
-/* 主题切换动画 */
+/* theme switch animation */
 * {
   transition-property: color, background-color, border-color, 
                       text-decoration-color, fill, stroke;
@@ -153,12 +154,12 @@ html.dark {
   transition-duration: 150ms;
 }
 
-/* 初始化时的特殊类 */
+/* special class when initializing */
 .theme-init {
   animation: theme-fade-in 0.5s ease-in-out;
 }
 
-/* 强制主题变化 */
+/* force theme change */
 .force-theme-change {
   animation: theme-change 0.5s ease-in-out;
 }
@@ -172,4 +173,173 @@ html.dark {
   0% { opacity: 0.8; }
   50% { opacity: 0.9; }
   100% { opacity: 1; }
+}
+
+/* Tiptap/ProseMirror rich text style sync from admin-panel */
+.ProseMirror {
+  @apply outline-none min-h-[400px];
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-muted-foreground;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror h1 {
+  @apply text-3xl font-bold mt-6 mb-4;
+}
+
+.ProseMirror h2 {
+  @apply text-2xl font-bold mt-5 mb-3;
+}
+
+.ProseMirror h3 {
+  @apply text-xl font-bold mt-4 mb-2;
+}
+
+.ProseMirror p {
+  @apply my-2 leading-7;
+}
+
+.ProseMirror ul {
+  @apply list-disc ml-6 my-3;
+}
+
+.ProseMirror ol {
+  @apply list-decimal ml-6 my-3;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-4;
+}
+
+.ProseMirror code {
+  @apply bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5;
+}
+
+.ProseMirror pre {
+  @apply bg-gray-100 dark:bg-gray-800 rounded p-4 my-4 overflow-x-auto;
+}
+
+.ProseMirror pre code {
+  @apply bg-transparent p-0;
+}
+
+.ProseMirror a {
+  @apply text-primary underline;
+}
+
+.ProseMirror img {
+  @apply max-w-full rounded-md mx-auto my-4;
+}
+
+/* only beautify inline code, not affect code block highlight */
+.prose code:not(pre code) {
+  background: #72757b;
+  color: #f8f8f2;
+  border-radius: 0.3em;
+  padding: 0.2em 0.4em;
+  font-size: 0.95em;
+  font-family: 'Fira Mono', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+}
+
+/* PrismJS tomorrow night eighties highlight style, set highest priority, prevent Tailwind from overriding */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #ccc !important;
+  background: none !important;
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace !important;
+  font-size: 1em;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 1.5;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+}
+pre[class*="language-"] {
+  padding: 1em !important;
+  margin: .5em 0 !important;
+  overflow: auto !important;
+}
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
+  background: #2d2d2d !important;
+}
+:not(pre) > code[class*="language-"] {
+  padding: .1em !important;
+  border-radius: .3em !important;
+  white-space: normal !important;
+}
+.token.comment,
+.token.block-comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #999 !important;
+}
+.token.punctuation {
+  color: #ccc !important;
+}
+.token.tag,
+.token.attr-name,
+.token.namespace,
+.token.deleted {
+  color: #e2777a !important;
+}
+.token.function-name {
+  color: #6196cc !important;
+}
+.token.boolean,
+.token.number,
+.token.function {
+  color: #f08d49 !important;
+}
+.token.property,
+.token.class-name,
+.token.constant,
+.token.symbol {
+  color: #f8c555 !important;
+}
+.token.selector,
+.token.important,
+.token.atrule,
+.token.keyword,
+.token.builtin {
+  color: #cc99cd !important;
+}
+.token.string,
+.token.char,
+.token.attr-value,
+.token.regex,
+.token.variable {
+  color: #7ec699 !important;
+}
+.token.operator,
+.token.entity,
+.token.url {
+  color: #67cdcc !important;
+}
+.token.important,
+.token.bold {
+  font-weight: bold !important;
+}
+.token.italic {
+  font-style: italic !important;
+}
+.token.entity {
+  cursor: help !important;
+}
+.token.inserted {
+  color: green !important;
 }

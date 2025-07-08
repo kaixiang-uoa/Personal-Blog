@@ -270,7 +270,6 @@ export const createPost = asyncHandler(async (req, res) => {
     featuredImage,
     seo,
   } = req.body;
-
   // If it's a draft and has no title, use a temporary title
   const postTitle = title || "";
 

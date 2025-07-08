@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -6,6 +7,17 @@ import { Navbar } from '@/components';
 import { useArticle } from '@/hooks/useArticle';
 import { Article, PostData } from '@/types';
 import { useSetting } from '@/contexts/SettingsContext';
+import Prism from "prismjs";
+import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-csharp';
+
+
 
 /**
  * ArticlePage Component
@@ -37,7 +49,18 @@ export default function ArticlePage() {
 
   // Fetch article data using React Query
   const { data, isLoading, error } = useArticle(slug);
+  console.log("data", data?.post);
   const article: Article | null = data ? (data as PostData).post || null : null;
+
+  /** 
+   * highlight code block
+   * @param {string} code - The code to highlight
+   * @returns {string} The highlighted code
+   */
+  useEffect(() => {
+    Prism.highlightAll();
+  }, [article?.content]);
+
 
   /**
    * Handle tag click and navigate to filtered article list
@@ -129,7 +152,7 @@ export default function ArticlePage() {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" fill="currentColor" viewBox="0 0 256 256" className="mr-1.5">
                       <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C64,166.83,40.5,185.71,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
                     </svg>
-                    {article.author.displayName || article.author.username}
+                    {article.author.username}
                   </span>
                 )}
               </div>

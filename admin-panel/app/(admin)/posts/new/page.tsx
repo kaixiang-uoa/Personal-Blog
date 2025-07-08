@@ -37,9 +37,9 @@ import {
 import { Category, Tag } from "@/types/index";
 import { Post, PostStatus } from "@/types/posts";
 
-// 定义React事件类型
+// define React event type
 
-// 复用 Post 类型并扩展为表单数据类型
+// reuse Post type and extend it to form data type
 interface PostFormData
   extends Omit<
     Post,
@@ -91,28 +91,18 @@ export default function NewPostPage() {
   // Load categories and tags
   useEffect(() => {
     async function fetchCategories() {
-      try {
-        const response = await apiService.getCategories();
-        setCategories(response.data || []);
-        setAvailableCategories(response.data || []);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
+      const response = await apiService.getCategories();
+      setCategories(response.data.categories || []);
+      setAvailableCategories(response.data.categories || []);
     }
-
     fetchCategories();
   }, []);
 
   useEffect(() => {
     async function fetchTags() {
-      try {
-        const response = await apiService.getTags();
-        setTags(response.data || []);
-      } catch (error) {
-        console.error("Failed to fetch tags:", error);
-      }
+      const response = await apiService.getTags();
+      setTags(response.data.tags || []);
     }
-
     fetchTags();
   }, []);
 

@@ -1,5 +1,6 @@
 import type React from 'react';
 import './globals.css';
+import 'prismjs/themes/prism-tomorrow.css';
 import type { Metadata } from 'next/types';
 import { Inter } from 'next/font/google';
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -7,6 +8,7 @@ import { SettingsProvider } from '@/contexts/SettingsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ReactQueryProvider } from '@/contexts/QueryClientContext';
 import { SEOHead } from '@/components/common';
+
 
 const inter = Inter({ subsets: ['latin'] });
 

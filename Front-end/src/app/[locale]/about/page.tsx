@@ -48,6 +48,7 @@ export default function AboutMe() {
 
   // Get about page data from settings
   const intro = useSetting('about.intro', '');
+  const introZh = useSetting('about.intro_zh', '');
   const contactInfo = useSetting('about.contactInfo', '{}');
   const skills = useSetting('about.skills', '[]');
   const education = useSetting('about.education', '[]');
@@ -65,7 +66,7 @@ export default function AboutMe() {
       const parsedSocial = tryParseJSON<SocialLinks>(socialLinks, {} as SocialLinks);
       
       setAboutData({
-        intro: locale === 'zh' ? intro : intro,
+        intro: locale === 'zh' ? introZh : intro,
         contact: tryParseJSON<ContactInfo>(contactInfo, {} as ContactInfo),
         skills: Array.isArray(parsedSkills) ? parsedSkills.map(skill => 
           typeof skill === 'object' && skill !== null && 'value' in skill 
@@ -87,7 +88,7 @@ export default function AboutMe() {
       setError('Failed to parse about page data. Please check the data format.');
       setLoading(false);
     }
-  }, [locale, intro, contactInfo, skills, education, experience, projects, socialLinks]);
+  }, [locale, intro, introZh, contactInfo, skills, education, experience, projects, socialLinks]);
 
   /**
    * Check if an object has valid non-empty values

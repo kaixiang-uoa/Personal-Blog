@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Navbar } from '@/components';
+import { Navbar, ErrorBoundary } from '@/components';
 import { useArticle } from '@/hooks/useArticle';
 import { Article, PostData } from '@/types';
 import { useSetting } from '@/contexts/SettingsContext';
@@ -49,7 +49,7 @@ export default function ArticlePage() {
 
   // Fetch article data using React Query
   const { data, isLoading, error } = useArticle(slug);
-  console.log("data", data?.post);
+  
   const article: Article | null = data ? (data as PostData).post || null : null;
 
   /** 
@@ -82,7 +82,8 @@ export default function ArticlePage() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto w-full px-4 md:px-6 lg:px-8 py-4">
+      <ErrorBoundary>
+        <div className="max-w-6xl mx-auto w-full px-4 md:px-6 lg:px-8 py-4">
         {/* Back to home link */}
         <Link
           href={`/${params.locale}`}
@@ -212,7 +213,8 @@ export default function ArticlePage() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </ErrorBoundary>
 
       {/* Footer */}
       <footer className="mt-auto py-6 border-t border-border">

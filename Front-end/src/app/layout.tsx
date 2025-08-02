@@ -1,6 +1,5 @@
 import type React from 'react';
 import './globals.css';
-import 'prismjs/themes/prism-tomorrow.css';
 import type { Metadata } from 'next/types';
 import { Inter } from 'next/font/google';
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -21,31 +20,48 @@ export const metadata: Metadata = {
 const themeScript = `
 (function() {
   try {
-    let storedTheme = localStorage.getItem('blog-theme');
-    
-    if (storedTheme) {
-      try {
-        storedTheme = JSON.parse(storedTheme);
-      } catch (e) {
-        storedTheme = 'light';
-      }
-    }
-    
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const defaultTheme = storedTheme || (prefersDark ? 'dark' : 'light');
-    
-    if (defaultTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.style.backgroundColor = '#0a0a0a';
-      document.body.style.backgroundColor = '#0a0a0a';
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        initializeTheme();
+      });
     } else {
-      document.documentElement.classList.remove('dark');
+      initializeTheme();
     }
     
-    document.documentElement.classList.add('theme-init');
-    setTimeout(() => {
-      document.documentElement.classList.remove('theme-init');
-    }, 500);
+    function initializeTheme() {
+      const root = document.documentElement;
+      if (!root) {
+        console.warn('Document root element not found');
+        return;
+      }
+      
+      let storedTheme = localStorage.getItem('blog-theme');
+      
+      if (storedTheme) {
+        try {
+          storedTheme = JSON.parse(storedTheme);
+        } catch (e) {
+          storedTheme = 'light';
+        }
+      }
+      
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const defaultTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+      
+      if (defaultTheme === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+      
+      root.classList.add('theme-init');
+      setTimeout(() => {
+        if (root) {
+          root.classList.remove('theme-init');
+        }
+      }, 500);
+    }
   } catch (e) {
     console.error('Theme initialization error:', e);
   }

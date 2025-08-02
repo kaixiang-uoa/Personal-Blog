@@ -81,69 +81,9 @@
 
   /* fix option style in dark mode */
   .dark option {
-    background-color: var(--dark-bg);
-    color: var(--dark-text);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
-}
-
-/* set light and dark theme background and text color */
-:root {
-  --light-bg: #ffffff;
-  --dark-bg: #0a0a0a;
-  --light-text: #222222;
-  --dark-text: #f8f8f8;
-}
-
-html {
-  background-color: var(--light-bg);
-  color: var(--light-text);
-}
-
-html.dark {
-  color-scheme: dark;
-  background-color: var(--dark-bg) !important;
-  color: var(--dark-text) !important;
-}
-
-/* set highest priority background color */
-.dark body, 
-.dark html, 
-.dark #__next, 
-.dark main, 
-.dark div[data-overlay-container="true"] {
-  background-color: var(--dark-bg) !important; /* dark background */
-  color: var(--dark-text) !important; /* light text */
-}
-
-/* set transparent background for some containers that may have background color */
-.dark header, 
-.dark footer, 
-.dark nav, 
-.dark section, 
-.dark article {
-  background-color: transparent !important;
-}
-
-/* if some specific components set white background, we need to override them */
-.dark [class*="bg-white"], 
-.dark [class*="bg-background"], 
-.dark [class*="bg-card"], 
-.dark [class*="bg-popover"] {
-  background-color: var(--dark-bg) !important;
-}
-
-/* enhance contrast */
-.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
-  color: white !important;
-}
-
-.dark a:hover {
-  color: white !important;
-}
-
-/* ensure all text colors in dark mode are bright enough */
-.dark p, .dark span, .dark div {
-  color: var(--dark-text);
 }
 
 /* theme switch animation */

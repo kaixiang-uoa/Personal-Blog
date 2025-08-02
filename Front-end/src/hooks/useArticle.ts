@@ -4,7 +4,7 @@ import { postApi } from '@/services/postApi';
 /**
  * Hook for fetching a single article by slug using React Query
  */
-export function useArticle(slug: string, enabled: boolean = true) {
+export function useArticle(slug: string, enabled = true) {
   return useQuery({
     queryKey: ['article', slug],
     queryFn: () => postApi.getPostBySlug(slug),

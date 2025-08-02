@@ -58,11 +58,11 @@ export default {
         ring: 'hsl(var(--ring))', // focus ring color
         // chart colors, used for data visualization
         chart: {
-          '1': 'hsl(var(--chart-1))', // 图表主色1
-          '2': 'hsl(var(--chart-2))', // 图表主色2
-          '3': 'hsl(var(--chart-3))', // 图表主色3
-          '4': 'hsl(var(--chart-4))', // 图表主色4
-          '5': 'hsl(var(--chart-5))', // 图表主色5
+                '1': 'hsl(var(--chart-1))', // Chart primary color 1
+      '2': 'hsl(var(--chart-2))', // Chart primary color 2
+      '3': 'hsl(var(--chart-3))', // Chart primary color 3
+      '4': 'hsl(var(--chart-4))', // Chart primary color 4
+      '5': 'hsl(var(--chart-5))', // Chart primary color 5
         },
       },
       // unified management of rounded corners

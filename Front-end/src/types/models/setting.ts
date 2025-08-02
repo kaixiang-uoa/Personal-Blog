@@ -12,11 +12,9 @@ export interface ContactInfo {
  * Education item interface
  */
 export interface EducationItem {
-  school: string;
   degree: string;
-  field: string;
-  startDate: string;
-  endDate?: string;
+  institution: string;
+  year: string;
   description?: string;
 }
 
@@ -24,12 +22,10 @@ export interface EducationItem {
  * Experience item interface
  */
 export interface ExperienceItem {
-  company: string;
   position: string;
-  startDate: string;
-  endDate?: string;
+  company: string;
+  period: string;
   description?: string;
-  responsibilities?: string[];
 }
 
 /**
@@ -38,9 +34,8 @@ export interface ExperienceItem {
 export interface ProjectItem {
   name: string;
   description: string;
-  technologies: string[];
   link?: string;
-  github?: string;
+  tech: string[];
 }
 
 /**

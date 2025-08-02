@@ -49,8 +49,8 @@ export default function FilterSidebar({
   const [selectedSortOrder, setSelectedSortOrder] = useState<SortOrder>(sortOrder);
   
   // Get sidebar configuration from settings
-  const defaultSortSetting = useSetting('posts.defaultSort', 'latest');
-  const defaultSort = validateSortOrder(defaultSortSetting, 'latest');
+  // const defaultSortSetting = useSetting('posts.defaultSort', 'latest'); // TODO: Use when needed
+  // const defaultSort = validateSortOrder(defaultSortSetting, 'latest'); // TODO: Use when needed
   const showSidebar = useSetting('appearance.showSidebar', true);
 
   /**

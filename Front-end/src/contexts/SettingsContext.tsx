@@ -103,12 +103,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     // Check if setting exists and is not empty
     const value = settings[key];
     
+    // Handle object values that might have a 'value' property
+    let processedValue = value;
+    if (typeof value === 'object' && value !== null && 'value' in value) {
+      processedValue = (value as { value: string | number | boolean | object | null }).value;
+    }
+    
     // Special handling for string type, return default value if empty string
-    if (typeof value === 'string' && value.trim() === '' && typeof defaultValue === 'string') {
+    if (typeof processedValue === 'string' && processedValue.trim() === '' && typeof defaultValue === 'string') {
       return defaultValue;
     }
     
-    return (value !== undefined && value !== null) ? value as T : defaultValue;
+    return (processedValue !== undefined && processedValue !== null) ? processedValue as T : defaultValue;
   }, [settings]);
   
   useEffect(() => {

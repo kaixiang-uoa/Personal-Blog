@@ -57,10 +57,10 @@ export default function ArticleCard({ article }: ArticleCardProps) {
       </div>
       {/* Article title and author information */}
       <div className="flex-1 flex flex-col">
-        <p className="text-[#111418] text-base font-medium leading-normal mb-1">
+        <p className="text-foreground text-base font-medium leading-normal mb-1">
           <Link href={`/article/${slug}`} className="hover:text-cyan-600 hover:underline line-clamp-2">{title}</Link>
         </p>
-        <p className="text-[#60748a] text-sm font-normal leading-normal mt-auto">
+        <p className="text-muted-foreground text-sm font-normal leading-normal mt-auto">
           By {authorName}
         </p>
       </div>

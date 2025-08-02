@@ -24,4 +24,12 @@ export interface FilterSidebarProps {
     value: string | string[] | SortOrder;
   }) => void;
   onClearFiltersAction: () => void;
+}
+
+export interface PageBannerProps {
+  bannerKey: string;
+  title: string;
+  subtitle?: string;
+  height?: 'default' | 'large';
+  defaultImage?: string;
 } 

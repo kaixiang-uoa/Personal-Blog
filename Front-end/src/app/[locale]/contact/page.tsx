@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Navbar } from '@/components';
+import { Navbar, PageBanner } from '@/components';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -19,7 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { API_BASE_URL } from '@/services/api';
-import { useSetting } from '@/contexts/SettingsContext';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -44,9 +44,8 @@ export default function Contact() {
   const t = useTranslations('contact');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Get banner settings from context
-  const contactBanner = useSetting('appearance.contactBanner', '/images/contact-banner.jpg');
-  const contactBannerMobile = useSetting('appearance.contactBannerMobile', contactBanner);
+  // Banner settings
+  const defaultBannerUrl = '/images/contact-banner.jpg';
 
   // Form validation schema
   const formSchema = z.object({
@@ -117,27 +116,12 @@ export default function Contact() {
       <Navbar />
       
       {/* Banner section */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4">
-        <div className="py-4">
-          <div className="flex min-h-[280px] md:min-h-[320px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 md:px-10 pb-8 md:pb-10 banner-image"
-              style={{
-                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${contactBanner}')`
-              }}>
-            <style jsx>{`
-              @media (max-width: 768px) {
-                .banner-image {
-                  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('${contactBannerMobile}') !important;
-                }
-              }
-            `}</style>
-            <div className="flex flex-col gap-2 text-left max-w-2xl">
-              <h1 className="text-white text-3xl md:text-5xl font-black leading-tight tracking-[-0.033em]">
-                {t('title')}
-              </h1>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageBanner
+        bannerKey="contactBanner"
+        title={t('title')}
+        height="default"
+        defaultImage={defaultBannerUrl}
+      />
       
       {/* Contact form section */}
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">

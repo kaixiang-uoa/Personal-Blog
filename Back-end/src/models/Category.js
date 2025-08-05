@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const CategorySchema = new Schema(
@@ -38,7 +38,7 @@ const CategorySchema = new Schema(
     },
     parentCategory: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
+      ref: 'Category',
       default: null,
     },
     featuredImage: {
@@ -49,14 +49,14 @@ const CategorySchema = new Schema(
 );
 
 // middleware to auto-generate slug
-CategorySchema.pre("save", function (next) {
+CategorySchema.pre('save', function (next) {
   if (!this.slug && this.name) {
     this.slug = this.name
       .toLowerCase()
       // replace non-word characters (excluding Chinese) with hyphens
-      .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
+      .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
       // remove leading/trailing hyphens
-      .replace(/^-+|-+$/g, "");
+      .replace(/^-+|-+$/g, '');
   }
 
   // set default language values if not provided
@@ -80,4 +80,4 @@ CategorySchema.pre("save", function (next) {
 });
 
 // module.exports = mongoose.model('Category', CategorySchema);
-export default mongoose.model("Category", CategorySchema);
+export default mongoose.model('Category', CategorySchema);

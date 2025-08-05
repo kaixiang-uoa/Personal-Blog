@@ -24,9 +24,9 @@ export const populatePostQuery = (query, options = {}) => {
 
   // Populate related data with selective field projection
   query = query
-    .populate("author", "username displayName avatar")
-    .populate("categories", "name name_en name_zh slug")
-    .populate("tags", "name slug");
+    .populate('author', 'username displayName avatar')
+    .populate('categories', 'name name_en name_zh slug')
+    .populate('tags', 'name slug');
 
   // Use lean option for better performance when appropriate
   if (lean) {

@@ -13,7 +13,7 @@ async function testDbConnection() {
 
     // 2. 测试数据库连接
     const collections = await mongoose.connection.db.listCollections().toArray();
-    console.log('数据库集合列表:', collections.map(c => c.name));
+    console.log('数据库集合列表:', collections.map((c) => c.name));
 
   } catch (error) {
     console.error('发生错误:', error);
@@ -25,4 +25,4 @@ async function testDbConnection() {
 }
 
 // 执行测试
-testDbConnection(); 
+testDbConnection();

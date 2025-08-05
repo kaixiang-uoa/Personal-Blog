@@ -3,7 +3,7 @@
  * Defines the data structure and middleware for blog posts
  */
 
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
 
@@ -16,14 +16,14 @@ const PostSchema = new Schema(
     title: {
       type: String,
       required: function () {
-        return this.status === "published";
+        return this.status === 'published';
       },
       trim: true,
     },
     slug: {
       type: String,
       required: function () {
-        return this.status === "published";
+        return this.status === 'published';
       },
       unique: true,
       trim: true,
@@ -35,29 +35,29 @@ const PostSchema = new Schema(
     content: {
       type: String,
       required: function () {
-        return this.status === "published";
+        return this.status === 'published';
       },
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     status: {
       type: String,
-      enum: ["draft", "published"],
-      default: "draft",
+      enum: ['draft', 'published'],
+      default: 'draft',
     },
     categories: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
+        ref: 'Category',
       },
     ],
     tags: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Tag",
+        ref: 'Tag',
       },
     ],
     featuredImage: {
@@ -92,16 +92,16 @@ const PostSchema = new Schema(
  * Middleware to auto-generate post slugs
  * Creates URL-friendly slugs based on the post title
  */
-PostSchema.pre("save", function (next) {
+PostSchema.pre('save', function (next) {
   if (!this.slug && this.title) {
     this.slug = this.title
       .toLowerCase()
       // replace non-word characters (excluding Chinese) with hyphens
-      .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
+      .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
       // remove leading/trailing hyphens
-      .replace(/^-+|-+$/g, "");
+      .replace(/^-+|-+$/g, '');
   }
   next();
 });
 
-export default mongoose.model("Post", PostSchema);
+export default mongoose.model('Post', PostSchema);

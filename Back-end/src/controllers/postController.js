@@ -1,15 +1,15 @@
-import Post from "../models/Post.js";
-import Tag from "../models/Tag.js";
-import Category from "../models/Category.js";
-import asyncHandler from "express-async-handler";
-import { success, createError } from "../utils/responseHandler.js";
-import { populatePostListQuery } from "../utils/populatePostQuery.js";
+import Post from '../models/Post.js';
+import Tag from '../models/Tag.js';
+import Category from '../models/Category.js';
+import asyncHandler from 'express-async-handler';
+import { success, createError } from '../utils/responseHandler.js';
+import { populatePostListQuery } from '../utils/populatePostQuery.js';
 import {
   getPopulatedPostById,
   getPopulatedPostBySlug,
-} from "../utils/populateUtils.js";
-import { transformLocalizedCategories } from "../utils/transformLocalizedCategories.js";
-import { transformLocalizedTags } from "../utils/transformLocalizedTags.js";
+} from '../utils/populateUtils.js';
+import { transformLocalizedCategories } from '../utils/transformLocalizedCategories.js';
+import { transformLocalizedTags } from '../utils/transformLocalizedTags.js';
 
 /**
  * @desc    Get all posts, supports filtering by tags, categories, search, date, etc.
@@ -20,16 +20,16 @@ export const getAllPosts = asyncHandler(async (req, res) => {
   const {
     page = 1,
     limit = 10,
-    status = "published",
+    status = 'published',
     allStatus = false,
     categorySlug,
     tagSlug,
     search,
-    sort: sortKey = "publishedAt-desc",
+    sort: sortKey = 'publishedAt-desc',
     lang,
   } = req.query;
 
-  const query = allStatus === "true" ? {} : { status };
+  const query = allStatus === 'true' ? {} : { status };
 
   // Category filter
   if (categorySlug) {
@@ -40,7 +40,7 @@ export const getAllPosts = asyncHandler(async (req, res) => {
   // Tag filter
   if (tagSlug) {
     const tagSlugs = tagSlug
-      .split(",")
+      .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
     const tags = await Tag.find({ slug: { $in: tagSlugs } });
@@ -52,23 +52,23 @@ export const getAllPosts = asyncHandler(async (req, res) => {
   // Search keyword filter
   if (search) {
     query.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { content: { $regex: search, $options: "i" } },
-      { excerpt: { $regex: search, $options: "i" } },
+      { title: { $regex: search, $options: 'i' } },
+      { content: { $regex: search, $options: 'i' } },
+      { excerpt: { $regex: search, $options: 'i' } },
     ];
   }
 
   const sortOptions = {
-    "publishedAt-desc": "-publishedAt",
-    "publishedAt-asc": "publishedAt",
-    "updatedAt-desc": "-updatedAt",
-    "updatedAt-asc": "updatedAt",
-    latest: "-publishedAt",
-    oldest: "publishedAt",
-    popular: "-viewCount",
+    'publishedAt-desc': '-publishedAt',
+    'publishedAt-asc': 'publishedAt',
+    'updatedAt-desc': '-updatedAt',
+    'updatedAt-asc': 'updatedAt',
+    latest: '-publishedAt',
+    oldest: 'publishedAt',
+    popular: '-viewCount',
   };
 
-  const sort = sortOptions[sortKey] || "-publishedAt";
+  const sort = sortOptions[sortKey] || '-publishedAt';
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   // Use optimized list query that excludes content for better performance
@@ -82,7 +82,7 @@ export const getAllPosts = asyncHandler(async (req, res) => {
   const transformedPosts = posts.map((post) => {
     // Check if post is already a plain object (from lean query)
     const transformedPost =
-      typeof post.toObject === "function" ? post.toObject() : post;
+      typeof post.toObject === 'function' ? post.toObject() : post;
 
     if (transformedPost.categories && transformedPost.categories.length > 0) {
       transformedPost.categories = transformLocalizedCategories(
@@ -113,12 +113,12 @@ export const getAllPosts = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getPostById = asyncHandler(async (req, res) => {
-  const lang = req.query.lang || "en";
+  const lang = req.query.lang || 'en';
   const postId = req.params.id;
 
   const post = await getPopulatedPostById(postId);
 
-  if (!post) throw createError("Post not found", 404);
+  if (!post) throw createError('Post not found', 404);
 
   // idempotent check - use client IP and timestamp combination as idempotent key
   const clientIp = req.ip || req.socket.remoteAddress;
@@ -147,7 +147,7 @@ export const getPostById = asyncHandler(async (req, res) => {
   }
 
   const transformedPost =
-    typeof post.toObject === "function" ? post.toObject() : post;
+    typeof post.toObject === 'function' ? post.toObject() : post;
   if (transformedPost.categories && transformedPost.categories.length > 0) {
     transformedPost.categories = transformLocalizedCategories(
       transformedPost.categories,
@@ -170,11 +170,11 @@ export const getPostById = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getPostBySlug = asyncHandler(async (req, res) => {
-  const lang = req.query.lang || "en";
+  const lang = req.query.lang || 'en';
   const slug = req.params.slug;
 
   const post = await getPopulatedPostBySlug(slug);
-  if (!post) throw createError("Post not found", 404);
+  if (!post) throw createError('Post not found', 404);
 
   // idempotent check - use client IP and timestamp combination as idempotent key
   const clientIp = req.ip || req.socket.remoteAddress;
@@ -203,7 +203,7 @@ export const getPostBySlug = asyncHandler(async (req, res) => {
   }
 
   const transformedPost =
-    typeof post.toObject === "function" ? post.toObject() : post;
+    typeof post.toObject === 'function' ? post.toObject() : post;
   if (transformedPost.categories && transformedPost.categories.length > 0) {
     transformedPost.categories = transformLocalizedCategories(
       transformedPost.categories,
@@ -271,10 +271,10 @@ export const createPost = asyncHandler(async (req, res) => {
     seo,
   } = req.body;
   // If it's a draft and has no title, use a temporary title
-  const postTitle = title || "";
+  const postTitle = title || '';
 
   // process slug
-  let slug = "";
+  let slug = '';
   if (providedSlug) {
     // If slug is provided, ensure it's unique
     slug = await generateUniqueSlug(providedSlug);
@@ -282,9 +282,9 @@ export const createPost = asyncHandler(async (req, res) => {
     // If there's a title but no slug, generate from title
     const baseSlug = postTitle
       .toLowerCase()
-      .replace(/[^\w\u4e00-\u9fa5]+/g, "-");
+      .replace(/[^\w\u4e00-\u9fa5]+/g, '-');
     slug = await generateUniqueSlug(baseSlug);
-  } else if (status === "published") {
+  } else if (status === 'published') {
     // If it's published status but has no title and slug, generate a temporary slug
     const timestamp = Date.now();
     slug = await generateUniqueSlug(`post-${timestamp}`);
@@ -298,15 +298,15 @@ export const createPost = asyncHandler(async (req, res) => {
   const post = await Post.create({
     title: postTitle,
     slug,
-    excerpt: excerpt || "",
-    content: content || "",
+    excerpt: excerpt || '',
+    content: content || '',
     author: req.user._id,
     categories: categories || [],
     tags: tags || [],
-    status: status || "draft",
-    featuredImage: featuredImage || "",
+    status: status || 'draft',
+    featuredImage: featuredImage || '',
     seo: seo || {},
-    publishedAt: status === "published" ? Date.now() : null,
+    publishedAt: status === 'published' ? Date.now() : null,
   });
 
   const populatedPost = await getPopulatedPostById(post._id);
@@ -320,16 +320,16 @@ export const createPost = asyncHandler(async (req, res) => {
  */
 export const updatePost = asyncHandler(async (req, res) => {
   let post = await Post.findById(req.params.id);
-  if (!post) throw createError("Post not found", 404);
+  if (!post) throw createError('Post not found', 404);
 
   const { status, title, content, slug: providedSlug } = req.body;
 
   // Check if status is changing from draft to published
-  if (status === "published" && post.status !== "published") {
+  if (status === 'published' && post.status !== 'published') {
     // Validate required fields when publishing
-    if (!title) throw createError("Title is required for published posts", 400);
+    if (!title) throw createError('Title is required for published posts', 400);
     if (!content)
-      throw createError("Content is required for published posts", 400);
+      throw createError('Content is required for published posts', 400);
 
     // Set publish time
     req.body.publishedAt = Date.now();
@@ -343,13 +343,13 @@ export const updatePost = asyncHandler(async (req, res) => {
     });
     if (slugExists)
       throw createError(
-        "This slug is already in use, please use another slug",
+        'This slug is already in use, please use another slug',
         400,
       );
-  } else if (status === "published" && !post.slug && !providedSlug) {
+  } else if (status === 'published' && !post.slug && !providedSlug) {
     // If it's published status but has no slug, generate from title
     if (title) {
-      const baseSlug = title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, "-");
+      const baseSlug = title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
       req.body.slug = await generateUniqueSlug(baseSlug, req.params.id);
     } else {
       // If there's no title, use timestamp to generate slug
@@ -377,10 +377,10 @@ export const updatePost = asyncHandler(async (req, res) => {
  */
 export const deletePost = asyncHandler(async (req, res) => {
   const post = await getPopulatedPostById(req.params.id);
-  if (!post) throw createError("Post not found", 404);
+  if (!post) throw createError('Post not found', 404);
 
   // only delete post, not categories and tags
   await post.deleteOne();
 
-  return success(res, { message: "Post deleted successfully" });
+  return success(res, { message: 'Post deleted successfully' });
 });

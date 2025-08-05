@@ -1,9 +1,9 @@
 /**
  * Upload Logging Utility
- * 
+ *
  * This module provides utility functions for logging upload-related events
  * and debugging information.
- * 
+ *
  * @module utils/uploadLogger
  */
 
@@ -13,15 +13,15 @@
  */
 export const logUploadRequest = (req) => {
   console.log('Upload request received:', {
-    files: req.files ? req.files.map(f => ({
+    files: req.files ? req.files.map((f) => ({
       originalname: f.originalname,
       mimetype: f.mimetype,
       size: f.size,
       key: f.key,
-      location: f.location
+      location: f.location,
     })) : 'No files',
     body: req.body,
-    user: req.user ? { id: req.user.id } : 'No user'
+    user: req.user ? { id: req.user.id } : 'No user',
   });
 };
 
@@ -35,7 +35,7 @@ export const logFileProcessing = (file) => {
     key: file.key,
     size: file.size,
     mimetype: file.mimetype,
-    location: file.location
+    location: file.location,
   });
 };
 
@@ -45,4 +45,4 @@ export const logFileProcessing = (file) => {
  */
 export const logUploadError = (error) => {
   console.error('Upload error:', error);
-}; 
+};

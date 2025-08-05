@@ -1,10 +1,10 @@
-import mongoose from "mongoose";
-import { logger } from "../utils/logger.js";
+import mongoose from 'mongoose';
+import { logger } from '../utils/logger.js';
 
 const databaseConnect = async () => {
   // use default value if environment variable is not set
   const mongoUri =
-    process.env.MONGODB_URI || "mongodb://localhost:27017/blogdb";
+    process.env.MONGODB_URI || 'mongodb://localhost:27017/blogdb';
 
   try {
     const connect = await mongoose.connect(mongoUri);

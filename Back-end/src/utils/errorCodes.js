@@ -5,13 +5,13 @@
 
 // error categories
 export const ErrorCategories = {
-  VALIDATION: "VALIDATION", // validation related errors
-  AUTH: "AUTHENTICATION", // authentication related errors
-  ACCESS: "AUTHORIZATION", // authorization related errors
-  RESOURCE: "RESOURCE", // resource related errors
-  SYSTEM: "SYSTEM", // system related errors
-  DATA: "DATA", // data related errors
-  EXTERNAL: "EXTERNAL", // external service related errors
+  VALIDATION: 'VALIDATION', // validation related errors
+  AUTH: 'AUTHENTICATION', // authentication related errors
+  ACCESS: 'AUTHORIZATION', // authorization related errors
+  RESOURCE: 'RESOURCE', // resource related errors
+  SYSTEM: 'SYSTEM', // system related errors
+  DATA: 'DATA', // data related errors
+  EXTERNAL: 'EXTERNAL', // external service related errors
 };
 
 /**
@@ -28,149 +28,149 @@ export const ErrorCategories = {
 export const ErrorCodes = {
   // validateerror (EV***)
   EV001: {
-    message: "Invalid input data",
+    message: 'Invalid input data',
     category: ErrorCategories.VALIDATION,
     statusCode: 400,
   },
   EV002: {
-    message: "Required field missing",
+    message: 'Required field missing',
     category: ErrorCategories.VALIDATION,
     statusCode: 400,
   },
   EV003: {
-    message: "Invalid format",
+    message: 'Invalid format',
     category: ErrorCategories.VALIDATION,
     statusCode: 400,
   },
   EV004: {
-    message: "Validation failed",
+    message: 'Validation failed',
     category: ErrorCategories.VALIDATION,
     statusCode: 400,
   },
   EV005: {
-    message: "Invalid query parameters",
+    message: 'Invalid query parameters',
     category: ErrorCategories.VALIDATION,
     statusCode: 400,
   },
 
   // authenticationerror (EA***)
   EA001: {
-    message: "Authentication required",
+    message: 'Authentication required',
     category: ErrorCategories.AUTH,
     statusCode: 401,
   },
   EA002: {
-    message: "Invalid credentials",
+    message: 'Invalid credentials',
     category: ErrorCategories.AUTH,
     statusCode: 401,
   },
   EA003: {
-    message: "Token expired",
+    message: 'Token expired',
     category: ErrorCategories.AUTH,
     statusCode: 401,
   },
   EA004: {
-    message: "Invalid token",
+    message: 'Invalid token',
     category: ErrorCategories.AUTH,
     statusCode: 401,
   },
   EA005: {
-    message: "Account locked",
+    message: 'Account locked',
     category: ErrorCategories.AUTH,
     statusCode: 401,
   },
 
   // authorizationerror (EAC***)
   EAC001: {
-    message: "Permission denied",
+    message: 'Permission denied',
     category: ErrorCategories.ACCESS,
     statusCode: 403,
   },
   EAC002: {
-    message: "Insufficient privileges",
+    message: 'Insufficient privileges',
     category: ErrorCategories.ACCESS,
     statusCode: 403,
   },
   EAC003: {
-    message: "Resource access forbidden",
+    message: 'Resource access forbidden',
     category: ErrorCategories.ACCESS,
     statusCode: 403,
   },
 
   // resource error (ER***)
   ER001: {
-    message: "Resource not found",
+    message: 'Resource not found',
     category: ErrorCategories.RESOURCE,
     statusCode: 404,
   },
   ER002: {
-    message: "Resource already exists",
+    message: 'Resource already exists',
     category: ErrorCategories.RESOURCE,
     statusCode: 409,
   },
   ER003: {
-    message: "Resource deleted",
+    message: 'Resource deleted',
     category: ErrorCategories.RESOURCE,
     statusCode: 410,
   },
   ER004: {
-    message: "Resource temporarily unavailable",
+    message: 'Resource temporarily unavailable',
     category: ErrorCategories.RESOURCE,
     statusCode: 503,
   },
 
   // system
   ES001: {
-    message: "Internal server error",
+    message: 'Internal server error',
     category: ErrorCategories.SYSTEM,
     statusCode: 500,
   },
   ES002: {
-    message: "Service unavailable",
+    message: 'Service unavailable',
     category: ErrorCategories.SYSTEM,
     statusCode: 503,
   },
   ES003: {
-    message: "Request timeout",
+    message: 'Request timeout',
     category: ErrorCategories.SYSTEM,
     statusCode: 504,
   },
   ES004: {
-    message: "Configuration error",
+    message: 'Configuration error',
     category: ErrorCategories.SYSTEM,
     statusCode: 500,
   },
 
   // data error (ED***)
   ED001: {
-    message: "Database error",
+    message: 'Database error',
     category: ErrorCategories.DATA,
     statusCode: 500,
   },
   ED002: {
-    message: "Data integrity error",
+    message: 'Data integrity error',
     category: ErrorCategories.DATA,
     statusCode: 409,
   },
   ED003: {
-    message: "Query execution failed",
+    message: 'Query execution failed',
     category: ErrorCategories.DATA,
     statusCode: 500,
   },
   ED004: {
-    message: "Transaction failed",
+    message: 'Transaction failed',
     category: ErrorCategories.DATA,
     statusCode: 500,
   },
 
   // external service error (EE***)
   EE001: {
-    message: "External service unavailable",
+    message: 'External service unavailable',
     category: ErrorCategories.EXTERNAL,
     statusCode: 503,
   },
   EE002: {
-    message: "External API error",
+    message: 'External API error',
     category: ErrorCategories.EXTERNAL,
     statusCode: 502,
   },

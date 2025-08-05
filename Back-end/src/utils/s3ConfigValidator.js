@@ -1,9 +1,9 @@
 /**
  * S3 Configuration Validator
- * 
+ *
  * This module provides utility functions for validating S3 configuration
  * and environment variables.
- * 
+ *
  * @module utils/s3ConfigValidator
  */
 
@@ -12,7 +12,7 @@
  * @param {Object} config - S3 configuration object
  * @throws {Error} If validation fails
  */
-export const validateS3Config = (config) => {
+export const validateS3Config = (_config) => {
   const requiredEnvVars = [
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY',
@@ -20,13 +20,13 @@ export const validateS3Config = (config) => {
   ];
 
   const missingVars = requiredEnvVars.filter(
-    (envVar) => !process.env[envVar]
+    (envVar) => !process.env[envVar],
   );
 
   if (missingVars.length > 0) {
     console.error('Missing required environment variables:', missingVars);
     throw new Error(
-      `Missing required environment variables: ${missingVars.join(', ')}`
+      `Missing required environment variables: ${missingVars.join(', ')}`,
     );
   }
 
@@ -37,7 +37,7 @@ export const validateS3Config = (config) => {
       bucket: bucketName,
       length: bucketName.length,
       containsSpaces: bucketName.includes(' '),
-      containsUpperCase: /[A-Z]/.test(bucketName)
+      containsUpperCase: /[A-Z]/.test(bucketName),
     };
 
     console.log('Bucket name validation:', bucketValidation);
@@ -61,7 +61,8 @@ export const validateS3Config = (config) => {
 };
 
 // Log S3 configuration details (with sensitive information masked)
-const logS3Config = (config) => {
-  // Remove logging of configuration details
-  return true;
-}; 
+// Currently unused but kept for future debugging needs
+// const _logS3Config = (_config) => {
+//   // Remove logging of configuration details
+//   return true;
+// };

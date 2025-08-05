@@ -3,9 +3,9 @@ export function transformLocalizedTags(tags, lang) {
     const raw = tag.toObject?.() || tag;
 
     const localizedName =
-      lang === "en"
+      lang === 'en'
         ? raw.name_en || raw.name
-        : lang === "zh"
+        : lang === 'zh'
           ? raw.name_zh || raw.name
           : raw.name;
 

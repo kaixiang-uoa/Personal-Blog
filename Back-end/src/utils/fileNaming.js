@@ -1,9 +1,9 @@
 /**
  * File Naming Utility Functions
- * 
+ *
  * This module provides utility functions for generating standardized file names
  * and handling file naming strategies.
- * 
+ *
  * @module utils/fileNaming
  */
 
@@ -38,13 +38,13 @@ export const generateFileName = ({
 }) => {
   // Get file extension from original name
   const ext = originalName.split('.').pop().toLowerCase();
-  
+
   // Generate timestamp if needed
   const timestampStr = timestamp ? `-${Date.now()}` : '';
-  
+
   // Generate random string if needed
   const randomStr = randomString ? `-${generateRandomString()}` : '';
-  
+
   // Combine all parts
   return `${prefix}${timestampStr}${randomStr}.${ext}`;
 };
@@ -69,10 +69,10 @@ export const isValidFileName = (fileName) => {
     // No empty file names
     fileName.length > 0,
     // No special characters except for allowed ones
-    /^[a-zA-Z0-9\-_\.\/]+$/.test(fileName),
+    /^[a-zA-Z0-9\-_./]+$/.test(fileName),
     // Maximum length check
     fileName.length <= 255,
   ];
-  
-  return rules.every(rule => rule === true);
-}; 
+
+  return rules.every((rule) => rule === true);
+};

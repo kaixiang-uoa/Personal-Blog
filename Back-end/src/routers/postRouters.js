@@ -1,4 +1,4 @@
-import express from "express";
+import express from 'express';
 const router = express.Router();
 import {
   getAllPosts,
@@ -7,10 +7,10 @@ import {
   createPost,
   updatePost,
   deletePost,
-} from "../controllers/postController.js";
-import { protect, restrictTo } from "../middleware/authMiddleware.js";
-import { validateRequest } from "../middleware/validationMiddleware.js";
-import { postRules } from "../utils/validationRules.js";
+} from '../controllers/postController.js';
+import { protect, restrictTo } from '../middleware/authMiddleware.js';
+import { validateRequest } from '../middleware/validationMiddleware.js';
+import { postRules } from '../utils/validationRules.js';
 
 /**
  * @swagger
@@ -108,7 +108,7 @@ import { postRules } from "../utils/validationRules.js";
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/", validateRequest(postRules.list), getAllPosts);
+router.get('/', validateRequest(postRules.list), getAllPosts);
 
 /**
  * @swagger
@@ -150,7 +150,7 @@ router.get("/", validateRequest(postRules.list), getAllPosts);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/slug/:slug", validateRequest(postRules.slug), getPostBySlug);
+router.get('/slug/:slug', validateRequest(postRules.slug), getPostBySlug);
 
 /**
  * @swagger
@@ -192,7 +192,7 @@ router.get("/slug/:slug", validateRequest(postRules.slug), getPostBySlug);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/:id", validateRequest(postRules.id), getPostById);
+router.get('/:id', validateRequest(postRules.id), getPostById);
 
 /**
  * @swagger
@@ -271,9 +271,9 @@ router.get("/:id", validateRequest(postRules.id), getPostById);
  *         description: Forbidden - Insufficient permissions
  */
 router.post(
-  "/",
+  '/',
   protect,
-  restrictTo("admin", "author"),
+  restrictTo('admin', 'author'),
   validateRequest(postRules.create),
   createPost,
 );
@@ -357,9 +357,9 @@ router.post(
  *         description: Post not found
  */
 router.put(
-  "/:id",
+  '/:id',
   protect,
-  restrictTo("admin"),
+  restrictTo('admin'),
   validateRequest([...postRules.id, ...postRules.create]),
   updatePost,
 );
@@ -402,9 +402,9 @@ router.put(
  *         description: Post not found
  */
 router.delete(
-  "/:id",
+  '/:id',
   protect,
-  restrictTo("admin"),
+  restrictTo('admin'),
   validateRequest(postRules.id),
   deletePost,
 );

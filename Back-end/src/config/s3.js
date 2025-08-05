@@ -1,20 +1,20 @@
 /**
  * AWS S3 Configuration
- * 
+ *
  * This file contains the configuration for AWS S3 service integration.
  * It exports the S3 client instance and related configuration settings.
- * 
+ *
  * The configuration includes:
  * - AWS credentials and region settings
  * - S3 bucket configuration
  * - Basic upload settings
  * - URL generation settings
- * 
+ *
  * @requires aws-sdk
  * @requires dotenv
  */
 
-import { S3Client } from "@aws-sdk/client-s3";
+import { S3Client } from '@aws-sdk/client-s3';
 import dotenv from 'dotenv';
 import { ALLOWED_MIME_TYPES } from '../utils/mimeValidator.js';
 import { validateS3Config } from '../utils/s3ConfigValidator.js';
@@ -42,8 +42,8 @@ const s3Config = {
     fileNaming: {
       prefix: 'media/',
       timestamp: true,
-      randomString: true
-    }
+      randomString: true,
+    },
   },
   // URL generation settings
   url: {
@@ -63,4 +63,4 @@ const s3 = new S3Client({
   region: s3Config.region,
 });
 
-export { s3, s3Config }; 
+export { s3, s3Config };

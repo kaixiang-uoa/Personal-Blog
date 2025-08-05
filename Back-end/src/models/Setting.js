@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const SettingSchema = new Schema(
@@ -12,12 +12,12 @@ const SettingSchema = new Schema(
     value: {
       type: Schema.Types.Mixed,
       required: false,
-      default: "",
+      default: '',
     },
     group: {
       type: String,
-      enum: ["general", "appearance", "seo", "social", "advanced", "about"],
-      default: "general",
+      enum: ['general', 'appearance', 'seo', 'social', 'advanced', 'about'],
+      default: 'general',
     },
     description: {
       type: String,
@@ -32,4 +32,4 @@ const SettingSchema = new Schema(
   { timestamps: true },
 );
 
-export default mongoose.model("Setting", SettingSchema);
+export default mongoose.model('Setting', SettingSchema);

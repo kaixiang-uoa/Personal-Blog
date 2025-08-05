@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema(
@@ -22,8 +22,8 @@ const UserSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "editor", "author"],
-      default: "author",
+      enum: ['admin', 'editor', 'author'],
+      default: 'author',
     },
     displayName: {
       type: String,
@@ -45,9 +45,9 @@ const UserSchema = new Schema(
 );
 
 // password encryption middleware
-UserSchema.pre("save", async function (next) {
+UserSchema.pre('save', async function (next) {
   // only re-encrypt if password is modified
-  if (!this.isModified("password")) {
+  if (!this.isModified('password')) {
     return next();
   }
 
@@ -62,4 +62,4 @@ UserSchema.pre("save", async function (next) {
   }
 });
 
-export default mongoose.model("User", UserSchema);
+export default mongoose.model('User', UserSchema);

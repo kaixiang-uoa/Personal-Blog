@@ -1,21 +1,21 @@
-import User from "../models/User.js";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import User from '../models/User.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 // generate JWT token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "30d",
+    expiresIn: process.env.JWT_EXPIRES_IN || '30d',
   });
 };
 
 // generate refresh token with longer expiry
 const generateRefreshToken = (id) => {
   return jwt.sign(
-    { id, type: "refresh" },
+    { id, type: 'refresh' },
     process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "90d",
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '90d',
     },
   );
 };
@@ -33,7 +33,7 @@ export const register = async (req, res) => {
     if (userExists) {
       return res.status(400).json({
         success: false,
-        message: "Username or email already exists",
+        message: 'Username or email already exists',
       });
     }
 
@@ -42,7 +42,7 @@ export const register = async (req, res) => {
       username,
       email,
       password,
-      role: "author", // change default role to author
+      role: 'author', // change default role to author
     });
 
     // generate token
@@ -66,7 +66,7 @@ export const register = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Registration failed",
+      message: 'Registration failed',
       error: error.message,
     });
   }
@@ -81,7 +81,7 @@ export const login = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Email or password is incorrect",
+        message: 'Email or password is incorrect',
       });
     }
 
@@ -91,7 +91,7 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Email or password is incorrect",
+        message: 'Email or password is incorrect',
       });
     }
 
@@ -120,7 +120,7 @@ export const login = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Login failed",
+      message: 'Login failed',
       error: error.message,
     });
   }
@@ -129,7 +129,7 @@ export const login = async (req, res) => {
 // get current user info
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select('-password');
 
     res.status(200).json({
       success: true,
@@ -138,7 +138,7 @@ export const getMe = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to get user info",
+      message: 'Failed to get user info',
       error: error.message,
     });
   }
@@ -163,12 +163,12 @@ export const logout = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Successfully logged out",
+      message: 'Successfully logged out',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to logout",
+      message: 'Failed to logout',
       error: error.message,
     });
   }
@@ -182,7 +182,7 @@ export const refreshToken = async (req, res) => {
     if (!refreshToken) {
       return res.status(400).json({
         success: false,
-        message: "Refresh token is required",
+        message: 'Refresh token is required',
       });
     }
 
@@ -193,10 +193,10 @@ export const refreshToken = async (req, res) => {
     );
 
     // check if it's a refresh token
-    if (decoded.type !== "refresh") {
+    if (decoded.type !== 'refresh') {
       return res.status(401).json({
         success: false,
-        message: "Invalid refresh token",
+        message: 'Invalid refresh token',
       });
     }
 
@@ -206,7 +206,7 @@ export const refreshToken = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
@@ -231,14 +231,14 @@ export const refreshToken = async (req, res) => {
     if (error instanceof jwt.JsonWebTokenError) {
       return res.status(401).json({
         success: false,
-        message: "Invalid or expired refresh token",
-        error: "TOKEN_INVALID",
+        message: 'Invalid or expired refresh token',
+        error: 'TOKEN_INVALID',
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Failed to refresh token",
+      message: 'Failed to refresh token',
       error: error.message,
     });
   }

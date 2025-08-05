@@ -1,9 +1,9 @@
 /**
  * S3 URL Generation Utility
- * 
+ *
  * This module provides utility functions for generating S3 URLs,
  * including signed URLs for private file access.
- * 
+ *
  * @module utils/s3UrlGenerator
  */
 
@@ -56,12 +56,12 @@ export const generatePublicUrl = (key) => {
 
   // Use virtual-hosted style URL with HTTPS
   const url = `https://${s3Config.bucket}.s3.${s3Config.region}.amazonaws.com/${cleanKey}`;
-  
+
   console.log('Generated S3 URL:', {
     bucket: s3Config.bucket,
     region: s3Config.region,
     key: cleanKey,
-    url
+    url,
   });
 
   return url;
@@ -94,4 +94,4 @@ export const isValidS3Url = (url) => {
   } catch {
     return false;
   }
-}; 
+};

@@ -50,7 +50,8 @@ jobs:
         NODE_ENV=production
         PORT=3002
         MONGODB_URI=mongodb://mongo-test:27017/blogdb-test
-        JWT_SECRET=test-jwt-secret-key-for-github-actions
+        JWT_SECRET=test-jwt-secret-key-for-github-actions-minimum-32-chars
+        JWT_EXPIRE=7d
         CORS_ORIGIN=http://localhost:3000,http://localhost:3001
         AWS_ACCESS_KEY_ID=test-access-key
         AWS_SECRET_ACCESS_KEY=test-secret-key

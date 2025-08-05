@@ -58,15 +58,22 @@ jobs:
         AWS_REGION=us-east-1
         EOF
         
+        # Create a custom network for better container communication
+        docker network create test-network
+        
         # Start MongoDB for testing
-        docker run -d --name mongo-test -p 27017:27017 mongo:6.0
+        docker run -d --name mongo-test --network test-network -p 27017:27017 mongo:6.0
         
         # Wait for MongoDB to be ready
         sleep 10
         
+        # Update MongoDB URI to use container name
+        sed -i 's/MONGODB_URI=mongodb:\/\/localhost:27017\/blogdb-test/MONGODB_URI=mongodb:\/\/mongo-test:27017\/blogdb-test/' ./Back-end/.env.test
+        
         # Run the application container
         docker run -d --name app-test \
-          --network host \
+          --network test-network \
+          -p 3002:3002 \
           --env-file ./Back-end/.env.test \
           blog-backend-test:latest
         

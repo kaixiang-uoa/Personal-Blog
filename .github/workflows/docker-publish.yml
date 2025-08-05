@@ -45,11 +45,11 @@ jobs:
         
     - name: Test Docker image
       run: |
-        # Create test environment file
+        # Create test environment file with correct MongoDB URI for container network
         cat > ./Back-end/.env.test << EOF
         NODE_ENV=production
         PORT=3002
-        MONGODB_URI=mongodb://localhost:27017/blogdb-test
+        MONGODB_URI=mongodb://mongo-test:27017/blogdb-test
         JWT_SECRET=test-jwt-secret-key-for-github-actions
         CORS_ORIGIN=http://localhost:3000,http://localhost:3001
         AWS_ACCESS_KEY_ID=test-access-key
@@ -66,9 +66,6 @@ jobs:
         
         # Wait for MongoDB to be ready
         sleep 10
-        
-        # Update MongoDB URI to use container name
-        sed -i 's/MONGODB_URI=mongodb:\/\/localhost:27017\/blogdb-test/MONGODB_URI=mongodb:\/\/mongo-test:27017\/blogdb-test/' ./Back-end/.env.test
         
         # Run the application container
         docker run -d --name app-test \

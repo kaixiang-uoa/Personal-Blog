@@ -80,6 +80,14 @@ jobs:
         # Wait for application to start
         sleep 15
         
+        # Debug: Check container status and logs
+        echo "=== Container Status ==="
+        docker ps
+        echo "=== Application Logs ==="
+        docker logs app-test
+        echo "=== Network Information ==="
+        docker network inspect test-network
+        
         # Test health endpoint
         curl -f http://localhost:3002/api/v1/health || exit 1
         

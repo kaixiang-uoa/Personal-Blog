@@ -38,7 +38,8 @@ jobs:
         context: ./Back-end
         file: ./Back-end/Dockerfile
         push: false
-        tags: ${{ env.DOCKER_HUB_REPO }}:test
+        tags: blog-backend-test:latest
+        load: true
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
@@ -67,7 +68,7 @@ jobs:
         docker run -d --name app-test \
           --network host \
           --env-file ./Back-end/.env.test \
-          ${{ env.DOCKER_HUB_REPO }}:test
+          blog-backend-test:latest
         
         # Wait for application to start
         sleep 15

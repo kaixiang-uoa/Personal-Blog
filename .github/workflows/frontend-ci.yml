@@ -1,13 +1,19 @@
-name: CI/CD Pipeline
+name: Frontend CI/CD - Deploy to Vercel
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
+    paths:
+      - 'Front-end/**'
+      - '.github/workflows/frontend-ci.yml'
   pull_request:
-    branches: [main, dev]
+    branches: [main]
+    paths:
+      - 'Front-end/**'
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:

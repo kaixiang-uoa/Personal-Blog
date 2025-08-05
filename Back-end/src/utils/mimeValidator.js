@@ -1,9 +1,9 @@
 /**
  * MIME Type Validation Utility
- * 
+ *
  * This module provides utility functions for validating MIME types
  * and handling file type restrictions.
- * 
+ *
  * @module utils/mimeValidator
  */
 
@@ -18,7 +18,7 @@ export const ALLOWED_MIME_TYPES = {
   'image/gif': ['.gif'],
   'image/webp': ['.webp'],
   'image/svg+xml': ['.svg'],
-  
+
   // Documents
   'application/pdf': ['.pdf'],
   'application/msword': ['.doc'],
@@ -86,13 +86,13 @@ export const createMulterFileFilter = () => {
 export const validateFileType = (file) => {
   const extension = file.originalname.split('.').pop().toLowerCase();
   const mimeType = file.mimetype;
-  
+
   // Check if MIME type is allowed
   if (!isAllowedMimeType(mimeType)) {
     return false;
   }
-  
+
   // Check if extension matches MIME type
   const allowedExtensions = getExtensionsFromMimeType(mimeType);
   return allowedExtensions.includes(`.${extension}`);
-}; 
+};

@@ -2,8 +2,8 @@
  * Request Logger Middleware
  * Provides request tracking, performance monitoring, and enhanced logging
  */
-import { v4 as uuidv4 } from "uuid";
-import logger from "../config/logger.js";
+import { v4 as uuidv4 } from 'uuid';
+import logger from '../config/logger.js';
 
 /**
  * Assigns a unique request ID and logs request/response details
@@ -18,13 +18,13 @@ export const requestLogger = (req, res, next) => {
   const startTime = process.hrtime();
 
   // Log request details
-  logger.info("Request received", {
+  logger.info('Request received', {
     requestId,
     method: req.method,
     url: req.originalUrl || req.url,
     ip: req.ip || req.socket.remoteAddress,
-    userAgent: req.get("user-agent"),
-    referer: req.get("referer") || "-",
+    userAgent: req.get('user-agent'),
+    referer: req.get('referer') || '-',
     query: Object.keys(req.query || {}).length ? req.query : undefined,
     params: Object.keys(req.params || {}).length ? req.params : undefined,
   });
@@ -38,22 +38,22 @@ export const requestLogger = (req, res, next) => {
     // Define log level based on status code
     const statusCode = res.statusCode;
     const logLevel =
-      statusCode >= 500 ? "error" : statusCode >= 400 ? "warn" : "info";
+      statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'info';
 
     // Log response details
-    logger[logLevel]("Request completed", {
+    logger[logLevel]('Request completed', {
       requestId,
       method: req.method,
       url: req.originalUrl || req.url,
       statusCode,
       duration: `${duration.toFixed(2)}ms`,
-      contentLength: res.get("content-length") || 0,
+      contentLength: res.get('content-length') || 0,
     });
 
     // For slow requests, add a performance warning
     if (duration > 1000) {
       // Threshold of 1000ms = 1s
-      logger.warn("Slow request detected", {
+      logger.warn('Slow request detected', {
         requestId,
         method: req.method,
         url: req.originalUrl || req.url,
@@ -62,14 +62,14 @@ export const requestLogger = (req, res, next) => {
     }
 
     // Clean up event listeners to prevent memory leaks
-    res.removeListener("finish", logResponse);
-    res.removeListener("close", logResponse);
-    res.removeListener("error", logError);
+    res.removeListener('finish', logResponse);
+    res.removeListener('close', logResponse);
+    res.removeListener('error', logError);
   };
 
   // Handle errors during response
   const logError = (err) => {
-    logger.error("Response error", {
+    logger.error('Response error', {
       requestId,
       method: req.method,
       url: req.originalUrl || req.url,
@@ -78,18 +78,18 @@ export const requestLogger = (req, res, next) => {
     });
 
     // Clean up event listeners
-    res.removeListener("finish", logResponse);
-    res.removeListener("close", logResponse);
-    res.removeListener("error", logError);
+    res.removeListener('finish', logResponse);
+    res.removeListener('close', logResponse);
+    res.removeListener('error', logError);
   };
 
   // Attach listeners to log when response completes
-  res.on("finish", logResponse);
-  res.on("close", logResponse);
-  res.on("error", logError);
+  res.on('finish', logResponse);
+  res.on('close', logResponse);
+  res.on('error', logError);
 
   // Add a requestId header to the response
-  res.setHeader("X-Request-ID", requestId);
+  res.setHeader('X-Request-ID', requestId);
 
   // Continue to the next middleware
   next();
@@ -99,8 +99,8 @@ export const requestLogger = (req, res, next) => {
  * Error logger middleware to enhance error logging with request context
  */
 export const errorLogger = (err, req, res, next) => {
-  logger.error("Unhandled error", {
-    requestId: req.requestId || "unknown",
+  logger.error('Unhandled error', {
+    requestId: req.requestId || 'unknown',
     method: req.method,
     url: req.originalUrl || req.url,
     ip: req.ip || req.socket.remoteAddress,

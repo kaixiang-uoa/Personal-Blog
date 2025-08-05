@@ -4,17 +4,17 @@
  * provide enhanced security measures, including HTTP security headers and other security features
  */
 
-import helmet from "helmet";
-import { rateLimit } from "express-rate-limit";
-import { v4 as uuidv4 } from "uuid";
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
+import { v4 as uuidv4 } from 'uuid';
 
 // Rate limit configurations from environment variables
-const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"); // 15 minutes default
-const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "1000"); // 1000 requests default
-const SENSITIVE_RATE_LIMIT_WINDOW_MS = parseInt(process.env.SENSITIVE_RATE_LIMIT_WINDOW_MS || "3600000"); // 1 hour default
-const SENSITIVE_RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.SENSITIVE_RATE_LIMIT_MAX_REQUESTS || "50"); // 50 attempts default
-const CONTACT_RATE_LIMIT_WINDOW_MS = parseInt(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || "3600000"); // 1 hour default
-const CONTACT_RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.CONTACT_RATE_LIMIT_MAX_REQUESTS || "20"); // 20 attempts default
+const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'); // 15 minutes default
+const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000'); // 1000 requests default
+const SENSITIVE_RATE_LIMIT_WINDOW_MS = parseInt(process.env.SENSITIVE_RATE_LIMIT_WINDOW_MS || '3600000'); // 1 hour default
+const SENSITIVE_RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.SENSITIVE_RATE_LIMIT_MAX_REQUESTS || '50'); // 50 attempts default
+const CONTACT_RATE_LIMIT_WINDOW_MS = parseInt(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || '3600000'); // 1 hour default
+const CONTACT_RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.CONTACT_RATE_LIMIT_MAX_REQUESTS || '20'); // 20 attempts default
 
 /**
  * configure enhanced security headers
@@ -25,7 +25,7 @@ export const configureSecureHeaders = () => {
   return helmet({
     // prevent clickjacking
     frameguard: {
-      action: "deny",
+      action: 'deny',
     },
 
     // content security policy, prevent XSS attacks
@@ -34,10 +34,10 @@ export const configureSecureHeaders = () => {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'"], // allow inline scripts, adjust as needed
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", "http:", "https:", "data:", "blob:"],
-        mediaSrc: ["'self'", "http:", "https:", "data:", "blob:"],
-        connectSrc: ["'self'", "https:"],
-        fontSrc: ["'self'", "https:", "data:"],
+        imgSrc: ["'self'", 'http:', 'https:', 'data:', 'blob:'],
+        mediaSrc: ["'self'", 'http:', 'https:', 'data:', 'blob:'],
+        connectSrc: ["'self'", 'https:'],
+        fontSrc: ["'self'", 'https:', 'data:'],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         formAction: ["'self'"],
@@ -47,7 +47,7 @@ export const configureSecureHeaders = () => {
 
     // disable resource policy, allow CORS resource access (necessary for public images, etc.)
     crossOriginResourcePolicy: {
-      policy: "cross-origin",
+      policy: 'cross-origin',
     },
 
     // enable DNS prefetch control
@@ -67,7 +67,7 @@ export const configureSecureHeaders = () => {
 
     // strict-origin-when-cross-origin referrer policy
     referrerPolicy: {
-      policy: "strict-origin-when-cross-origin",
+      policy: 'strict-origin-when-cross-origin',
     },
 
     // prevent XSS attacks
@@ -89,8 +89,8 @@ export const apiLimiter = (options = {}) => {
     legacyHeaders: false, // disable X-RateLimit headers
     message: {
       success: false,
-      message: "Request too frequent, please try again later",
-      error: "Request frequency exceeds limit",
+      message: 'Request too frequent, please try again later',
+      error: 'Request frequency exceeds limit',
     },
   };
 
@@ -111,15 +111,15 @@ export const sensitiveApiLimiter = () => {
     max: SENSITIVE_RATE_LIMIT_MAX_REQUESTS,
     message: {
       success: false,
-      message: "Attempts too frequent, please try again later",
-      error: "Operation frequency exceeds security limit",
+      message: 'Attempts too frequent, please try again later',
+      error: 'Operation frequency exceeds security limit',
     },
   });
 };
 
 /**
  * Contact form rate limiter
- * 
+ *
  * @returns {Function} rate limit middleware for contact form
  */
 export const contactLimiter = () => {
@@ -128,8 +128,8 @@ export const contactLimiter = () => {
     max: CONTACT_RATE_LIMIT_MAX_REQUESTS,
     message: {
       success: false,
-      message: "Too many contact form submissions. Please try again later.",
-      error: "Contact form submission limit exceeded",
+      message: 'Too many contact form submissions. Please try again later.',
+      error: 'Contact form submission limit exceeded',
     },
   });
 };
@@ -142,10 +142,10 @@ export const contactLimiter = () => {
 export const addRequestId = () => {
   return (req, res, next) => {
     // if request has ID, use existing ID, otherwise generate new ID
-    req.id = req.headers["x-request-id"] || uuidv4();
+    req.id = req.headers['x-request-id'] || uuidv4();
 
     // add ID to response headers
-    res.setHeader("X-Request-ID", req.id);
+    res.setHeader('X-Request-ID', req.id);
 
     next();
   };
@@ -159,10 +159,10 @@ export const addRequestId = () => {
 export const setHSTS = () => {
   return (req, res, next) => {
     // only settingsHSTS on HTTPS connections
-    if (req.secure || req.headers["x-forwarded-proto"] === "https") {
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
       res.setHeader(
-        "Strict-Transport-Security",
-        "max-age=31536000; includeSubDomains; preload",
+        'Strict-Transport-Security',
+        'max-age=31536000; includeSubDomains; preload',
       );
     }
     next();
@@ -177,7 +177,7 @@ export const setHSTS = () => {
  */
 export const sanitizeInput = (data) => {
   // if input is not an object, return directly
-  if (!data || typeof data !== "object") {
+  if (!data || typeof data !== 'object') {
     return data;
   }
 
@@ -188,17 +188,17 @@ export const sanitizeInput = (data) => {
     let value = data[key];
 
     // recursively process nested objects
-    if (value && typeof value === "object" && !Array.isArray(value)) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
       sanitized[key] = sanitizeInput(value);
     }
     // process array
     else if (Array.isArray(value)) {
       sanitized[key] = value.map((item) =>
-        typeof item === "object" ? sanitizeInput(item) : sanitizeString(item),
+        typeof item === 'object' ? sanitizeInput(item) : sanitizeString(item),
       );
     }
     // process string
-    else if (typeof value === "string") {
+    else if (typeof value === 'string') {
       sanitized[key] = sanitizeString(value);
     }
     // other types are copied directly
@@ -217,17 +217,17 @@ export const sanitizeInput = (data) => {
  * @returns {String} cleaned string
  */
 const sanitizeString = (str) => {
-  if (typeof str !== "string") return str;
+  if (typeof str !== 'string') return str;
 
   // remove possible script tags
   let sanitized = str.replace(
     /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-    "",
+    '',
   );
 
   // remove possible dangerous HTML attributes
-  sanitized = sanitized.replace(/on\w+="[^"]*"/gi, "");
-  sanitized = sanitized.replace(/on\w+='[^']*'/gi, "");
+  sanitized = sanitized.replace(/on\w+="[^"]*"/gi, '');
+  sanitized = sanitized.replace(/on\w+='[^']*'/gi, '');
 
   return sanitized;
 };

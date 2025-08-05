@@ -1,9 +1,9 @@
 export function transformLocalizedCategories(categories, lang) {
   return categories.map((category) => {
     const localizedName =
-      lang === "en"
+      lang === 'en'
         ? category.name_en || category.name
-        : lang === "zh"
+        : lang === 'zh'
           ? category.name_zh || category.name
           : category.name;
 

@@ -42,22 +42,22 @@ export interface Settings {
     contactBannerMobile: string;
   };
   about?: {
-    intro: string;
-    intro_zh: string;
-    contact: {
-      email: string;
-      phone: string;
-      location: string;
+    intro?: string;
+    intro_zh?: string;
+    contact?: {
+      email?: string;
+      phone?: string;
+      location?: string;
     };
-    skills: string[];
-    education: any[];
-    experience: any[];
-    projects: any[];
-    social: {
-      github: string;
-      linkedin: string;
-      twitter: string;
-      website: string;
+    skills?: string[];
+    education?: any[];
+    experience?: any[];
+    projects?: any[];
+    social?: {
+      github?: string;
+      linkedin?: string;
+      twitter?: string;
+      website?: string;
     };
   };
   // system?: {
@@ -66,37 +66,37 @@ export interface Settings {
 }
 
 export interface AboutSettings {
-  intro: string;
-  intro_zh: string;
-  contact: {
-    email: string;
-    phone: string;
-    location: string;
+  intro?: string;
+  intro_zh?: string;
+  contact?: {
+    email?: string;
+    phone?: string;
+    location?: string;
   };
-  skills: string[];
-  education: Array<{
-    degree: string;
-    institution: string;
-    year: string;
-    description: string;
+  skills?: string[];
+  education?: Array<{
+    degree?: string;
+    institution?: string;
+    year?: string;
+    description?: string;
   }>;
-  experience: Array<{
-    position: string;
-    company: string;
-    period: string;
-    description: string;
+  experience?: Array<{
+    position?: string;
+    company?: string;
+    period?: string;
+    description?: string;
   }>;
-  projects: Array<{
-    name: string;
-    description: string;
-    link: string;
-    tech: string[];
+  projects?: Array<{
+    name?: string;
+    description?: string;
+    link?: string;
+    tech?: string[];
   }>;
-  social: {
-    github: string;
-    linkedin: string;
-    twitter: string;
-    website: string;
+  social?: {
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+    website?: string;
   };
 }
 

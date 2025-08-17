@@ -17,6 +17,15 @@ let mongoServer;
  */
 export const connectTestDB = async () => {
   try {
+    // Set test environment variables
+    process.env.NODE_ENV = 'test';
+    process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-only-32-chars';
+    process.env.JWT_EXPIRES_IN = '1h';
+    process.env.JWT_EXPIRE = '1h';
+    process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-key-for-testing-32-chars';
+    process.env.JWT_REFRESH_EXPIRES_IN = '7d';
+    process.env.JWT_REFRESH_EXPIRE = '7d';
+
     // create in-memory MongoDB instance
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();

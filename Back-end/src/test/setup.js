@@ -53,19 +53,40 @@ export const createUserAndGetToken = async (userData = {}) => {
 
   const user = { ...defaultUser, ...userData };
 
-  // register user
-  const registerResponse = await request
-    .post('/api/v1/auth/register')
-    .send(user);
+  try {
+    // register user
+    const registerResponse = await request
+      .post('/api/v1/auth/register')
+      .send(user);
 
-  // login and get token
-  const loginResponse = await request.post('/api/v1/auth/login').send({
-    email: user.email,
-    password: user.password,
-  });
+    // Check if registration was successful
+    if (registerResponse.status !== 201) {
+      console.error('Registration failed:', registerResponse.body);
+      throw new Error(`Registration failed with status ${registerResponse.status}`);
+    }
 
-  return {
-    token: loginResponse.body.token,
-    userId: registerResponse.body.user._id,
-  };
+    // login and get token
+    const loginResponse = await request.post('/api/v1/auth/login').send({
+      email: user.email,
+      password: user.password,
+    });
+
+    // Check if login was successful
+    if (loginResponse.status !== 200) {
+      console.error('Login failed:', loginResponse.body);
+      throw new Error(`Login failed with status ${loginResponse.status}`);
+    }
+
+    return {
+      token: loginResponse.body.token,
+      userId: registerResponse.body.user?._id || loginResponse.body.user?._id,
+    };
+  } catch (error) {
+    console.error('Error in createUserAndGetToken:', error);
+    // Return null to indicate authentication failed
+    return {
+      token: null,
+      userId: null,
+    };
+  }
 };

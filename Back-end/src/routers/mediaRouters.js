@@ -1,60 +1,70 @@
 import express from 'express';
+import multer from 'multer';
+import multerS3 from 'multer-s3';
+import { S3Client } from '@aws-sdk/client-s3';
+import { protect } from '../middleware/authMiddleware.js';
 import {
   getAllMedia,
   getMediaById,
   uploadMedia,
-  updateMedia,
   deleteMedia,
+  updateMedia,
 } from '../controllers/mediaController.js';
-import { protect, restrictTo } from '../middleware/authMiddleware.js';
-// import { csrfProtection } from "../middleware/csrfMiddleware.js";
-import multer from 'multer';
-import { S3Client } from '@aws-sdk/client-s3';
-import multerS3 from 'multer-s3';
-import { s3Config } from '../config/s3.js';
 import { createMulterFileFilter } from '../utils/mimeValidator.js';
 import { generateFileName } from '../utils/fileNaming.js';
+import { s3, s3Config, bucketConfig } from '../config/s3.js';
 
-// Configure multer for S3 upload - This configuration handles file uploads directly to AWS S3
-const upload = multer({
-  storage: multerS3({
-    s3: new S3Client({
-      credentials: s3Config.credentials,
-      region: s3Config.region,
-    }),
-    bucket: s3Config.bucket,
-    contentType: multerS3.AUTO_CONTENT_TYPE,
-    key: function (req, file, cb) {
-      console.log('Processing file:', {
-        fieldname: file.fieldname,
-        originalname: file.originalname,
-        encoding: file.encoding,
-        mimetype: file.mimetype,
-        size: file.size,
-        buffer: file.buffer ? 'Buffer present' : 'No buffer',
-      });
+// Configure multer based on environment
+let upload;
 
-      try {
-        // Generate standardized file name
-        const fileName = generateFileName({
-          originalName: file.originalname,
-          prefix: s3Config.upload.fileNaming.prefix,
-          timestamp: s3Config.upload.fileNaming.timestamp,
-          randomString: s3Config.upload.fileNaming.randomString,
-        });
-        console.log('Generated file name:', fileName);
-        cb(null, fileName);
-      } catch (error) {
-        console.error('Error generating file name:', error);
-        cb(error);
-      }
+if (process.env.NODE_ENV === 'test' || !s3) {
+  // Use memory storage for tests or when S3 is not available
+  upload = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: createMulterFileFilter(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB
     },
-  }),
-  fileFilter: createMulterFileFilter(),
-  limits: {
-    fileSize: s3Config.upload.maxFileSize,
-  },
-});
+  });
+} else {
+  // Use S3 storage for production
+  upload = multer({
+    storage: multerS3({
+      s3: s3,
+      bucket: bucketConfig.bucketName,
+      contentType: multerS3.AUTO_CONTENT_TYPE,
+      key: function (req, file, cb) {
+        console.log('Processing file:', {
+          fieldname: file.fieldname,
+          originalname: file.originalname,
+          encoding: file.encoding,
+          mimetype: file.mimetype,
+          size: file.size,
+          buffer: file.buffer ? 'Buffer present' : 'No buffer',
+        });
+
+        try {
+          // Generate standardized file name
+          const fileName = generateFileName({
+            originalName: file.originalname,
+            prefix: 'media/',
+            timestamp: true,
+            randomString: true,
+          });
+          console.log('Generated file name:', fileName);
+          cb(null, fileName);
+        } catch (error) {
+          console.error('Error generating file name:', error);
+          cb(error);
+        }
+      },
+    }),
+    fileFilter: createMulterFileFilter(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB
+    },
+  });
+}
 
 // Add error handling middleware
 const handleMulterError = (err, req, res, next) => {

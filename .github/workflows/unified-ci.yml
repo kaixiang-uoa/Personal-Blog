@@ -48,7 +48,7 @@ jobs:
         working-directory: ./Front-end
 
       - name: Frontend Security Audit
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=low
         working-directory: ./Front-end
 
   # Admin Panel Code Quality
@@ -211,6 +211,8 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./Front-end
           vercel-args: "--prod"
+          alias-domains: |
+            your-frontend-domain.vercel.app
 
   # Deploy Admin Panel to Vercel
   deploy-admin-panel:
@@ -239,6 +241,8 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
           working-directory: ./admin-panel
           vercel-args: "--prod"
+          alias-domains: |
+            your-admin-domain.vercel.app
 
   # Push to Docker Hub (Backend)
   push-dockerhub:

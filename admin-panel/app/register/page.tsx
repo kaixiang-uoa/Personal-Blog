@@ -46,7 +46,7 @@ const formSchema = z
       }),
     confirmPassword: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine(data => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
@@ -70,7 +70,7 @@ export default function RegisterPage() {
   });
 
   // Registration handler function
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = form.handleSubmit(async values => {
     try {
       setIsLoading(true);
 
@@ -89,12 +89,17 @@ export default function RegisterPage() {
 
       // Redirect to login page
       router.push("/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Extract error message
       let errorMessage = "Registration failed. Please try again.";
 
-      if (error.response && error.response.data?.message) {
-        errorMessage = error.response.data.message;
+      if (error && typeof error === "object" && "response" in error) {
+        const response = (
+          error as { response?: { data?: { message?: string } } }
+        ).response;
+        if (response?.data?.message) {
+          errorMessage = response.data.message;
+        }
       }
 
       toast({

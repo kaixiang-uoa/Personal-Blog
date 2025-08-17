@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -10,21 +10,21 @@ jest.mock('next/navigation', () => ({
       back: jest.fn(),
       forward: jest.fn(),
       refresh: jest.fn(),
-    }
+    };
   },
   useSearchParams() {
-    return new URLSearchParams()
+    return new URLSearchParams();
   },
   useParams() {
-    return {}
+    return {};
   },
-}))
+}));
 
 // Mock next-intl
 jest.mock('next-intl', () => ({
-  useTranslations: () => (key) => key,
+  useTranslations: () => key => key,
   useLocale: () => 'en',
-}))
+}));
 
 // Mock React Query
 jest.mock('@tanstack/react-query', () => ({
@@ -32,4 +32,4 @@ jest.mock('@tanstack/react-query', () => ({
   useMutation: jest.fn(),
   QueryClient: jest.fn(),
   QueryClientProvider: ({ children }) => children,
-})) 
+}));

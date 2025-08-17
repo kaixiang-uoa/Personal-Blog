@@ -28,10 +28,10 @@ interface TagListProps {
 
 /**
  * TagList Component
- * 
+ *
  * A component that displays a list of tags with selection functionality.
  * Includes an "All" option and highlights the currently selected tag.
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -41,7 +41,7 @@ interface TagListProps {
  *   activeTag="react"
  * />
  * ```
- * 
+ *
  * @param {TagListProps} props - The component props
  * @returns {JSX.Element | null} A list of clickable tags or null if tags are invalid
  */

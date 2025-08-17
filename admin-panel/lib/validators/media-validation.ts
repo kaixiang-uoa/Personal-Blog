@@ -20,7 +20,7 @@ export interface ValidationResult {
 }
 
 export const validateFile = (file: File): ValidationResult => {
-  // 大小验证
+  // Size validation
   if (file.size > MAX_FILE_SIZE) {
     return {
       isValid: false,
@@ -31,7 +31,7 @@ export const validateFile = (file: File): ValidationResult => {
     };
   }
 
-  // 类型验证
+  // Type validation
   if (!Object.keys(ALLOWED_FILE_TYPES).includes(file.type)) {
     const allowedExtensions = Object.values(ALLOWED_FILE_TYPES).join(", ");
     return {

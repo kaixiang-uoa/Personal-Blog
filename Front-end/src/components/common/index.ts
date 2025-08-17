@@ -1,4 +1,11 @@
 export { default as ApiErrorFallback } from './ApiErrorFallback';
 export { default as ErrorBoundary } from './ErrorBoundary';
 export { SEOHead } from './SEOHead';
-export { default as PageBanner } from './PageBanner'; 
+export { ArticleSEO } from './ArticleSEO';
+export { PageSEO } from './PageSEO';
+export { Breadcrumbs } from './Breadcrumbs';
+export { OptimizedImage } from './OptimizedImage';
+export { PerformanceMonitor } from './PerformanceMonitor';
+export { GoogleAnalytics } from './GoogleAnalytics';
+export { Footer } from './Footer';
+export { default as PageBanner } from './PageBanner';

@@ -5,10 +5,10 @@ import { usePathname, useRouter } from 'next/navigation';
 
 /**
  * LanguageSwitcher Component
- * 
+ *
  * A button component that allows users to switch between English and Chinese languages.
  * Uses Next.js internationalization features to handle locale switching.
- * 
+ *
  * @component
  * @example
  * ```tsx

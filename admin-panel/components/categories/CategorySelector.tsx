@@ -4,7 +4,6 @@ import { ComboboxSelect } from "@/components/posts/Combobox-select";
 import { Badge } from "@/components/ui/data-display/badge";
 import { CategorySelectorProps, Category } from "@/types";
 
-
 export function CategorySelector({
   categories = [],
   selectedCategories = [],
@@ -16,9 +15,9 @@ export function CategorySelector({
 }: CategorySelectorProps) {
   const handleSelect = (item: Category) => {
     if (multiple) {
-      const isSelected = selectedCategories.some((cat) => cat._id === item._id);
+      const isSelected = selectedCategories.some(cat => cat._id === item._id);
       if (isSelected) {
-        onChange(selectedCategories.filter((cat) => cat._id !== item._id));
+        onChange(selectedCategories.filter(cat => cat._id !== item._id));
       } else {
         onChange([...selectedCategories, item]);
       }
@@ -28,10 +27,10 @@ export function CategorySelector({
   };
 
   const handleRemove = (item: Category) => {
-    onChange(selectedCategories.filter((cat) => cat._id !== item._id));
+    onChange(selectedCategories.filter(cat => cat._id !== item._id));
   };
 
-  // 多语言name处理，优先en，其次name，再其次zh
+  // Multi-language name handling, prioritize en, then name, then zh
   const displayName = (item: Category) => {
     if (!item) return "";
     if (item.name_en) return item.name_en;
@@ -44,7 +43,7 @@ export function CategorySelector({
     <div className="space-y-2">
       {showSelected && selectedCategories.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
-          {selectedCategories.map((category) => (
+          {selectedCategories.map(category => (
             <Badge
               key={category._id}
               variant="secondary"
@@ -67,7 +66,7 @@ export function CategorySelector({
         onSelect={handleSelect}
         multiple={multiple}
         getItemLabel={displayName}
-        getItemValue={(item) => item._id}
+        getItemValue={item => item._id}
         placeholder={placeholder}
         disabled={disabled}
       />

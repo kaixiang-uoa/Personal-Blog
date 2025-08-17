@@ -18,4 +18,4 @@ export * from './features/filter';
 export { default as HomePage } from './features/home/HomePage';
 export { default as SearchBar } from './features/home/SearchBar';
 export { default as ArticlesList } from './features/home/ArticlesList';
-export { default as PaginationControls } from './features/home/PaginationControls'; 
+export { default as PaginationControls } from './features/home/PaginationControls';

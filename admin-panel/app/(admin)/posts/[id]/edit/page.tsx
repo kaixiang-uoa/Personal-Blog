@@ -98,10 +98,10 @@ function EditPostForm({ postId }: EditPostFormProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category[]>([]);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [availableCategories, setAvailableCategories] = useState<Category[]>(
-    [],
+    []
   );
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
-  const [currentPost, setCurrentPost] = useState<Post | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   // Form setup
@@ -125,7 +125,6 @@ function EditPostForm({ postId }: EditPostFormProps) {
         // Get post details
         const postResponse = await apiService.getPostById(postId);
         const post = postResponse.data.post;
-        setCurrentPost(post);
 
         // Set form initial values
         form.reset({
@@ -142,7 +141,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
         // Set selected categories and tags
         if (post.categories) {
           setSelectedCategory(
-            Array.isArray(post.categories) ? post.categories : [],
+            Array.isArray(post.categories) ? post.categories : []
           );
         }
         if (post.tags) {
@@ -170,7 +169,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
             : tagsResponse.data.tags || [];
           setAvailableTags(tags);
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Failed to load post data",
@@ -187,14 +186,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
   // Handle input changes
   const handleInputChange = (
     field: keyof Post,
-    value:
-      | string
-      | number
-      | boolean
-      | Category[]
-      | string[]
-      | Tag[]
-      | undefined,
+    value: string | number | boolean | Category[] | string[] | Tag[] | undefined
   ) => {
     form.setValue(field, value);
 
@@ -223,7 +215,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
     setSelectedTags(tags);
     form.setValue(
       "tags",
-      tags.map((tag) => tag._id),
+      tags.map(tag => tag._id)
     );
   };
 
@@ -231,14 +223,17 @@ function EditPostForm({ postId }: EditPostFormProps) {
   const onSubmit = async (data: Post) => {
     setIsLoading(true);
     try {
-      await apiService.updatePost(postId, data);
+      await apiService.updatePost(
+        postId,
+        data as unknown as Record<string, unknown>
+      );
 
       toast({
         title: "Success",
         description: "Post updated successfully",
       });
       router.push("/posts");
-    } catch (error) {
+    } catch {
       toast({
         title: "Update Failed",
         description:
@@ -299,7 +294,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
                           <Input
                             placeholder="Enter post title"
                             {...field}
-                            onChange={(e) =>
+                            onChange={e =>
                               handleInputChange("title", e.target.value)
                             }
                           />
@@ -319,7 +314,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
                           <Input
                             placeholder="Enter post slug"
                             {...field}
-                            onChange={(e) =>
+                            onChange={e =>
                               handleInputChange("slug", e.target.value)
                             }
                           />
@@ -340,7 +335,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
                             placeholder="Enter post excerpt"
                             rows={3}
                             {...field}
-                            onChange={(e) =>
+                            onChange={e =>
                               handleInputChange("excerpt", e.target.value)
                             }
                           />
@@ -359,7 +354,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
                         <FormControl>
                           <PostEditor
                             content={field.value || ""}
-                            onChange={(value) =>
+                            onChange={value =>
                               handleInputChange("content", value)
                             }
                           />
@@ -425,7 +420,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
                         <FormLabel>Status</FormLabel>
                         <Select
                           value={field.value}
-                          onValueChange={(value) =>
+                          onValueChange={value =>
                             handleInputChange("status", value)
                           }
                         >
@@ -456,7 +451,7 @@ function EditPostForm({ postId }: EditPostFormProps) {
                           <Input
                             placeholder="Enter featured image URL"
                             {...field}
-                            onChange={(e) =>
+                            onChange={e =>
                               handleInputChange("featuredImage", e.target.value)
                             }
                           />

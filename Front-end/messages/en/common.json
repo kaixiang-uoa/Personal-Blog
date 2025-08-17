@@ -18,6 +18,7 @@
   "nextPage": "Next",
   "pageInfo": "Page {current} of {total}",
   "noArticlesFound": "No articles found",
+  "noArticlesDescription": "Try adjusting your search criteria or filters to find more articles.",
   "clearAllFilters": "Clear All Filters",
   "filters": "Filters",
   "clear": "Clear",
@@ -29,11 +30,14 @@
   "endDate": "End Date",
   "loading": "Loading...",
   "error": "An error occurred, please try again later",
+  "errorDescription": "Something went wrong while loading the data. Please try again.",
   "notFound": "Article not found or has been deleted",
   "publishedAt": "Published at",
   "author": "Author",
   "footer": {
-    "copyright": "© {year} Personal Blog. All rights reserved."
+    "copyright": "© {year} {siteName}. All rights reserved.",
+    "poweredBy": "Powered by Next.js & React",
+    "madeWith": "Made with ❤️ by {author}"
   },
   "sortBy": "Sort By",
   "newestFirst": "Newest First",
@@ -46,4 +50,4 @@
   "oldestUpdated": "Oldest Updated",
   "selectSortOrder": "Select Sort Order",
   "select": "Select"
-} 
+}

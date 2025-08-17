@@ -11,15 +11,15 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const group = searchParams.get('group');
     const lang = searchParams.get('lang');
-    
+
     // build API URL, add all query parameters
     const queryParams = new URLSearchParams();
     if (group) queryParams.append('group', group);
     if (lang) queryParams.append('lang', lang);
-    
+
     const queryString = queryParams.toString();
     const apiEndpoint = `${API_BASE_URL}/settings${queryString ? `?${queryString}` : ''}`;
-    
+
     const response = await fetch(apiEndpoint, {
       cache: 'no-store',
       headers: {
@@ -37,11 +37,11 @@ export async function GET(request: Request) {
     console.error('[Settings API] Error fetching settings:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to fetch settings';
     return NextResponse.json(
-      { 
-        success: false, 
-        message: errorMessage
+      {
+        success: false,
+        message: errorMessage,
       },
       { status: 500 }
     );
   }
-} 
+}

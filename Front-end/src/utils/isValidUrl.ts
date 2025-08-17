@@ -8,6 +8,6 @@ export function isValidUrl(url: string): boolean {
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
     return true;
   }
-  
+
   return false;
-} 
+}

@@ -12,9 +12,6 @@ export function ClientInitializer() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize client services
-    console.log("Client services initialized");
-
     // Display welcome toast on initial load
     if (typeof window !== "undefined") {
       const isFirstLoad = !sessionStorage.getItem("initialized");

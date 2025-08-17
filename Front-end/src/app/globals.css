@@ -66,10 +66,12 @@
   }
   body {
     @apply bg-background text-foreground;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 
-  /* fix select element style in dark mode */ 
+  /* fix select element style in dark mode */
   select {
     @apply bg-background text-foreground border-border;
   }
@@ -88,8 +90,7 @@
 
 /* theme switch animation */
 * {
-  transition-property: color, background-color, border-color, 
-                      text-decoration-color, fill, stroke;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -105,14 +106,24 @@
 }
 
 @keyframes theme-fade-in {
-  0% { opacity: 0.8; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes theme-change {
-  0% { opacity: 0.8; }
-  50% { opacity: 0.9; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Tiptap/ProseMirror rich text style sync from admin-panel */
@@ -183,12 +194,13 @@
   border-radius: 0.3em;
   padding: 0.2em 0.4em;
   font-size: 0.95em;
-  font-family: 'Fira Mono', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  font-family:
+    'Fira Mono', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
 }
 
 /* PrismJS tomorrow night eighties highlight style, set highest priority, prevent Tailwind from overriding */
-code[class*="language-"],
-pre[class*="language-"] {
+code[class*='language-'],
+pre[class*='language-'] {
   color: #ccc !important;
   background: none !important;
   font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace !important;
@@ -207,18 +219,18 @@ pre[class*="language-"] {
   -ms-hyphens: none;
   hyphens: none;
 }
-pre[class*="language-"] {
+pre[class*='language-'] {
   padding: 1em !important;
-  margin: .5em 0 !important;
+  margin: 0.5em 0 !important;
   overflow: auto !important;
 }
-:not(pre) > code[class*="language-"],
-pre[class*="language-"] {
+:not(pre) > code[class*='language-'],
+pre[class*='language-'] {
   background: #2d2d2d !important;
 }
-:not(pre) > code[class*="language-"] {
-  padding: .1em !important;
-  border-radius: .3em !important;
+:not(pre) > code[class*='language-'] {
+  padding: 0.1em !important;
+  border-radius: 0.3em !important;
   white-space: normal !important;
 }
 .token.comment,

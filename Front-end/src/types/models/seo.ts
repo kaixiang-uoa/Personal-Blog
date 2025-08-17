@@ -1,7 +1,5 @@
-
 export interface SEO {
-    metaTitle: string;
-    metaDescription: string;
-    keywords: string[];
-  }
-  
+  metaTitle: string;
+  metaDescription: string;
+  keywords: string[];
+}

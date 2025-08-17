@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import axios from "axios";
 
 import type { ApiResponse } from "@/types/api";
 
@@ -30,12 +30,12 @@ const isAuthRelatedPath = (): boolean => {
     "/forgot-password",
     "/reset-password",
   ];
-  return authPaths.some((path) => window.location.pathname.includes(path));
+  return authPaths.some(path => window.location.pathname.includes(path));
 };
 
 // Process queued requests
 const processQueue = (error: Error | null, token: string | null = null) => {
-  failedQueue.forEach((promise) => {
+  failedQueue.forEach(promise => {
     if (error) {
       promise.reject(error);
     } else {
@@ -47,7 +47,7 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 
 // Request interceptor
 api.interceptors.request.use(
-  (config) => {
+  config => {
     // Only access localStorage in browser environment
     let token = null;
     if (typeof window !== "undefined") {
@@ -61,26 +61,26 @@ api.interceptors.request.use(
     // Get CSRF token from cookie
     if (typeof window !== "undefined") {
       const csrfToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('XSRF-TOKEN='))
-        ?.split('=')[1];
-      
+        .split("; ")
+        .find(row => row.startsWith("XSRF-TOKEN="))
+        ?.split("=")[1];
+
       if (csrfToken) {
-        config.headers['X-CSRF-Token'] = csrfToken;
+        config.headers["X-CSRF-Token"] = csrfToken;
       }
     }
 
     return config;
   },
-  (error) => {
+  error => {
     return Promise.reject(error);
-  },
+  }
 );
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => response.data,
-  async (error) => {
+  response => response.data,
+  async error => {
     const originalRequest = error.config;
 
     // Check if error is due to an expired token (401 status)
@@ -94,11 +94,11 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
+          .then(token => {
             originalRequest.headers.Authorization = `Bearer ${token}`;
             return api(originalRequest);
           })
-          .catch((err) => {
+          .catch(err => {
             return Promise.reject(err);
           });
       }
@@ -125,7 +125,7 @@ api.interceptors.response.use(
         // Attempt to refresh the token
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
-          { refreshToken },
+          { refreshToken }
         );
 
         if (response.data?.success && response.data?.token) {
@@ -159,7 +159,11 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         // Handle refresh failure - clear tokens and redirect if appropriate
-        processQueue(refreshError instanceof Error ? refreshError : new Error(String(refreshError)));
+        processQueue(
+          refreshError instanceof Error
+            ? refreshError
+            : new Error(String(refreshError))
+        );
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
 
@@ -180,27 +184,34 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 // Export CRUD functions
 export const apiService = {
   // General CRUD operations
-  get: <T>(url: string, params?: Record<string, any>): Promise<ApiResponse<T>> =>
-    api.get(url, { params }),
+  get: <T>(
+    url: string,
+    params?: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => api.get(url, { params }),
 
-  post: <T>(url: string, data?: Record<string, unknown> | FormData): Promise<ApiResponse<T>> => {
+  post: <T>(
+    url: string,
+    data?: Record<string, unknown> | FormData
+  ): Promise<ApiResponse<T>> => {
     if (!(data instanceof FormData)) {
       return api.post(url, data);
     }
     // Handle FormData specially for file uploads
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    const csrfToken = typeof window !== "undefined" 
-      ? document.cookie
-          .split('; ')
-          .find(row => row.startsWith('XSRF-TOKEN='))
-          ?.split('=')[1]
-      : null;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const csrfToken =
+      typeof window !== "undefined"
+        ? document.cookie
+            .split("; ")
+            .find(row => row.startsWith("XSRF-TOKEN="))
+            ?.split("=")[1]
+        : null;
 
     return axios
       .post(`${process.env.NEXT_PUBLIC_API_URL}${url}`, data, {
@@ -211,29 +222,34 @@ export const apiService = {
         },
         withCredentials: true,
       })
-      .then((response) => response.data);
+      .then(response => response.data);
   },
 
-  put: <T>(url: string, data?: any): Promise<ApiResponse<T>> =>
-    api.put(url, data),
+  put: <T>(
+    url: string,
+    data?: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => api.put(url, data),
 
   delete: <T>(url: string): Promise<ApiResponse<T>> => api.delete(url),
 
   // Authentication related
-  login: (credentials: any) => api.post("/auth/login", credentials),
+  login: (credentials: Record<string, unknown>) =>
+    api.post("/auth/login", credentials),
 
   logout: () => api.post("/auth/logout"),
 
-  register: (userData: any) => api.post("/auth/register", userData),
+  register: (userData: Record<string, unknown>) =>
+    api.post("/auth/register", userData),
 
   // Posts related
-  getPosts: (params?: any) => api.get("/posts", { params }),
+  getPosts: (params?: Record<string, unknown>) => api.get("/posts", { params }),
 
   getPostById: (id: string) => api.get(`/posts/${id}`),
 
-  createPost: (data: any) => api.post("/posts", data),
+  createPost: (data: Record<string, unknown>) => api.post("/posts", data),
 
-  updatePost: (id: string, data: any) => api.put(`/posts/${id}`, data),
+  updatePost: (id: string, data: Record<string, unknown>) =>
+    api.put(`/posts/${id}`, data),
 
   deletePost: (id: string) => api.delete(`/posts/${id}`),
 
@@ -243,9 +259,11 @@ export const apiService = {
   getCategoryById: (id: string) =>
     api.get(`/categories/${id}`, { params: { fullLang: true } }),
 
-  createCategory: (data: any) => api.post("/categories", data),
+  createCategory: (data: Record<string, unknown>) =>
+    api.post("/categories", data),
 
-  updateCategory: (id: string, data: any) => api.put(`/categories/${id}`, data),
+  updateCategory: (id: string, data: Record<string, unknown>) =>
+    api.put(`/categories/${id}`, data),
 
   deleteCategory: (id: string) => api.delete(`/categories/${id}`),
 
@@ -255,17 +273,19 @@ export const apiService = {
   getTagById: (id: string) =>
     api.get(`/tags/${id}`, { params: { fullLang: true } }),
 
-  createTag: (data: any) => api.post("/tags", data),
+  createTag: (data: Record<string, unknown>) => api.post("/tags", data),
 
-  updateTag: (id: string, data: any) => api.put(`/tags/${id}`, data),
+  updateTag: (id: string, data: Record<string, unknown>) =>
+    api.put(`/tags/${id}`, data),
 
   deleteTag: (id: string) => api.delete(`/tags/${id}`),
 
   // Media related
-  getMedia: <T = any>(params?: any): Promise<ApiResponse<T>> =>
-    api.get("/media", { params }),
+  getMedia: <T = unknown>(
+    params?: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => api.get("/media", { params }),
 
-  uploadMedia: <T = any>(formData: FormData): Promise<ApiResponse<T>> => {
+  uploadMedia: <T = unknown>(formData: FormData): Promise<ApiResponse<T>> => {
     return api.post("/media", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -273,7 +293,7 @@ export const apiService = {
     });
   },
 
-  deleteMedia: <T = any>(id: string): Promise<ApiResponse<T>> =>
+  deleteMedia: <T = unknown>(id: string): Promise<ApiResponse<T>> =>
     api.delete(`/media/${id}`),
 };
 

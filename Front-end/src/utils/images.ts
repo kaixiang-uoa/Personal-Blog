@@ -6,10 +6,7 @@ import { isValidUrl } from './isValidUrl';
  * @param defaultUrl default image url
  * @returns valid image url
  */
-export function getValidImageUrl(
-  url: string | null | undefined, 
-  defaultUrl: string
-): string {
+export function getValidImageUrl(url: string | null | undefined, defaultUrl: string): string {
   if (!url) return defaultUrl;
   return isValidUrl(url) ? url : defaultUrl;
 }
@@ -28,6 +25,6 @@ export function getResponsiveImageUrls(
 ): { desktop: string; mobile: string } {
   return {
     desktop: getValidImageUrl(desktopUrl, defaultUrl),
-    mobile: getValidImageUrl(mobileUrl || desktopUrl, defaultUrl)
+    mobile: getValidImageUrl(mobileUrl || desktopUrl, defaultUrl),
   };
-} 
+}

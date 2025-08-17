@@ -58,7 +58,7 @@ export const aboutFormSchema = z.object({
         institution: z.string().or(z.literal("")).optional(),
         year: z.string().or(z.literal("")).optional(),
         description: z.string().or(z.literal("")).optional(),
-      }),
+      })
     )
     .optional(),
 
@@ -69,7 +69,7 @@ export const aboutFormSchema = z.object({
         company: z.string().or(z.literal("")).optional(),
         period: z.string().or(z.literal("")).optional(),
         description: z.string().or(z.literal("")).optional(),
-      }),
+      })
     )
     .optional(),
 
@@ -84,7 +84,7 @@ export const aboutFormSchema = z.object({
           .or(z.literal(""))
           .optional(),
         tech: z.array(z.string()).optional(),
-      }),
+      })
     )
     .optional(),
 

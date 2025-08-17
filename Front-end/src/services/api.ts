@@ -1,4 +1,4 @@
-import axios, { AxiosInstance} from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import type { ApiResponse } from '@/types/dto/commonDto';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -55,10 +55,13 @@ function createApiRequest(axiosInstance: AxiosInstance) {
       const res = await axiosInstance.put<ApiResponse<T>>(url, data);
       return res.data.data;
     },
-    delete: async <T>(url: string, params?: Record<string, string | number | boolean>): Promise<T> => {
+    delete: async <T>(
+      url: string,
+      params?: Record<string, string | number | boolean>
+    ): Promise<T> => {
       const res = await axiosInstance.delete<ApiResponse<T>>(url, { params });
       return res.data.data;
-    }
+    },
   };
 }
 
@@ -69,16 +72,16 @@ export const internalApi = createApiRequest(internalAxiosInstance);
 /**
  * Legacy API Functions Migration Guide
  * ===================================
- * 
+ *
  * The following functions will be marked as deprecated in v1.0.0 and planned for removal in v2.0.0.
  * Please use the new API client objects instead of these individual functions:
- * 
+ *
  * Old method -> New method mapping:
  * - getApiData -> externalApi.get
  * - postApiData -> externalApi.post
  * - getInternalApiData -> internalApi.get
  * - postInternalApiData -> internalApi.post
- * 
+ *
  * Migration example:
  * Old: const data = await getApiData<UserData>('/users');
  * New: const data = await externalApi.get<UserData>('/users');
@@ -90,7 +93,9 @@ export const internalApi = createApiRequest(internalAxiosInstance);
 export const getApiData = <T>(url: string, params?: Record<string, string | number | boolean>) => {
   // Show warning in development environment
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[Deprecation Warning] getApiData is deprecated, please use externalApi.get instead.');
+    console.warn(
+      '[Deprecation Warning] getApiData is deprecated, please use externalApi.get instead.'
+    );
   }
   return externalApi.get<T>(url, params);
 };
@@ -100,7 +105,9 @@ export const getApiData = <T>(url: string, params?: Record<string, string | numb
  */
 export const postApiData = <T>(url: string, data?: Record<string, unknown>) => {
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[Deprecation Warning] postApiData is deprecated, please use externalApi.post instead.');
+    console.warn(
+      '[Deprecation Warning] postApiData is deprecated, please use externalApi.post instead.'
+    );
   }
   return externalApi.post<T>(url, data);
 };
@@ -108,9 +115,14 @@ export const postApiData = <T>(url: string, data?: Record<string, unknown>) => {
 /**
  * @deprecated Please use internalApi.get instead. Will be removed in v2.0.0.
  */
-export const getInternalApiData = <T>(url: string, params?: Record<string, string | number | boolean>) => {
+export const getInternalApiData = <T>(
+  url: string,
+  params?: Record<string, string | number | boolean>
+) => {
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[Deprecation Warning] getInternalApiData is deprecated, please use internalApi.get instead.');
+    console.warn(
+      '[Deprecation Warning] getInternalApiData is deprecated, please use internalApi.get instead.'
+    );
   }
   return internalApi.get<T>(url, params);
 };
@@ -120,11 +132,11 @@ export const getInternalApiData = <T>(url: string, params?: Record<string, strin
  */
 export const postInternalApiData = <T>(url: string, data?: Record<string, unknown>) => {
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[Deprecation Warning] postInternalApiData is deprecated, please use internalApi.post instead.');
+    console.warn(
+      '[Deprecation Warning] postInternalApiData is deprecated, please use internalApi.post instead.'
+    );
   }
   return internalApi.post<T>(url, data);
 };
 
 export default axiosInstance;
-
-

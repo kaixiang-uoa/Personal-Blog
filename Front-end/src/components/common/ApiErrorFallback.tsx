@@ -16,11 +16,11 @@ interface ApiErrorFallbackProps {
 
 /**
  * ApiErrorFallback Component
- * 
+ *
  * A component that displays user-friendly error messages when API requests fail.
  * Supports different error types with appropriate styling and provides a retry option.
  * Includes fallback translations and handles various HTTP status codes.
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -30,28 +30,28 @@ interface ApiErrorFallbackProps {
  *   message="Custom error message"
  * />
  * ```
- * 
+ *
  * @param {ApiErrorFallbackProps} props - The component props
  * @returns {JSX.Element} An error display component with retry functionality
  */
 export default function ApiErrorFallback({
   error,
   resetErrorBoundary,
-  message
+  message,
 }: ApiErrorFallbackProps) {
   // Use common namespace for translations
   const t = useTranslations('common');
-  
+
   // Fallback translations in case the hook fails
   const fallbackTranslations: Record<string, string> = {
-    'defaultApiError': 'Something went wrong',
-    'dataLoadingFailed': 'Data loading failed',
-    'tryAgain': 'Try again',
-    'notFoundError': 'Resource not found',
-    'serverError': 'Server error occurred',
-    'networkError': 'Network error',
-    'unauthorizedError': 'Unauthorized access',
-    'validationError': 'Invalid data'
+    defaultApiError: 'Something went wrong',
+    dataLoadingFailed: 'Data loading failed',
+    tryAgain: 'Try again',
+    notFoundError: 'Resource not found',
+    serverError: 'Server error occurred',
+    networkError: 'Network error',
+    unauthorizedError: 'Unauthorized access',
+    validationError: 'Invalid data',
   };
 
   /**
@@ -66,29 +66,29 @@ export default function ApiErrorFallback({
       return fallbackTranslations[key] || key;
     }
   };
-  
+
   /**
    * Parse error details and determine appropriate message and status code
    * @returns {Object} Object containing error message and status code
    */
   const getErrorDetails = () => {
     if (!error) return { message: message || safeTranslate('defaultApiError'), statusCode: 500 };
-    
+
     // Extract API response information
     let statusCode = 500;
     let errorMessage = message || error.message || safeTranslate('defaultApiError');
-    
+
     // Handle network errors
     if (error.message.includes('Network Error')) {
       return { message: safeTranslate('networkError'), statusCode: 0 };
     }
-    
+
     // Extract status code from error message
     const match = error.message.match(/(\d{3})/);
     if (match) {
       statusCode = parseInt(match[1]);
     }
-    
+
     // Map status codes to user-friendly messages
     switch (statusCode) {
       case 400:
@@ -109,10 +109,10 @@ export default function ApiErrorFallback({
       default:
         errorMessage = message || error.message || safeTranslate('defaultApiError');
     }
-    
+
     return { message: errorMessage, statusCode };
   };
-  
+
   const { message: errorMessage, statusCode } = getErrorDetails();
 
   /**
@@ -122,24 +122,27 @@ export default function ApiErrorFallback({
   const getErrorStyle = () => {
     if (statusCode === 404) {
       return {
-        containerClass: "border-yellow-200 bg-yellow-50 dark:border-yellow-800/30 dark:bg-yellow-900/20",
-        iconClass: "text-yellow-500 dark:text-yellow-400",
-        titleClass: "text-yellow-800 dark:text-yellow-200",
-        textClass: "text-yellow-600 dark:text-yellow-300",
-        buttonClass: "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 dark:bg-yellow-700 dark:hover:bg-yellow-600"
+        containerClass:
+          'border-yellow-200 bg-yellow-50 dark:border-yellow-800/30 dark:bg-yellow-900/20',
+        iconClass: 'text-yellow-500 dark:text-yellow-400',
+        titleClass: 'text-yellow-800 dark:text-yellow-200',
+        textClass: 'text-yellow-600 dark:text-yellow-300',
+        buttonClass:
+          'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 dark:bg-yellow-700 dark:hover:bg-yellow-600',
       };
     }
-    
+
     // Default error styling
     return {
-      containerClass: "border-red-200 bg-red-50 dark:border-red-800/30 dark:bg-red-900/20",
-      iconClass: "text-red-500 dark:text-red-400",
-      titleClass: "text-red-800 dark:text-red-200",
-      textClass: "text-red-600 dark:text-red-300",
-      buttonClass: "bg-red-600 hover:bg-red-700 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-600"
+      containerClass: 'border-red-200 bg-red-50 dark:border-red-800/30 dark:bg-red-900/20',
+      iconClass: 'text-red-500 dark:text-red-400',
+      titleClass: 'text-red-800 dark:text-red-200',
+      textClass: 'text-red-600 dark:text-red-300',
+      buttonClass:
+        'bg-red-600 hover:bg-red-700 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-600',
     };
   };
-  
+
   const style = getErrorStyle();
 
   return (
@@ -162,17 +165,15 @@ export default function ApiErrorFallback({
           <path d="M12 16h.01" />
           <path d="M9 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
         </svg>
-        
+
         {/* Error title */}
         <h3 className={`text-lg font-medium ${style.titleClass}`}>
           {safeTranslate('dataLoadingFailed')}
         </h3>
-        
+
         {/* Error message */}
-        <p className={`text-sm max-w-md ${style.textClass}`}>
-          {errorMessage}
-        </p>
-        
+        <p className={`text-sm max-w-md ${style.textClass}`}>{errorMessage}</p>
+
         {/* Retry button */}
         {resetErrorBoundary && (
           <button
@@ -185,4 +186,4 @@ export default function ApiErrorFallback({
       </div>
     </div>
   );
-} 
+}

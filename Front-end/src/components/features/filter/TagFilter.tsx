@@ -35,10 +35,10 @@ export interface TagFilterProps {
 
 /**
  * TagFilter Component
- * 
+ *
  * A component that displays a scrollable list of tags with multi-select functionality.
  * Tags can be toggled on/off, and the component maintains the selected state.
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -48,7 +48,7 @@ export interface TagFilterProps {
  *   onTagsChangeAction={handleTagsChange}
  * />
  * ```
- * 
+ *
  * @param {TagFilterProps} props - The component props
  * @returns {JSX.Element} A scrollable tag filter component
  */

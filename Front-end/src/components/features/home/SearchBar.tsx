@@ -12,9 +12,9 @@ interface SearchBarProps {
 
 /**
  * SearchBar Component
- * 
+ *
  * A search input component with debounced search functionality
- * 
+ *
  * @component
  * @param {SearchBarProps} props - Component props
  * @returns {JSX.Element} Search input with debounced functionality
@@ -26,23 +26,26 @@ export default function SearchBar({ locale, initialSearch = '' }: SearchBarProps
 
   // Debounced search handler with ref to store timeout
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  
-  const debouncedSearch = useCallback((searchValue: string) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    timeoutRef.current = setTimeout(() => {
-      const urlParams = new URLSearchParams(searchParams.toString());
-      if (searchValue.trim()) {
-        urlParams.set('search', searchValue);
-      } else {
-        urlParams.delete('search');
+
+  const debouncedSearch = useCallback(
+    (searchValue: string) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-      urlParams.delete('page'); // Reset to page 1 when searching
-      router.push(`/${locale}?${urlParams.toString()}`);
-    }, 300); // 300ms delay
-  }, [searchParams, router, locale]);
+
+      timeoutRef.current = setTimeout(() => {
+        const urlParams = new URLSearchParams(searchParams.toString());
+        if (searchValue.trim()) {
+          urlParams.set('search', searchValue);
+        } else {
+          urlParams.delete('search');
+        }
+        urlParams.delete('page'); // Reset to page 1 when searching
+        router.push(`/${locale}?${urlParams.toString()}`);
+      }, 300); // 300ms delay
+    },
+    [searchParams, router, locale]
+  );
 
   // Effect to update searchInput when URL parameters change
   useEffect(() => {
@@ -57,7 +60,7 @@ export default function SearchBar({ locale, initialSearch = '' }: SearchBarProps
         placeholder="Search articles..."
         className="w-full pl-8"
         value={searchInput}
-        onChange={(e) => {
+        onChange={e => {
           const searchValue = e.target.value;
           setSearchInput(searchValue);
           debouncedSearch(searchValue);
@@ -65,4 +68,4 @@ export default function SearchBar({ locale, initialSearch = '' }: SearchBarProps
       />
     </div>
   );
-} 
+}

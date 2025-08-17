@@ -7,18 +7,18 @@ import {
   ErrorCategories,
   getErrorDetails,
   createErrorWithCode,
-} from '../utils/errorCodes.js';
+} from "../utils/errorCodes.js";
 
 // Error types for better classification and handling (keep
 export const ErrorTypes = {
-  VALIDATION: 'VALIDATION_ERROR',
-  AUTHENTICATION: 'AUTHENTICATION_ERROR',
-  AUTHORIZATION: 'AUTHORIZATION_ERROR',
-  NOT_FOUND: 'NOT_FOUND_ERROR',
-  CONFLICT: 'CONFLICT_ERROR',
-  INTERNAL: 'INTERNAL_ERROR',
-  DATABASE: 'DATABASE_ERROR',
-  EXTERNAL_SERVICE: 'EXTERNAL_SERVICE_ERROR',
+  VALIDATION: "VALIDATION_ERROR",
+  AUTHENTICATION: "AUTHENTICATION_ERROR",
+  AUTHORIZATION: "AUTHORIZATION_ERROR",
+  NOT_FOUND: "NOT_FOUND_ERROR",
+  CONFLICT: "CONFLICT_ERROR",
+  INTERNAL: "INTERNAL_ERROR",
+  DATABASE: "DATABASE_ERROR",
+  EXTERNAL_SERVICE: "EXTERNAL_SERVICE_ERROR",
 };
 
 // mapping of error types to error categories
@@ -44,7 +44,7 @@ const typeToCategory = {
 export const createError = (
   message,
   statusCode = 500,
-  type = ErrorTypes.INTERNAL,
+  type = ErrorTypes.INTERNAL
 ) => {
   const errorCode = getDefaultErrorCode(statusCode, type);
   const error = new Error(message);
@@ -80,7 +80,7 @@ export const errorHandler = (err, req, res, _next) => {
       message:
         err.message ||
         (errorDetails && errorDetails.message) ||
-        'Something went wrong',
+        "Something went wrong",
       type: errorType,
       requestId: req.requestId,
       code: errorCode,
@@ -94,7 +94,7 @@ export const errorHandler = (err, req, res, _next) => {
   }
 
   // Include stack trace in development mode
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== "production") {
     errorResponse.error.stack = err.stack;
   }
 
@@ -109,9 +109,9 @@ export const errorHandler = (err, req, res, _next) => {
 export const notFound = (req, res, next) => {
   // use standard error code to create error
   const error = createErrorWithCode(
-    'ER001', // Resource not found
+    "ER001", // Resource not found
     `Not Found - ${req.originalUrl}`,
-    { path: req.originalUrl },
+    { path: req.originalUrl }
   );
   next(error);
 };
@@ -122,7 +122,7 @@ export const notFound = (req, res, next) => {
  * @param {number} statusCode - HTTP status code
  * @returns {string} Error type
  */
-const getDefaultErrorType = (statusCode) => {
+const getDefaultErrorType = statusCode => {
   if (statusCode >= 500) return ErrorTypes.INTERNAL;
   if (statusCode === 404) return ErrorTypes.NOT_FOUND;
   if (statusCode === 401) return ErrorTypes.AUTHENTICATION;
@@ -147,44 +147,44 @@ const getDefaultErrorCode = (statusCode, type) => {
     // get default error code based on category and status code
     switch (category) {
       case ErrorCategories.VALIDATION:
-        return 'EV001'; // default validation error
+        return "EV001"; // default validation error
       case ErrorCategories.AUTH:
-        return 'EA001'; // default authentication error
+        return "EA001"; // default authentication error
       case ErrorCategories.ACCESS:
-        return 'EAC001'; // default authorization error
+        return "EAC001"; // default authorization error
       case ErrorCategories.RESOURCE:
-        return statusCode === 404 ? 'ER001' : 'ER002'; // resource not found or conflict
+        return statusCode === 404 ? "ER001" : "ER002"; // resource not found or conflict
       case ErrorCategories.SYSTEM:
-        return 'ES001'; // default system error
+        return "ES001"; // default system error
       case ErrorCategories.DATA:
-        return 'ED001'; // default data error
+        return "ED001"; // default data error
       case ErrorCategories.EXTERNAL:
-        return 'EE001'; // default external service error
+        return "EE001"; // default external service error
     }
   }
 
   // if cannot map to category, map to error code based on status code
   switch (statusCode) {
     case 400:
-      return 'EV001'; // input validation error
+      return "EV001"; // input validation error
     case 401:
-      return 'EA001'; // authentication error
+      return "EA001"; // authentication error
     case 403:
-      return 'EAC001'; // authorization error
+      return "EAC001"; // authorization error
     case 404:
-      return 'ER001'; // resource not found
+      return "ER001"; // resource not found
     case 409:
-      return 'ER002'; // resource conflict
+      return "ER002"; // resource conflict
     case 500:
-      return 'ES001'; // internal server error
+      return "ES001"; // internal server error
     case 502:
-      return 'EE002'; // external API error
+      return "EE002"; // external API error
     case 503:
-      return 'ES002'; // service unavailable
+      return "ES002"; // service unavailable
     case 504:
-      return 'ES003'; // request timeout
+      return "ES003"; // request timeout
     default:
       // default to internal error
-      return 'ES001';
+      return "ES001";
   }
 };

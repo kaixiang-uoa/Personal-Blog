@@ -1,6 +1,7 @@
 "use client";
 
 import { ImageIcon } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 import { Card, CardContent } from "@/components/ui/data-display/card";
@@ -31,7 +32,9 @@ export default function BannerImageSelector({
       >
         <CardContent className="p-0">
           {value ? (
-            <img src={value} alt={label} className="w-full h-40 object-cover" />
+            <div className="relative w-full h-40">
+              <Image src={value} alt={label} fill className="object-cover" />
+            </div>
           ) : (
             <div className="w-full h-40 bg-muted flex items-center justify-center">
               <ImageIcon className="h-8 w-8 text-muted-foreground" />
@@ -56,7 +59,7 @@ export default function BannerImageSelector({
         type="url"
         placeholder="Enter image URL"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
       />
     </div>
   );

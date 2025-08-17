@@ -1,16 +1,17 @@
 "use client";
 
-import Image from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
+import ImageExtension from "@tiptap/extension-image";
+import LinkExtension from "@tiptap/extension-link";
+import PlaceholderExtension from "@tiptap/extension-placeholder";
+import UnderlineExtension from "@tiptap/extension-underline";
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import StarterKitExtension from "@tiptap/starter-kit";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
-import { EditorToolbar } from "./EditorToolbar";
 import { apiService } from "@/lib/api";
+
+import { EditorToolbar } from "./EditorToolbar";
 
 interface PostEditorProps {
   content: string;
@@ -24,16 +25,16 @@ export function PostEditor({
   placeholder = "Enter content here...",
 }: PostEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
 
   // Handle image upload
   const handleImageUpload = useCallback(async (file: File) => {
     try {
-      setIsUploading(true);
       const formData = new FormData();
       formData.append("files", file);
 
-      const response = await apiService.uploadMedia<{ media: { url: string }[] }>(formData);
+      const response = await apiService.uploadMedia<{
+        media: { url: string }[];
+      }>(formData);
       if (response.data?.media?.[0]?.url) {
         return response.data.media[0].url;
       }
@@ -43,27 +44,26 @@ export function PostEditor({
       toast.error("Failed to upload image");
       return null;
     } finally {
-      setIsUploading(false);
     }
   }, []);
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
-      Underline,
-      Link.configure({
+      StarterKitExtension,
+      UnderlineExtension,
+      LinkExtension.configure({
         openOnClick: false,
         HTMLAttributes: {
           class: "text-primary underline",
         },
       }),
-      Image.configure({
+      ImageExtension.configure({
         HTMLAttributes: {
           class: "rounded-md max-w-full",
         },
         allowBase64: false,
       }),
-      Placeholder.configure({
+      PlaceholderExtension.configure({
         placeholder: placeholder,
       }),
     ],

@@ -63,7 +63,7 @@ export interface SettingItem {
  * setting data type
  * can be object or array
  */
-export type Settings = Record<string, string | number | boolean | object | null> | SettingItem[]; 
+export type Settings = Record<string, string | number | boolean | object | null> | SettingItem[];
 
 export interface AboutData {
   intro: string;

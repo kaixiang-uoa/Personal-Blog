@@ -30,9 +30,9 @@ interface PaginationControlsProps {
 
 /**
  * PaginationControls Component
- * 
+ *
  * A component that handles pagination and page size selection
- * 
+ *
  * @component
  * @param {PaginationControlsProps} props - Component props
  * @returns {JSX.Element} Pagination controls with page size selector
@@ -43,7 +43,7 @@ export default function PaginationControls({
   // locale, // TODO: Use when needed
   // searchParams, // TODO: Use when needed
   onPageChange,
-  initialPageSize = 10
+  initialPageSize = 10,
 }: PaginationControlsProps) {
   // const t = useTranslations('common'); // TODO: Add translations when needed
   const [pageSize, setPageSize] = useState(initialPageSize);
@@ -71,7 +71,7 @@ export default function PaginationControls({
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       // Show all pages if total is small
       for (let i = 1; i <= totalPages; i++) {
@@ -81,19 +81,19 @@ export default function PaginationControls({
       // Show pages around current page
       let start = Math.max(1, currentPage - 2);
       let end = Math.min(totalPages, currentPage + 2);
-      
+
       // Adjust if we're near the edges
       if (currentPage <= 3) {
         end = Math.min(totalPages, 5);
       } else if (currentPage >= totalPages - 2) {
         start = Math.max(1, totalPages - 4);
       }
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
     }
-    
+
     return pages;
   };
 
@@ -109,7 +109,7 @@ export default function PaginationControls({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {pageSizeOptions.map((option) => (
+              {pageSizeOptions.map(option => (
                 <SelectItem key={option.value} value={option.value.toString()}>
                   {option.label}
                 </SelectItem>
@@ -117,27 +117,23 @@ export default function PaginationControls({
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Disabled Pagination */}
         <Pagination className="mt-8">
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious 
+              <PaginationPrevious
                 href="#"
                 className="pointer-events-none opacity-50 cursor-not-allowed"
               />
             </PaginationItem>
             <PaginationItem>
-              <PaginationLink
-                href="#"
-                isActive={true}
-                className="cursor-default"
-              >
+              <PaginationLink href="#" isActive={true} className="cursor-default">
                 1
               </PaginationLink>
             </PaginationItem>
             <PaginationItem>
-              <PaginationNext 
+              <PaginationNext
                 href="#"
                 className="pointer-events-none opacity-50 cursor-not-allowed"
               />
@@ -160,7 +156,7 @@ export default function PaginationControls({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {pageSizeOptions.map((option) => (
+            {pageSizeOptions.map(option => (
               <SelectItem key={option.value} value={option.value.toString()}>
                 {option.label}
               </SelectItem>
@@ -168,7 +164,7 @@ export default function PaginationControls({
           </SelectContent>
         </Select>
       </div>
-      
+
       {/* Active Pagination */}
       <Pagination className="mt-8">
         <PaginationContent>
@@ -176,18 +172,18 @@ export default function PaginationControls({
           <PaginationItem>
             <PaginationPrevious
               href="#"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault();
                 if (currentPage > 1) {
                   onPageChange(currentPage - 1);
                 }
               }}
-              className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
             />
           </PaginationItem>
 
           {/* Page Numbers */}
-          {pageNumbers.map((pageNum) => {
+          {pageNumbers.map(pageNum => {
             // Show ellipsis before first page if needed
             if (pageNum === pageNumbers[0] && pageNum > 1) {
               return (
@@ -195,7 +191,7 @@ export default function PaginationControls({
                   <PaginationItem>
                     <PaginationLink
                       href="#"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.preventDefault();
                         onPageChange(1);
                       }}
@@ -224,7 +220,7 @@ export default function PaginationControls({
                   <PaginationItem>
                     <PaginationLink
                       href="#"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.preventDefault();
                         onPageChange(totalPages);
                       }}
@@ -240,7 +236,7 @@ export default function PaginationControls({
               <PaginationItem key={pageNum}>
                 <PaginationLink
                   href="#"
-                  onClick={(e) => {
+                  onClick={e => {
                     e.preventDefault();
                     onPageChange(pageNum);
                   }}
@@ -256,17 +252,19 @@ export default function PaginationControls({
           <PaginationItem>
             <PaginationNext
               href="#"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault();
                 if (currentPage < totalPages) {
                   onPageChange(currentPage + 1);
                 }
               }}
-              className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              className={
+                currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+              }
             />
           </PaginationItem>
         </PaginationContent>
       </Pagination>
     </div>
   );
-} 
+}

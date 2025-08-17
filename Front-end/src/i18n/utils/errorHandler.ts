@@ -1,12 +1,6 @@
 import { useTranslations } from 'next-intl';
 
-export type ErrorType = 
-  | 'network'
-  | 'server'
-  | 'validation'
-  | 'auth'
-  | 'notFound'
-  | 'unknown';
+export type ErrorType = 'network' | 'server' | 'validation' | 'auth' | 'notFound' | 'unknown';
 
 export interface ErrorOptions {
   type?: ErrorType;
@@ -60,8 +54,8 @@ export function useErrorHandler() {
   };
 
   const formatValidationError = (
-    field: string, 
-    type: string, 
+    field: string,
+    type: string,
     params?: Record<string, string | number | boolean | null>
   ): string => {
     try {
@@ -73,6 +67,6 @@ export function useErrorHandler() {
 
   return {
     getErrorMessage,
-    formatValidationError
+    formatValidationError,
   };
-} 
+}

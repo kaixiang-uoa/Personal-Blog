@@ -11,18 +11,18 @@ export function useMobile(breakpoint: number = 768): boolean {
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
-    // 初始检查
+    // Initial check
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < breakpoint);
     };
 
-    // 首次运行检查
+    // First run check
     checkIfMobile();
 
-    // 监听窗口大小变化
+    // Listen for window resize
     window.addEventListener("resize", checkIfMobile);
 
-    // 清理监听器
+    // Cleanup listener
     return () => {
       window.removeEventListener("resize", checkIfMobile);
     };

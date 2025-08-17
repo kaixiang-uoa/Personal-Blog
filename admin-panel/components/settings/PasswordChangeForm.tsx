@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/inputs/input";
 import { toast } from "@/hooks/ui/use-toast";
 import { apiService } from "@/lib/api";
+import { errorHandler } from "@/lib/errors";
 import { passwordChangeSchema } from "@/lib/validators/security-schemas";
 
 export default function PasswordChangeForm() {
@@ -64,14 +65,11 @@ export default function PasswordChangeForm() {
         title: "Password Changed",
         description: "Your password has been updated successfully",
       });
-    } catch (error: any) {
-      console.error("Error changing password:", error);
+    } catch (error: unknown) {
+      const apiError = errorHandler.handle(error);
       toast({
         title: "Failed to Change Password",
-        description:
-          error.response?.data?.message ||
-          error.message ||
-          "Unknown error occurred",
+        description: apiError.message,
         variant: "destructive",
       });
     } finally {

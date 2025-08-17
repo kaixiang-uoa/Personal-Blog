@@ -12,11 +12,14 @@
     "seed": "node src/config/seedData.js",
     "build": "echo 'No build step required'",
     "start": "node src/server.js",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
     "test:api": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=src/tests/api",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "init-about": "node src/scripts/init-about-settings.js",
     "update-about-group": "node src/scripts/update-about-group.js",
     "update-banner-settings": "node src/scripts/update-banner-settings.js",
@@ -62,6 +65,7 @@
     "mocha": "^10.8.2",
     "mongodb-memory-server": "^10.1.4",
     "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
     "supertest": "^7.1.1"
   }
 }

@@ -11,4 +11,4 @@ export function tryParseJSON<T>(jsonString: string | undefined | null, defaultVa
   } catch {
     return defaultValue;
   }
-} 
+}

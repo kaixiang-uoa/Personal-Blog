@@ -10,8 +10,8 @@ import createNextIntlPlugin from 'next-intl/plugin';
 // @see https://next-intl-docs.vercel.app/docs/getting-started/app-router
 const withNextIntl = createNextIntlPlugin();
 
-/** 
- * @type {import('next').NextConfig} 
+/**
+ * @type {import('next').NextConfig}
  * TypeScript type annotation, provides IDE auto-completion and type checking
  */
 const nextConfig = {
@@ -27,13 +27,42 @@ const nextConfig = {
     // @see https://nextjs.org/docs/pages/api-reference/next-config-js/eslint
     ignoreDuringBuilds: true,
   },
-  
+
   typescript: {
     // ignore TypeScript errors during production build
     // note: similar to ESLint settings, this should only be used in specific cases
     // the best practice is to fix all type errors, not ignore them
     // @see https://nextjs.org/docs/pages/api-reference/next-config-js/typescript
     ignoreBuildErrors: true,
+  },
+
+  // Image optimization configuration
+  // allow external image domains for Next.js Image component
+  // @see https://nextjs.org/docs/pages/api-reference/next-config-js/images
+  images: {
+    // allow external image domains
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'my-blog-media-storage.s3.ap-southeast-2.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.kxzhang.online',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+    // enable image optimization
+    unoptimized: false,
   },
 };
 

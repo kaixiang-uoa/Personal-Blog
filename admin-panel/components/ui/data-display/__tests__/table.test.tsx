@@ -104,7 +104,7 @@ describe("Table Component", () => {
 
   it("forwards ref to the underlying table element", () => {
     const ref = React.createRef<HTMLTableElement>();
-    const { getByTestId } = render(
+    render(
       <Table ref={ref} data-testid="table-ref-test" />,
     );
     expect(ref.current).not.toBeNull();

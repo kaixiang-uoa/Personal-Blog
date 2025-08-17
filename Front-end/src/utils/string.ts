@@ -4,7 +4,10 @@
  * @param defaultValue default value
  * @returns processed string value
  */
-export function getStringParam(param: string | string[] | null | undefined, defaultValue = ''): string {
+export function getStringParam(
+  param: string | string[] | null | undefined,
+  defaultValue = ''
+): string {
   if (!param) return defaultValue;
   return Array.isArray(param) ? param[0] || defaultValue : param;
 }
@@ -17,10 +20,20 @@ export function getStringParam(param: string | string[] | null | undefined, defa
 export function getArrayParam(param: string | string[] | null | undefined): string[] {
   if (!param) return [];
   const str = Array.isArray(param) ? param[0] : param;
-  return str.split(',').map(s => s.trim()).filter(Boolean);
+  return str
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
 }
 
-export type SortOrder = 'publishedAt-desc' | 'publishedAt-asc' | 'updatedAt-desc' | 'updatedAt-asc' | 'latest' | 'oldest' | 'popular';
+export type SortOrder =
+  | 'publishedAt-desc'
+  | 'publishedAt-asc'
+  | 'updatedAt-desc'
+  | 'updatedAt-asc'
+  | 'latest'
+  | 'oldest'
+  | 'popular';
 
 /**
  * Safely validates if a value is a valid SortOrder
@@ -29,15 +42,23 @@ export type SortOrder = 'publishedAt-desc' | 'publishedAt-asc' | 'updatedAt-desc
  * @returns A valid SortOrder value
  */
 export function validateSortOrder(
-  value: string | null | undefined, 
+  value: string | null | undefined,
   defaultValue: SortOrder = 'latest'
 ): SortOrder {
   if (!value) return defaultValue;
-  
+
   // Check if value is one of the allowed sort orders
-  const validSortOrders = ['publishedAt-desc', 'publishedAt-asc', 'updatedAt-desc', 'updatedAt-asc', 'latest', 'oldest', 'popular'] as const;
-  return validSortOrders.includes(value as typeof validSortOrders[number]) 
-    ? (value as SortOrder) 
+  const validSortOrders = [
+    'publishedAt-desc',
+    'publishedAt-asc',
+    'updatedAt-desc',
+    'updatedAt-asc',
+    'latest',
+    'oldest',
+    'popular',
+  ] as const;
+  return validSortOrders.includes(value as (typeof validSortOrders)[number])
+    ? (value as SortOrder)
     : defaultValue;
 }
 
@@ -54,7 +75,5 @@ export function validateEnum<T extends string>(
   defaultValue: T
 ): T {
   if (!value) return defaultValue;
-  return allowedValues.includes(value as T) 
-    ? (value as T) 
-    : defaultValue;
-} 
+  return allowedValues.includes(value as T) ? (value as T) : defaultValue;
+}

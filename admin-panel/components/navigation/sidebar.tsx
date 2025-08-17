@@ -62,22 +62,22 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
     try {
       await apiService.logout();
       toast({
-        title: "登出成功",
-        description: "您已成功退出登录",
+        title: "Logout successful",
+        description: "You have successfully logged out",
       });
 
-      // 清除可能存在的重定向路径
+      // Clear any existing redirect path
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("redirectAfterLogin");
       }
 
-      // 使用 replace 而非 push，防止用户通过后退按钮返回已登录状态
+      // Use replace instead of push to prevent user from returning to logged-in state via back button
       router.replace("/login");
     } catch (error) {
-      console.error("登出失败:", error);
+      console.error("Logout failed:", error);
       toast({
-        title: "登出失败",
-        description: "退出登录时发生错误，请重试",
+        title: "Logout failed",
+        description: "An error occurred while logging out. Please try again.",
         variant: "destructive",
       });
     }
@@ -90,6 +90,10 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
         <div
           className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
           onClick={() => setOpen(false)}
+          onKeyDown={e => e.key === "Escape" && setOpen(false)}
+          role="button"
+          tabIndex={0}
+          aria-label="Close sidebar"
         />
       )}
 
@@ -101,7 +105,7 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
             ? open
               ? "translate-x-0"
               : "-translate-x-full"
-            : "translate-x-0 relative",
+            : "translate-x-0 relative"
         )}
       >
         {isMobile && (
@@ -127,7 +131,7 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
 
         <ScrollArea className="flex flex-col flex-1 px-3 py-4">
           <nav className="flex flex-col gap-1">
-            {items.map((item) => (
+            {items.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -135,7 +139,7 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   pathname === item.href || pathname.startsWith(`${item.href}/`)
                     ? "bg-accent text-accent-foreground"
-                    : "hover:bg-accent/50 hover:text-accent-foreground",
+                    : "hover:bg-accent/50 hover:text-accent-foreground"
                 )}
               >
                 {item.icon}

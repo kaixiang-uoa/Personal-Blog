@@ -65,13 +65,9 @@ function processSettingsResponse(data: SettingsResponse): Settings {
       contactBannerMobile: data["appearance.contactBannerMobile"] || "",
     },
     about: processAboutSettings(data),
-    system: {
-      keepAlive: {
-        interval: Number(data["system.keepAlive.interval"]) || 1 * 60 * 1000,
-        enabled: data["system.keepAlive.enabled"] === "true",
-        isRunning: data["system.keepAlive.isRunning"] === "true",
-      },
-    },
+    // system: {
+    //   // Future system settings will be processed here
+    // },
   };
 }
 
@@ -91,17 +87,19 @@ export const settingsService = {
   },
 
   getByGroup: async (
-    group: string,
-  ): Promise<ApiResponse<Record<string, any>>> => {
+    group: string
+  ): Promise<ApiResponse<Record<string, unknown>>> => {
     try {
       const response = await apiClient.get<SettingsResponse>("/settings", {
         params: { group },
       });
 
       // Process group-specific data
-      let processedData: Record<string, any> = {};
+      let processedData: Record<string, unknown>;
       if (group === "about") {
-        processedData = processAboutSettings(response.data);
+        processedData = processAboutSettings(
+          response.data
+        ) as unknown as Record<string, unknown>;
       } else {
         processedData = response.data;
       }
@@ -127,13 +125,13 @@ export const settingsService = {
 
   update: async (
     key: string,
-    data: Partial<SettingFormData>,
+    data: Partial<SettingFormData>
   ): Promise<ApiResponse<Setting>> => {
     return apiClient.put(`/settings/${key}`, data);
   },
 
   batchUpdate: async (
-    settings: SettingFormData[],
+    settings: SettingFormData[]
   ): Promise<ApiResponse<Setting[]>> => {
     return apiClient.post("/settings/batch", { settings });
   },
@@ -143,17 +141,17 @@ export const settingsService = {
   },
 
   exportForEnvironment: async (
-    env: "development" | "production" | "staging",
+    env: "development" | "production" | "staging"
   ): Promise<{
     metadata: {
       exportDate: string;
       version: string;
       environment: string;
     };
-    settings: Record<string, any>;
+    settings: Record<string, unknown>;
   }> => {
     const response = (await apiClient.get("/settings")) as {
-      data: Record<string, any>;
+      data: Record<string, unknown>;
     };
     const settingsData = response.data;
 
@@ -161,7 +159,7 @@ export const settingsService = {
       throw new Error("No settings data available for export");
     }
 
-    const environmentOverrides: Record<string, any> = {};
+    const environmentOverrides: Record<string, unknown> = {};
 
     if (env === "production") {
       environmentOverrides["advanced.debugMode"] = false;

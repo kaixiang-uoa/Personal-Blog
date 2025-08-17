@@ -18,7 +18,7 @@ import { useArticles } from '@/hooks/useArticles';
  * @property {string} [search] - Optional search term to filter articles
  * @property {SortOrder} sort - The sorting order for articles
  */
-interface ArticleListProps { 
+interface ArticleListProps {
   locale: string;
   currentPage: number;
   postsPerPage: number;
@@ -30,10 +30,10 @@ interface ArticleListProps {
 
 /**
  * ArticleList Component
- * 
+ *
  * A component that displays a grid of articles with filtering, sorting, and pagination capabilities.
  * It handles loading states, error states, and empty states appropriately.
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -47,27 +47,27 @@ interface ArticleListProps {
  *   sort="latest"
  * />
  * ```
- * 
+ *
  * @param {ArticleListProps} props - The component props
  * @returns {JSX.Element} A responsive grid of articles with appropriate state handling
  */
-export default function ArticleList({ 
-  locale, 
-  currentPage, 
-  postsPerPage, 
-  tagsParam, 
-  category, 
-  search, 
-  sort 
+export default function ArticleList({
+  locale,
+  currentPage,
+  postsPerPage,
+  tagsParam,
+  category,
+  search,
+  sort,
 }: ArticleListProps) {
   const t = useTranslations('common');
-  
+
   // Fetch articles data using React Query hook
-  const { 
-    data: articlesData, 
-    isLoading: isLoadingArticles, 
+  const {
+    data: articlesData,
+    isLoading: isLoadingArticles,
     error: articlesError,
-    refetch
+    refetch,
   } = useArticles({
     page: currentPage,
     limit: Number(postsPerPage),
@@ -75,13 +75,13 @@ export default function ArticleList({
     categorySlug: category || undefined,
     search: search || undefined,
     sort,
-    lang: locale
+    lang: locale,
   });
 
   // Memoize filtered articles to optimize performance
   const { articles, filteredArticles } = useMemo(() => {
     const articles = articlesData?.posts || [];
-    
+
     // Return early if no articles are available
     if (articles.length === 0) {
       return { articles, filteredArticles: [] };
@@ -92,16 +92,20 @@ export default function ArticleList({
 
     // Filter by tags if specified
     if (tagsParam.length > 0) {
-      result = result.filter(article => 
-        Array.isArray(article.tags) &&
-        article.tags.some((tag: Tag) => tagsParam.includes(tag?.slug)));
+      result = result.filter(
+        article =>
+          Array.isArray(article.tags) &&
+          article.tags.some((tag: Tag) => tagsParam.includes(tag?.slug))
+      );
     }
 
     // Filter by category if specified
     if (category) {
-      result = result.filter(article => 
-        Array.isArray(article.categories) && 
-        article.categories.some((cat: Category) => cat?.slug === category))
+      result = result.filter(
+        article =>
+          Array.isArray(article.categories) &&
+          article.categories.some((cat: Category) => cat?.slug === category)
+      );
     }
 
     // Apply search filter if search term is provided
@@ -117,10 +121,16 @@ export default function ArticleList({
     // Sort articles based on the specified order
     switch (sort) {
       case 'latest':
-        result.sort((a: Article, b: Article) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        result.sort(
+          (a: Article, b: Article) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
         break;
       case 'oldest':
-        result.sort((a: Article, b: Article) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        result.sort(
+          (a: Article, b: Article) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
         break;
       case 'popular':
         result.sort((a: Article, b: Article) => b.viewCount - a.viewCount);
@@ -128,21 +138,17 @@ export default function ArticleList({
     }
 
     return { articles, filteredArticles: result };
-  }, [
-    articlesData, 
-    tagsParam, 
-    category, 
-    search, 
-    sort
-  ]);
+  }, [articlesData, tagsParam, category, search, sort]);
 
   // Display loading skeleton while fetching data
   if (isLoadingArticles) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array(6).fill(0).map((_, i) => (
-          <ArticleSkeleton key={i} />
-        ))}
+        {Array(6)
+          .fill(0)
+          .map((_, i) => (
+            <ArticleSkeleton key={i} />
+          ))}
       </div>
     );
   }
@@ -150,9 +156,9 @@ export default function ArticleList({
   // Display error state with retry option
   if (articlesError) {
     return (
-      <ApiErrorFallback 
-        error={articlesError as Error} 
-        resetErrorBoundary={() => refetch()} 
+      <ApiErrorFallback
+        error={articlesError as Error}
+        resetErrorBoundary={() => refetch()}
         message="Failed to load articles. Please try again later."
       />
     );
@@ -162,10 +168,10 @@ export default function ArticleList({
   if (articles.length === 0) {
     return (
       <div className="py-12 text-center">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{t('noArticlesFound')}</h3>
-        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {t('tryChangingFilters')}
-        </p>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+          {t('noArticlesFound')}
+        </h3>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('tryChangingFilters')}</p>
       </div>
     );
   }
@@ -173,9 +179,9 @@ export default function ArticleList({
   // Render the grid of filtered articles
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredArticles.map((article) => (
+      {filteredArticles.map(article => (
         <ArticleCard key={article._id} article={article} />
       ))}
     </div>
   );
-} 
+}

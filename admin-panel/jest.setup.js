@@ -24,7 +24,7 @@ jest.mock("next/router", () => ({
 // Mock next/image
 jest.mock("next/image", () => ({
   __esModule: true,
-  default: (props) => {
+  default: props => {
     // eslint-disable-next-line jsx-a11y/alt-text, @next/next/no-img-element
     return <img {...props} />;
   },
@@ -33,7 +33,7 @@ jest.mock("next/image", () => ({
 // Mock matchMedia
 Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: jest.fn().mockImplementation((query) => ({
+  value: jest.fn().mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,

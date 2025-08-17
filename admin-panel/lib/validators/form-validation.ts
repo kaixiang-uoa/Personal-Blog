@@ -36,13 +36,21 @@ export const postFormSchema = z
     excerpt: z.string().optional(),
     category: z.string().optional(),
     tags: z.array(z.string()).optional(),
-    tagObjects: z.any().optional(),
+    tagObjects: z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          slug: z.string(),
+        })
+      )
+      .optional(),
     status: z.enum(["draft", "published", "archived"]),
     publishDate: z.string().optional(),
     featuredImage: z.string().optional(),
   })
   .refine(
-    (data) => {
+    data => {
       // only validate required fields in published state
       if (data.status === "published") {
         const hasTitleAndContent = !!data.title && !!data.content;
@@ -53,21 +61,17 @@ export const postFormSchema = z
     {
       message: "Published posts require title and content",
       path: ["status"],
-    },
+    }
   );
 
 export const categoryFormSchema = z.object({
   name: z.object({
-    zh: z
-      .string()
-      .min(2, {
-        message: "Category name (Chinese) must be at least 2 characters",
-      }),
-    en: z
-      .string()
-      .min(2, {
-        message: "Category name (English) must be at least 2 characters",
-      }),
+    zh: z.string().min(2, {
+      message: "Category name (Chinese) must be at least 2 characters",
+    }),
+    en: z.string().min(2, {
+      message: "Category name (English) must be at least 2 characters",
+    }),
   }),
   slug: z
     .string()
@@ -117,7 +121,7 @@ export const userFormSchema = z
       .min(2, { message: "Display name must be at least 2 characters" }),
     bio: z.string().optional(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine(data => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });

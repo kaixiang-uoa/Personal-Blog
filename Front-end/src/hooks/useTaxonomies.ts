@@ -22,4 +22,4 @@ export function useTags(lang: string) {
     queryFn: () => tagApi.getAllTags({ lang }),
     staleTime: 1000 * 60 * 10, // 10 minutes - tags don't change often
   });
-} 
+}

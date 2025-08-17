@@ -4,12 +4,8 @@
  */
 
 import { apiService } from "@/lib/api";
-import { 
-  AuthResponse, 
-  User, 
-  LoginFormValues, 
-  ApiResponse 
-} from "@/types";
+import { errorHandler } from "@/lib/errors";
+import { AuthResponse, User, LoginFormValues, ApiResponse } from "@/types";
 
 export const authService = {
   /**
@@ -19,19 +15,9 @@ export const authService = {
     try {
       const response = await apiService.login(credentials);
       return response as unknown as AuthResponse;
-    } catch (error: any) {
-      // Re-throw with proper error handling
-      if (error.response?.status === 429) {
-        throw new Error("Too many requests, please try again later");
-      } else if (error.response?.status === 401) {
-        throw new Error(
-          error.response.data.message || "Email or password is incorrect"
-        );
-      } else if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      } else {
-        throw error;
-      }
+    } catch (error: unknown) {
+      const apiError = errorHandler.handle(error);
+      throw new Error(apiError.message);
     }
   },
 
@@ -43,7 +29,7 @@ export const authService = {
       // Clear local storage
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
-      
+
       // Call logout API if needed
       await apiService.logout();
     } catch (error) {
@@ -119,4 +105,4 @@ export const authService = {
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
   },
-}; 
+};

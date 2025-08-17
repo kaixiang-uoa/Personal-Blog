@@ -51,12 +51,12 @@ interface PostFormData
 export default function NewPostPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category[]>([]);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [availableCategories, setAvailableCategories] = useState<Category[]>(
-    [],
+    []
   );
 
   // using react-hook-form
@@ -75,11 +75,14 @@ export default function NewPostPage() {
   });
 
   // Handle input changes
-  const handleInputChange = (field: string, value: any) => {
-    form.setValue(field as any, value);
+  const handleInputChange = (
+    field: keyof PostFormSchema,
+    value: string | string[]
+  ) => {
+    form.setValue(field, value as never);
 
     // If title changes, generate slug
-    if (field === "title" && value) {
+    if (field === "title" && value && typeof value === "string") {
       const slug = value
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, "")
@@ -137,7 +140,9 @@ export default function NewPostPage() {
         postData.categories = [data.category];
       }
 
-      await apiService.createPost(postData);
+      await apiService.createPost(
+        postData as unknown as Record<string, unknown>
+      );
       toast.success("Success", {
         description: "Post created successfully",
       });
@@ -166,7 +171,7 @@ export default function NewPostPage() {
     setSelectedTags(tags);
     form.setValue(
       "tags",
-      tags.map((t) => t._id),
+      tags.map(t => t._id)
     );
     form.setValue("tagObjects", tags);
   };
@@ -209,7 +214,7 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="title"
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                       <FormItem>
                         <FormLabel>
                           Title
@@ -239,7 +244,7 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="slug"
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                       <FormItem>
                         <FormLabel>
                           Slug
@@ -266,7 +271,7 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="excerpt"
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                       <FormItem>
                         <FormLabel>
                           Excerpt
@@ -292,7 +297,7 @@ export default function NewPostPage() {
                   <FormField
                     control={form.control}
                     name="content"
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                       <FormItem>
                         <FormLabel>
                           Content
@@ -308,7 +313,7 @@ export default function NewPostPage() {
                         <FormControl>
                           <PostEditor
                             content={field.value}
-                            onChange={(value: any) =>
+                            onChange={(value: string) =>
                               handleInputChange("content", value)
                             }
                           />
@@ -328,11 +333,11 @@ export default function NewPostPage() {
                 <FormField
                   control={form.control}
                   name="status"
-                  render={({ field }: { field: any }) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
                       <Select
-                        onValueChange={(value) =>
+                        onValueChange={value =>
                           handleInputChange("status", value)
                         }
                         defaultValue={field.value}
@@ -355,7 +360,7 @@ export default function NewPostPage() {
                 <FormField
                   control={form.control}
                   name="category"
-                  render={({ field }: { field: any }) => (
+                  render={({ field: _field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
                       <FormControl>
@@ -381,7 +386,7 @@ export default function NewPostPage() {
                 <FormField
                   control={form.control}
                   name="tags"
-                  render={({ field }: { field: any }) => (
+                  render={({ field: _field }) => (
                     <FormItem>
                       <FormLabel>Tags</FormLabel>
                       <FormControl>
@@ -420,7 +425,7 @@ export default function NewPostPage() {
                 <FormField
                   control={form.control}
                   name="featuredImage"
-                  render={({ field }: { field: any }) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Featured Image</FormLabel>
                       <FormControl>

@@ -31,10 +31,10 @@ interface SortSelectorProps {
 
 /**
  * SortSelector Component
- * 
+ *
  * A dropdown component for selecting the sort order of articles.
  * Supports internationalization and provides type-safe sort options.
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -44,7 +44,7 @@ interface SortSelectorProps {
  *   className="custom-class"
  * />
  * ```
- * 
+ *
  * @param {SortSelectorProps} props - The component props
  * @returns {JSX.Element} A sort order selector component
  */

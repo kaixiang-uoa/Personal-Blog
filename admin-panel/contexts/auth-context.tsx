@@ -58,7 +58,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
 
       // use authService for login
-      const response = await authService.login({ email, password, rememberMe: false });
+      const response = await authService.login({
+        email,
+        password,
+        rememberMe: false,
+      });
 
       // if success, save token and user info
       if (response && response.success) {
@@ -91,21 +95,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     authService.clearAuthData();
     setUser(null);
 
-    // 增强登出逻辑，防止后退按钮绕过认证
-    // 1. 清除sessionStorage中的重定向信息
+    // Enhanced logout logic to prevent back button bypass
+    // 1. Clear redirect information from sessionStorage
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("redirectAfterLogin");
-      // 2. 清除Remember Me数据（可选，取决于设计需求）
-      // 如果希望登出后也清除记住的邮箱，取消注释下面两行
-      // localStorage.removeItem("rememberedEmail");
-      // localStorage.removeItem("rememberMe");
     }
 
-    // 2. 使用replace而不是push，这样后退按钮不会回到dashboard
+    // 2. Use replace instead of push to prevent back button from returning to dashboard
     router.replace("/login");
-    
-    // 3. 强制刷新页面以确保所有状态都被清除（可选，但更安全）
-    // 如果上面的方法不够，可以取消注释下面这行
+
+    // 3. Force page refresh to ensure all states are cleared (optional, but safer)
+    // If the above method is not sufficient, uncomment the following line
     // window.location.href = "/login";
   };
 

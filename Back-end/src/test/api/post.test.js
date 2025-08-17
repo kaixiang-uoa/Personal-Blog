@@ -95,17 +95,17 @@ describe("Post API", () => {
           generatePostData({
             author: userId,
             status: "draft",
-          }),
+          })
         );
 
       // query published posts
       const publishedResponse = await request.get(
-        "/api/v1/posts?status=published",
+        "/api/v1/posts?status=published"
       );
       expect(publishedResponse.status).toBe(200);
 
       // all published posts should have status published
-      publishedResponse.body.posts.forEach((post) => {
+      publishedResponse.body.posts.forEach(post => {
         expect(post.status).toBe("published");
       });
 
@@ -118,7 +118,7 @@ describe("Post API", () => {
 
       // confirm draft post is found
       expect(
-        draftResponse.body.posts.some((post) => post.status === "draft"),
+        draftResponse.body.posts.some(post => post.status === "draft")
       ).toBe(true);
     });
   });

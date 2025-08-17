@@ -2,12 +2,12 @@ import type React from 'react';
 import './globals.css';
 import type { Metadata } from 'next/types';
 import { Inter } from 'next/font/google';
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ReactQueryProvider } from '@/contexts/QueryClientContext';
-import { SEOHead } from '@/components/common';
-
+import { SEOHead, PerformanceMonitor } from '@/components/common';
+import { GoogleAnalytics } from '@/components/common/GoogleAnalytics';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -68,7 +68,7 @@ const themeScript = `
 })();
 `;
 
-export default function RootLayout({ children }:{ children: React.ReactNode}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -78,7 +78,9 @@ export default function RootLayout({ children }:{ children: React.ReactNode}) {
         <SettingsProvider>
           <ThemeProvider>
             <ReactQueryProvider>
+              <GoogleAnalytics />
               <SEOHead />
+              <PerformanceMonitor />
               {children}
               <SpeedInsights />
             </ReactQueryProvider>

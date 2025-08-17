@@ -6,12 +6,12 @@
  * A rich text editor for creating and editing blog posts.
  * Features include formatting, links, images, and media uploads.
  */
-import Image from "@tiptap/extension-image";
+import ImageExtension from "@tiptap/extension-image";
 import LinkExtension from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
+import PlaceholderExtension from "@tiptap/extension-placeholder";
+import UnderlineExtension from "@tiptap/extension-underline";
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import StarterKitExtension from "@tiptap/starter-kit";
 import {
   Bold,
   Italic,
@@ -102,7 +102,7 @@ const MenuButton = ({
             size="sm"
             className={cn(
               "h-8 w-8 p-0",
-              isActive && "bg-accent text-accent-foreground",
+              isActive && "bg-accent text-accent-foreground"
             )}
             onClick={onClick}
             disabled={disabled}
@@ -142,20 +142,20 @@ export function PostEditor({
   // Initialize editor
   const editor = useEditor({
     extensions: [
-      StarterKit,
-      Underline,
+      StarterKitExtension,
+      UnderlineExtension,
       LinkExtension.configure({
         openOnClick: false,
         HTMLAttributes: {
           class: "text-primary underline",
         },
       }),
-      Image.configure({
+      ImageExtension.configure({
         HTMLAttributes: {
           class: "rounded-md max-w-full",
         },
       }),
-      Placeholder.configure({
+      PlaceholderExtension.configure({
         placeholder: "Write your post content here...",
       }),
     ],
@@ -186,7 +186,7 @@ export function PostEditor({
    * Handle file upload from input
    */
   const handleFileUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
+    e: React.ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -215,7 +215,7 @@ export function PostEditor({
 
       if (response.success && response.data) {
         // Access the media object and get the full URL
-        const media = response.data;
+        const media = response.data as { url: string };
         // Construct the full URL with the base URL of the backend
         const baseUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -402,7 +402,7 @@ export function PostEditor({
               size="sm"
               className={cn(
                 "h-8 w-8 p-0",
-                editor?.isActive("link") && "bg-accent text-accent-foreground",
+                editor?.isActive("link") && "bg-accent text-accent-foreground"
               )}
             >
               <LinkIcon className="h-4 w-4" />
@@ -416,7 +416,7 @@ export function PostEditor({
                 id="link-url"
                 placeholder="https://example.com"
                 value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
+                onChange={e => setLinkUrl(e.target.value)}
                 className="col-span-3"
               />
               <div className="flex justify-between mt-2">
@@ -460,7 +460,7 @@ export function PostEditor({
                     id="image-url"
                     placeholder="https://example.com/image.jpg"
                     value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
+                    onChange={e => setImageUrl(e.target.value)}
                   />
                   <Button
                     size="sm"

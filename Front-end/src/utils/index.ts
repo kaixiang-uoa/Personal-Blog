@@ -12,4 +12,4 @@ export * from './string';
 export * from './json';
 
 // image related tools
-export * from './images'; 
+export * from './images';

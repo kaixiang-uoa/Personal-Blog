@@ -1,8 +1,8 @@
-import Category from '../models/Category.js';
-import Post from '../models/Post.js';
-import asyncHandler from 'express-async-handler';
-import { success, createError } from '../utils/responseHandler.js';
-import { transformLocalizedCategories } from '../utils/transformLocalizedCategories.js';
+import Category from "../models/Category.js";
+import Post from "../models/Post.js";
+import asyncHandler from "express-async-handler";
+import { success, createError } from "../utils/responseHandler.js";
+import { transformLocalizedCategories } from "../utils/transformLocalizedCategories.js";
 
 /**
  * @desc    Get all categories
@@ -10,16 +10,16 @@ import { transformLocalizedCategories } from '../utils/transformLocalizedCategor
  * @access  Public
  */
 export const getAllCategories = asyncHandler(async (req, res) => {
-  let lang = 'en';
+  let lang = "en";
   if (req.query.lang) {
     lang = Array.isArray(req.query.lang) ? req.query.lang[0] : req.query.lang;
   }
-  const fullLang = req.query.fullLang === 'true';
+  const fullLang = req.query.fullLang === "true";
   const categories = await Category.find().sort({ name: 1 });
   if (fullLang) {
     // return all language fields
     return success(res, {
-      categories: categories.map((cat) => ({
+      categories: categories.map(cat => ({
         _id: cat._id,
         name: cat.name,
         name_en: cat.name_en,
@@ -31,7 +31,7 @@ export const getAllCategories = asyncHandler(async (req, res) => {
         parentCategory: cat.parent || null,
         createdAt: cat.createdAt,
         updatedAt: cat.updatedAt,
-        featuredImage: cat.featuredImage || '',
+        featuredImage: cat.featuredImage || "",
         __v: cat.__v,
       })),
       count: categories.length,
@@ -51,11 +51,11 @@ export const getAllCategories = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getCategoryById = asyncHandler(async (req, res) => {
-  const lang = req.query.lang || 'zh';
-  const fullLang = req.query.fullLang === 'true';
+  const lang = req.query.lang || "zh";
+  const fullLang = req.query.fullLang === "true";
   const category = await Category.findById(req.params.id);
   if (!category) {
-    throw createError('Category not found', 404);
+    throw createError("Category not found", 404);
   }
   if (fullLang) {
     // return all language fields
@@ -72,7 +72,7 @@ export const getCategoryById = asyncHandler(async (req, res) => {
         parentCategory: category.parent || null,
         createdAt: category.createdAt,
         updatedAt: category.updatedAt,
-        featuredImage: category.featuredImage || '',
+        featuredImage: category.featuredImage || "",
         __v: category.__v,
       },
     });
@@ -88,11 +88,11 @@ export const getCategoryById = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const getCategoryBySlug = asyncHandler(async (req, res) => {
-  const lang = req.query.lang || 'zh';
-  const fullLang = req.query.fullLang === 'true';
+  const lang = req.query.lang || "zh";
+  const fullLang = req.query.fullLang === "true";
   const category = await Category.findOne({ slug: req.params.slug });
   if (!category) {
-    throw createError('Category not found', 404);
+    throw createError("Category not found", 404);
   }
   if (fullLang) {
     // return all language fields
@@ -109,7 +109,7 @@ export const getCategoryBySlug = asyncHandler(async (req, res) => {
         parentCategory: category.parent || null,
         createdAt: category.createdAt,
         updatedAt: category.updatedAt,
-        featuredImage: category.featuredImage || '',
+        featuredImage: category.featuredImage || "",
         __v: category.__v,
       },
     });
@@ -141,8 +141,8 @@ export const createCategory = asyncHandler(async (req, res) => {
   const slugExists = await Category.findOne({ slug });
   if (slugExists) {
     throw createError(
-      'This slug is already in use, please use another one',
-      400,
+      "This slug is already in use, please use another one",
+      400
     );
   }
 
@@ -159,7 +159,7 @@ export const createCategory = asyncHandler(async (req, res) => {
     featuredImage,
   });
 
-  return success(res, { category }, 201, 'Category created successfully');
+  return success(res, { category }, 201, "Category created successfully");
 });
 
 /**
@@ -184,7 +184,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
   let category = await Category.findById(req.params.id);
 
   if (!category) {
-    throw createError('Category not found', 404);
+    throw createError("Category not found", 404);
   }
 
   // Check if slug is already taken by another category
@@ -192,15 +192,15 @@ export const updateCategory = asyncHandler(async (req, res) => {
     const slugExists = await Category.findOne({ slug });
     if (slugExists) {
       throw createError(
-        'This slug is already in use, please use another one',
-        400,
+        "This slug is already in use, please use another one",
+        400
       );
     }
   }
 
   // Prevent circular parent reference
   if (parent && parent.toString() === category._id.toString()) {
-    throw createError('Category can not be its own parent', 400);
+    throw createError("Category can not be its own parent", 400);
   }
 
   // Update category fields
@@ -220,7 +220,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
   // Save updated category
   await category.save();
 
-  return success(res, { category }, 200, 'Category updated successfully');
+  return success(res, { category }, 200, "Category updated successfully");
 });
 
 /**
@@ -232,23 +232,23 @@ export const deleteCategory = asyncHandler(async (req, res) => {
   const category = await Category.findById(req.params.id);
 
   if (!category) {
-    throw createError('Category not found', 404);
+    throw createError("Category not found", 404);
   }
 
   // Check if category has children
   const hasChildren = await Category.findOne({ parent: category._id });
   if (hasChildren) {
-    throw createError('This category has children, can not be deleted', 400);
+    throw createError("This category has children, can not be deleted", 400);
   }
 
   // Update posts to remove this category
   await Post.updateMany(
     { category: category._id },
-    { $set: { category: null } },
+    { $set: { category: null } }
   );
 
   // use modern mongoose delete method instead of deprecated remove()
   await Category.deleteOne({ _id: category._id });
 
-  return success(res, null, 200, 'Category deleted successfully');
+  return success(res, null, 200, "Category deleted successfully");
 });

@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
-  
+
   // Ensure client-side rendering to prevent SSR hydration issues
   React.useEffect(() => {
     setMounted(true);
@@ -18,10 +18,10 @@ export function ThemeToggle({ className }: { className?: string }) {
   // Handle theme switching with manual class application to ensure proper styling
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
-    
+
     // Manually add/remove dark class to ensure styles are applied
     const htmlElement = document.documentElement;
-    
+
     if (newTheme === 'dark') {
       htmlElement.classList.add('dark');
       // Directly set background color property
@@ -38,10 +38,10 @@ export function ThemeToggle({ className }: { className?: string }) {
 
     // Force repaint
     document.body.style.transition = 'background-color 0.5s ease';
-    
+
     // Apply force refresh class
     document.body.classList.add('force-theme-change');
-    
+
     // Delay removing transition styles to ensure changes are applied
     setTimeout(() => {
       document.body.style.transition = '';
@@ -68,20 +68,9 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   // Simplified to single button direct toggle
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggleTheme}
-      className={cn('h-9 w-9', className)}
-    >
-      {isDark ? (
-        <MoonIcon className="h-4 w-4" />
-      ) : (
-        <SunIcon className="h-4 w-4" />
-      )}
-      <span className="sr-only">
-        Toggle theme (currently {isDark ? 'dark' : 'light'})
-      </span>
+    <Button variant="ghost" size="icon" onClick={toggleTheme} className={cn('h-9 w-9', className)}>
+      {isDark ? <MoonIcon className="h-4 w-4" /> : <SunIcon className="h-4 w-4" />}
+      <span className="sr-only">Toggle theme (currently {isDark ? 'dark' : 'light'})</span>
     </Button>
   );
-} 
+}

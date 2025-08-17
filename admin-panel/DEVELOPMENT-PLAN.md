@@ -88,7 +88,7 @@ useEffect(() => {
 
 ```tsx
 // API调用示例
-const handleSubmit = async (values) => {
+const handleSubmit = async values => {
   try {
     const result = await apiService.post("/endpoint", values);
     if (result.success) {

@@ -1,3 +1,4 @@
+import { Editor } from "@tiptap/react";
 import { Link as LinkIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -12,7 +13,7 @@ import { Label } from "@/components/ui/inputs/label";
 import { cn } from "@/lib/utils";
 
 interface LinkPopoverProps {
-  editor: any;
+  editor: Editor | null;
   isActive: boolean;
 }
 
@@ -23,7 +24,10 @@ export function LinkPopover({ editor, isActive }: LinkPopoverProps) {
   const setLink = () => {
     if (!linkUrl || !editor) return;
 
-    (editor.chain().focus().extendMarkRange("link") as any)
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
       .setLink({ href: linkUrl, target: "_blank" })
       .run();
 
@@ -40,7 +44,7 @@ export function LinkPopover({ editor, isActive }: LinkPopoverProps) {
           size="sm"
           className={cn(
             "h-8 w-8 p-0",
-            isActive && "bg-accent text-accent-foreground",
+            isActive && "bg-accent text-accent-foreground"
           )}
         >
           <LinkIcon className="h-4 w-4" />
@@ -54,7 +58,7 @@ export function LinkPopover({ editor, isActive }: LinkPopoverProps) {
             <Input
               id="link-url"
               value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
+              onChange={e => setLinkUrl(e.target.value)}
               placeholder="https://example.com"
             />
             <Button size="sm" onClick={setLink}>

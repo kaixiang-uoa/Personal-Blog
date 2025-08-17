@@ -23,10 +23,10 @@ export default function AdminLayout({
     if (!isAuthenticated && !loading) {
       // Remember the user's desired page, redirect back after login
       sessionStorage.setItem("redirectAfterLogin", pathname);
-      
+
       // use replace instead of push to prevent back button from bypassing authentication
       router.replace("/login");
-      
+
       // if current path is not login page, force redirect
       if (pathname !== "/login") {
         // clear any possible cache state

@@ -1,6 +1,13 @@
 "use client";
 
-import { ChevronLeft, Calendar, User, Tag, Bookmark } from "lucide-react";
+import {
+  ChevronLeft,
+  Calendar,
+  User as UserIcon,
+  Tag,
+  Bookmark,
+} from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -8,13 +15,11 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/data-display/badge";
 import { Button } from "@/components/ui/inputs/button";
 import { apiService } from "@/lib/api";
-import { Post } from "@/types/posts";
-
-
+import { PopulatedPost } from "@/types";
 
 export default function PostPreviewPage() {
   const params = useParams();
-  const [post, setPost] = useState<Post | null>(null);
+  const [post, setPost] = useState<PopulatedPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,8 +56,8 @@ export default function PostPreviewPage() {
     return <div>Post not found</div>;
   }
 
-  // Author info: some posts may not have author field, so use optional chaining and type assertion
-  const author = (post as any)?.author;
+  // Author info
+  const author = post?.author;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -67,11 +72,12 @@ export default function PostPreviewPage() {
 
       <article className="prose prose-slate dark:prose-invert max-w-none">
         {post.featuredImage && (
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <img
+          <div className="mb-8 rounded-lg overflow-hidden relative h-96">
+            <Image
               src={post.featuredImage}
               alt={post.title}
-              className="w-full h-auto object-cover"
+              fill
+              className="object-cover"
             />
           </div>
         )}
@@ -82,13 +88,15 @@ export default function PostPreviewPage() {
           {author && (
             <div className="flex items-center gap-2">
               {author.avatar ? (
-                <img
+                <Image
                   src={author.avatar}
                   alt={author.username}
-                  className="w-6 h-6 rounded-full"
+                  width={24}
+                  height={24}
+                  className="rounded-full"
                 />
               ) : (
-                <User className="w-4 h-4" />
+                <UserIcon className="w-4 h-4" />
               )}
               <span>{author.username}</span>
             </div>
@@ -117,7 +125,7 @@ export default function PostPreviewPage() {
                 <h3 className="text-sm font-medium">Category</h3>
               </div>
               <div className="flex flex-wrap gap-2">
-                {(post.categories as any[]).map((category: any) => (
+                {post.categories.map(category => (
                   <Badge key={category._id} variant="secondary">
                     {category.name_en ||
                       category.name ||
@@ -135,7 +143,7 @@ export default function PostPreviewPage() {
                 <h3 className="text-sm font-medium">Tags</h3>
               </div>
               <div className="flex flex-wrap gap-2">
-                {(post.tags as any[]).map((tag: any) => (
+                {post.tags.map(tag => (
                   <Badge key={tag._id} variant="outline">
                     {tag.name_en || tag.name || tag.name_zh || ""}
                   </Badge>

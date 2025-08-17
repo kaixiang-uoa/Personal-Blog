@@ -58,11 +58,11 @@ export default {
         ring: 'hsl(var(--ring))', // focus ring color
         // chart colors, used for data visualization
         chart: {
-                '1': 'hsl(var(--chart-1))', // Chart primary color 1
-      '2': 'hsl(var(--chart-2))', // Chart primary color 2
-      '3': 'hsl(var(--chart-3))', // Chart primary color 3
-      '4': 'hsl(var(--chart-4))', // Chart primary color 4
-      '5': 'hsl(var(--chart-5))', // Chart primary color 5
+          '1': 'hsl(var(--chart-1))', // Chart primary color 1
+          '2': 'hsl(var(--chart-2))', // Chart primary color 2
+          '3': 'hsl(var(--chart-3))', // Chart primary color 3
+          '4': 'hsl(var(--chart-4))', // Chart primary color 4
+          '5': 'hsl(var(--chart-5))', // Chart primary color 5
         },
       },
       // unified management of rounded corners
@@ -103,8 +103,5 @@ export default {
   // enabled Tailwind plugins
   // tailwindcss-animate: provides more powerful animation capabilities
   // @see https://github.com/jamiebuilds/tailwindcss-animate
-  plugins: [
-    require('tailwindcss-animate'),
-    require('@tailwindcss/typography'),
-  ],
+  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
 } satisfies Config;

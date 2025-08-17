@@ -23,10 +23,10 @@ interface State {
 
 /**
  * ErrorBoundary Component
- * 
+ *
  * A class component that catches JavaScript errors in its child component tree.
  * Provides error logging and displays a fallback UI when errors occur.
- * 
+ *
  * @component
  * @example
  * ```tsx

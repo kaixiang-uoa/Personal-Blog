@@ -41,6 +41,9 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 export function slugify(text: string): string {
+  if (!text || typeof text !== "string") {
+    return "";
+  }
   return text
     .toLowerCase()
     .replace(/[^\w\s-]/g, "")
@@ -49,9 +52,9 @@ export function slugify(text: string): string {
 }
 
 // debounce function
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   fn: T,
-  ms: number,
+  ms: number
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -72,18 +75,18 @@ export function debounce<T extends (...args: any[]) => any>(
  * clear empty values from settings data
  */
 export function filterNonEmptyItems(
-  items: FieldItem[] | undefined | null,
+  items: FieldItem[] | undefined | null
 ): FieldItem[] {
   if (!items) return [];
-  return items.filter((item) => {
-    return Object.values(item).some((val) => val && String(val).trim() !== "");
+  return items.filter(item => {
+    return Object.values(item).some(val => val && String(val).trim() !== "");
   });
 }
 
 /**
  * process about settings data, clean empty values
  */
-export function processAboutData(values: any) {
+export function processAboutData(values: Record<string, unknown>) {
   // handle nested objects that may be null or undefined
   const processedValues = {
     ...values,
@@ -101,25 +104,44 @@ export function processAboutData(values: any) {
   };
 
   // filter empty items in skills list
-  if (processedValues.skills.length > 0) {
-    processedValues.skills = processedValues.skills.filter(
-      (skill: string) => skill && skill.trim() !== "",
+  if (
+    Array.isArray(processedValues.skills) &&
+    processedValues.skills.length > 0
+  ) {
+    processedValues.skills = (processedValues.skills as string[]).filter(
+      (skill: string) => skill && skill.trim() !== ""
     );
   }
 
   // apply filter to each field
-  processedValues.education = filterNonEmptyItems(processedValues.education);
-  processedValues.experience = filterNonEmptyItems(processedValues.experience);
-  processedValues.projects = filterNonEmptyItems(processedValues.projects);
+  processedValues.education = filterNonEmptyItems(
+    processedValues.education as FieldItem[] | undefined | null
+  );
+  processedValues.experience = filterNonEmptyItems(
+    processedValues.experience as FieldItem[] | undefined | null
+  );
+  processedValues.projects = filterNonEmptyItems(
+    processedValues.projects as FieldItem[] | undefined | null
+  );
 
   // handle project tech list
-  if (processedValues.projects?.length > 0) {
-    processedValues.projects = processedValues.projects.map((project: any) => ({
-      ...project,
-      tech: project.tech
-        ? project.tech.filter((t: string) => t && t.trim() !== "")
-        : [],
-    }));
+  if (
+    Array.isArray(processedValues.projects) &&
+    processedValues.projects.length > 0
+  ) {
+    processedValues.projects = (processedValues.projects as unknown[]).map(
+      (project: unknown) => {
+        const proj = project as Record<string, unknown>;
+        return {
+          ...proj,
+          tech: proj.tech
+            ? (proj.tech as string[]).filter(
+                (t: string) => t && t.trim() !== ""
+              )
+            : [],
+        };
+      }
+    );
   }
 
   return processedValues;
@@ -128,7 +150,7 @@ export function processAboutData(values: any) {
 /**
  * create a json file and trigger download
  */
-export function downloadSettingsJSON(data: any, filename: string) {
+export function downloadSettingsJSON(data: unknown, filename: string) {
   const jsonData = JSON.stringify(data, null, 2);
   const blob = new Blob([jsonData], { type: "application/json" });
 
@@ -145,9 +167,8 @@ export function downloadSettingsJSON(data: any, filename: string) {
 /**
  * format about settings for api
  */
-export function formatAboutSettingsForApi(values: any) {
+export function formatAboutSettingsForApi(values: Record<string, unknown>) {
   const processedValues = processAboutData(values);
-  console.log("processed settings data:", processedValues);
 
   const formattedSettings = [
     { key: "about.intro", value: values.intro || "", group: "about" },

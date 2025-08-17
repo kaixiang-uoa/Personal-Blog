@@ -1,5 +1,7 @@
+import { Editor } from "@tiptap/react";
 import { Image as ImageIcon, Upload } from "lucide-react";
 import { useState, useRef } from "react";
+import { toast } from "sonner";
 
 import {
   Popover,
@@ -9,10 +11,9 @@ import {
 import { Button } from "@/components/ui/inputs/button";
 import { Input } from "@/components/ui/inputs/input";
 import { Label } from "@/components/ui/inputs/label";
-import { toast } from "sonner";
 
 interface ImagePopoverProps {
-  editor: any;
+  editor: Editor | null;
   onImageUpload?: (file: File) => Promise<string | null>;
 }
 
@@ -31,7 +32,9 @@ export function ImagePopover({ editor, onImageUpload }: ImagePopoverProps) {
     setIsOpen(false);
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !onImageUpload) return;
 
@@ -100,7 +103,7 @@ export function ImagePopover({ editor, onImageUpload }: ImagePopoverProps) {
               <Input
                 id="image-url"
                 value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
+                onChange={e => setImageUrl(e.target.value)}
                 placeholder="https://example.com/image.jpg"
               />
               <Button size="sm" onClick={insertImage}>

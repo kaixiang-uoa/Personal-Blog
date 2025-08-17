@@ -1,5 +1,5 @@
-import Post from '../models/Post.js';
-import { populatePostQuery } from './populatePostQuery.js';
+import Post from "../models/Post.js";
+import { populatePostQuery } from "./populatePostQuery.js";
 
 /**
  * Get a fully populated post by ID
@@ -36,14 +36,14 @@ export const getRelatedPosts = async (post, limit = 3) => {
   if (!post) return [];
 
   // Extract IDs to compare against
-  const categoryIds = post.categories?.map((cat) => cat._id || cat) || [];
-  const tagIds = post.tags?.map((tag) => tag._id || tag) || [];
+  const categoryIds = post.categories?.map(cat => cat._id || cat) || [];
+  const tagIds = post.tags?.map(tag => tag._id || tag) || [];
   const postId = post._id;
 
   // Build query to find posts with similar categories or tags
   const query = {
     _id: { $ne: postId }, // Exclude the current post
-    status: 'published',
+    status: "published",
     $or: [],
   };
 
@@ -64,6 +64,6 @@ export const getRelatedPosts = async (post, limit = 3) => {
 
   // Find related posts
   return populatePostListQuery(
-    Post.find(query).sort('-publishedAt').limit(limit),
+    Post.find(query).sort("-publishedAt").limit(limit)
   );
 };

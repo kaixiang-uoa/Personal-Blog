@@ -4,13 +4,13 @@ import type { GetAllPostsParams, PostsData } from '@/types';
 
 /**
  * Hook for fetching articles using React Query
- * 
+ *
  * @param params - Query parameters for fetching articles
  * @param options - Additional React Query options
  * @returns Query result containing articles data, loading state, and error information
  */
 export function useArticles(
-  params: GetAllPostsParams, 
+  params: GetAllPostsParams,
   options?: Omit<UseQueryOptions<PostsData, Error>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery<PostsData, Error>({
@@ -29,6 +29,6 @@ export function useArticles(
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 2, // retry 2 times if failed
     // allow to pass in additional query options
-    ...options
+    ...options,
   });
-} 
+}

@@ -46,13 +46,13 @@ export default function ForgotPasswordPage() {
   });
 
   // Form submission handler
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = form.handleSubmit(async _values => {
     try {
       setIsLoading(true);
 
       // In a real implementation, we would call an API to send a password reset email
       // For now, we'll just simulate a successful submission
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       setIsSubmitted(true);
 
@@ -61,12 +61,17 @@ export default function ForgotPasswordPage() {
         description:
           "If your email is registered with us, you will receive password reset instructions shortly.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage =
         "Failed to send password reset email. Please try again.";
 
-      if (error.response && error.response.data?.message) {
-        errorMessage = error.response.data.message;
+      if (error && typeof error === "object" && "response" in error) {
+        const response = (
+          error as { response?: { data?: { message?: string } } }
+        ).response;
+        if (response?.data?.message) {
+          errorMessage = response.data.message;
+        }
       }
 
       toast({
@@ -103,8 +108,8 @@ export default function ForgotPasswordPage() {
                 we sent to reset your password.
               </p>
               <p className="text-sm text-muted-foreground">
-                If you don&apos;t receive an email within a few minutes, please check
-                your spam folder.
+                If you don&apos;t receive an email within a few minutes, please
+                check your spam folder.
               </p>
               <Button
                 variant="outline"

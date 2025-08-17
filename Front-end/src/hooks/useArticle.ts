@@ -11,4 +11,4 @@ export function useArticle(slug: string, enabled = true) {
     enabled, // Controls whether the query is enabled
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
-} 
+}

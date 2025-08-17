@@ -1,9 +1,5 @@
 module.exports = {
-  extends: [
-    'next/core-web-vitals',
-    'next/typescript',
-    'prettier'
-  ],
+  extends: ['next/core-web-vitals', 'next/typescript', 'prettier'],
   rules: {
     // downgrade unused variable warnings to warnings instead of errors
     '@typescript-eslint/no-unused-vars': 'warn',
@@ -15,4 +11,4 @@ module.exports = {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
   },
-}; 
+};

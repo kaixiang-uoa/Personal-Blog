@@ -46,6 +46,7 @@ export interface User {
   username: string;
   email: string;
   role: "admin" | "editor" | "user";
+  avatar?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -82,6 +83,9 @@ export interface Category {
   name_zh: string;
   slug: string;
   description?: string;
+  description_en?: string;
+  description_zh?: string;
+  postCount?: number; // For statistics
   createdAt?: string;
   updatedAt?: string;
 }
@@ -93,8 +97,45 @@ export interface Tag {
   name_en: string;
   name_zh: string;
   slug: string;
+  description?: string;
+  description_en?: string;
+  description_zh?: string;
+  postCount?: number; // For statistics
   createdAt?: string;
   updatedAt?: string;
+}
+
+// Post type (basic)
+export interface Post {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content: string;
+  author: string; // ObjectId as string
+  status: "draft" | "published";
+  categories: string[]; // ObjectId array as string array
+  tags: string[]; // ObjectId array as string array
+  featuredImage?: string;
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    keywords?: string[];
+  };
+  viewCount: number;
+  commentCount: number;
+  allowComments: boolean;
+  publishedAt?: string; // Date as ISO string
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Post type with populated fields (for detailed views)
+export interface PopulatedPost
+  extends Omit<Post, "categories" | "tags" | "author"> {
+  author?: User; // Populated author
+  categories: Category[]; // Populated categories
+  tags: Tag[]; // Populated tags
 }
 
 // Media type
@@ -147,7 +188,7 @@ export const resetPasswordSchema = z
       .min(8, { message: "Password must be at least 8 characters" }),
     confirmPassword: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine(data => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
@@ -188,7 +229,8 @@ export interface FormField {
   label: string;
   type: "text" | "textarea" | "number" | "select" | "checkbox";
   placeholder?: string;
-  isI18n?: boolean; // Whether supports multilingual
+  required?: boolean;
+  isI18n?: boolean;
   options?: { label: string; value: string }[];
 }
 
@@ -198,7 +240,7 @@ export interface EntityFormDialogProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
-  defaultValues?: any;
+  defaultValues?: Record<string, any>;
   schema: AnyZodObject;
   onSubmit: (values: any) => Promise<void>;
   fields: FormField[];
@@ -227,4 +269,3 @@ export interface DashboardData {
 
 // Re-export types from other files
 export * from "./posts";
-export * from "./keep-alive";

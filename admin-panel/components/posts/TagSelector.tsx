@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/data-display/badge";
 import { Tag } from "@/types";
 import { TagSelectorProps } from "@/types/posts";
 
-
 export function TagSelector({
   tags = [],
   selectedTags = [],
@@ -29,7 +28,7 @@ export function TagSelector({
   };
 
   const handleRemove = (item: Tag) => {
-    onChange(selectedTags.filter((tag) => tag._id !== item._id));
+    onChange(selectedTags.filter(tag => tag._id !== item._id));
   };
 
   const displayName = (item: Tag) => {
@@ -43,7 +42,7 @@ export function TagSelector({
     <div className="space-y-2">
       {showSelected && selectedTags.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
-          {selectedTags.map((tag) => (
+          {selectedTags.map(tag => (
             <Badge
               key={tag._id}
               variant="secondary"

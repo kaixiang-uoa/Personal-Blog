@@ -16,7 +16,7 @@ export function useLocale() {
   const { locale, setLocale } = context;
 
   const toggleLocale = useCallback(() => {
-    setLocale((prev) => (prev === "zh" ? "en" : "zh"));
+    setLocale(prev => (prev === "zh" ? "en" : "zh"));
   }, [setLocale]);
 
   return {

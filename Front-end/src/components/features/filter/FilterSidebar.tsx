@@ -9,11 +9,11 @@ import { validateSortOrder } from '@/utils';
 
 /**
  * FilterSidebar Component
- * 
+ *
  * A flexible sidebar component that provides filtering capabilities for articles,
  * supporting categories, tags, and sorting options. Can be displayed in both
  * vertical and horizontal layouts.
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -28,7 +28,7 @@ import { validateSortOrder } from '@/utils';
  *   onFilterChangeAction={handleFilterChange}
  * />
  * ```
- * 
+ *
  * @param {FilterSidebarProps} props - The component props
  * @returns {JSX.Element | null} A filter sidebar component or null if sidebar is disabled
  */
@@ -47,7 +47,7 @@ export default function FilterSidebar({
   const [selectedTags, setSelectedTags] = useState<string[]>(activeTags || []);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(activeCategory || null);
   const [selectedSortOrder, setSelectedSortOrder] = useState<SortOrder>(sortOrder);
-  
+
   // Get sidebar configuration from settings
   // const defaultSortSetting = useSetting('posts.defaultSort', 'latest'); // TODO: Use when needed
   // const defaultSort = validateSortOrder(defaultSortSetting, 'latest'); // TODO: Use when needed
@@ -59,43 +59,52 @@ export default function FilterSidebar({
    * @param {string} locale - The current locale
    * @returns {string} The localized name
    */
-  const getLocalizedName = useCallback((
-    item: { name: string; name_en?: string; name_zh?: string },
-    locale: string
-  ): string => {
-    if (locale === 'en') return item.name_en || item.name;
-    if (locale === 'zh') return item.name_zh || item.name;
-    return item.name;
-  }, []);
+  const getLocalizedName = useCallback(
+    (item: { name: string; name_en?: string; name_zh?: string }, locale: string): string => {
+      if (locale === 'en') return item.name_en || item.name;
+      if (locale === 'zh') return item.name_zh || item.name;
+      return item.name;
+    },
+    []
+  );
 
   /**
    * Handle tag selection change
    * @param {string} tagSlug - The selected tag slug
    */
-  const handleTagChange = useCallback((tagSlug: string) => {
-    setSelectedTags([tagSlug]);
-    onFilterChangeAction({ type: 'tags', value: [tagSlug] });
-  }, [onFilterChangeAction]);
+  const handleTagChange = useCallback(
+    (tagSlug: string) => {
+      setSelectedTags([tagSlug]);
+      onFilterChangeAction({ type: 'tags', value: [tagSlug] });
+    },
+    [onFilterChangeAction]
+  );
 
   /**
    * Handle category selection change
    * @param {string | null} categorySlug - The selected category slug
    */
-  const handleCategoryChange = useCallback((categorySlug: string | null) => {
-    setSelectedCategory(categorySlug);
-    onFilterChangeAction({ type: 'category', value: categorySlug || '' });
-  }, [onFilterChangeAction]);
+  const handleCategoryChange = useCallback(
+    (categorySlug: string | null) => {
+      setSelectedCategory(categorySlug);
+      onFilterChangeAction({ type: 'category', value: categorySlug || '' });
+    },
+    [onFilterChangeAction]
+  );
 
   /**
    * Handle sort order change
    * @param {string} newSortValue - The new sort value
    */
-  const handleSortChange = useCallback((newSortValue: string) => {
-    // Validate the sort value before using it
-    const newSort = validateSortOrder(newSortValue, 'latest');
-    setSelectedSortOrder(newSort);
-    onFilterChangeAction({ type: 'sort', value: newSort });
-  }, [onFilterChangeAction]);
+  const handleSortChange = useCallback(
+    (newSortValue: string) => {
+      // Validate the sort value before using it
+      const newSort = validateSortOrder(newSortValue, 'latest');
+      setSelectedSortOrder(newSort);
+      onFilterChangeAction({ type: 'sort', value: newSort });
+    },
+    [onFilterChangeAction]
+  );
 
   // Sync selected category with activeCategory prop
   useEffect(() => {
@@ -118,9 +127,9 @@ export default function FilterSidebar({
   }
 
   // Determine container class based on layout mode
-  const containerClass = isHorizontal 
-    ? "flex flex-row flex-wrap md:flex-nowrap items-center space-x-3 w-full"
-    : "flex flex-col space-y-3 w-full";
+  const containerClass = isHorizontal
+    ? 'flex flex-row flex-wrap md:flex-nowrap items-center space-x-3 w-full'
+    : 'flex flex-col space-y-3 w-full';
 
   return (
     <div className={containerClass}>
@@ -133,8 +142,8 @@ export default function FilterSidebar({
           { value: '', label: t('allCategories') },
           ...categories.map(category => ({
             value: category.slug,
-            label: getLocalizedName(category, currentLocale)
-          }))
+            label: getLocalizedName(category, currentLocale),
+          })),
         ]}
         isHorizontal={isHorizontal}
       />
@@ -148,8 +157,8 @@ export default function FilterSidebar({
           { value: '', label: t('allTags') },
           ...tags.map(tag => ({
             value: tag.slug,
-            label: getLocalizedName(tag, currentLocale)
-          }))
+            label: getLocalizedName(tag, currentLocale),
+          })),
         ]}
         isHorizontal={isHorizontal}
       />
@@ -162,7 +171,7 @@ export default function FilterSidebar({
         options={[
           { value: 'latest', label: t('newestFirst') },
           { value: 'oldest', label: t('oldestFirst') },
-          { value: 'popular', label: t('mostPopular') }
+          { value: 'popular', label: t('mostPopular') },
         ]}
         isHorizontal={isHorizontal}
       />

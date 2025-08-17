@@ -48,11 +48,14 @@ export function FeaturedImageUploader({
       const response = await apiService.uploadMedia(formData);
       if (
         response.data &&
-        response.data.media &&
-        response.data.media.length > 0
+        typeof response.data === "object" &&
+        "media" in response.data &&
+        Array.isArray((response.data as { media: unknown[] }).media) &&
+        (response.data as { media: unknown[] }).media.length > 0
       ) {
         // get upload file url and add backend domain prefix
-        const fileUrl = response.data.media[0].url;
+        const mediaData = response.data as { media: Array<{ url: string }> };
+        const fileUrl = mediaData.media[0].url;
         // if url is not start with http, add full backend domain
         const fullUrl = fileUrl.startsWith("http")
           ? fileUrl

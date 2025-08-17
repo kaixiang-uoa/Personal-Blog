@@ -1,18 +1,14 @@
 "use client";
 
 import {
-  Activity,
   BookOpen,
   Edit3,
   Eye,
   FileText,
-  MessageSquare,
   Bookmark,
   PlusCircle,
-  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/data-display/badge";
 import {
@@ -25,116 +21,35 @@ import {
 import { Skeleton } from "@/components/ui/data-display/skeleton";
 import { Button } from "@/components/ui/inputs/button";
 import { useAuth } from "@/contexts/auth-context";
-import { apiService } from "@/lib/api";
-import { DashboardData } from "@/types/index";
-import { PostQueryParams, PostStatus } from "@/types/posts";
-import { useKeepAlive } from "@/contexts/keep-alive-context";
+import { useDashboardPosts } from "@/hooks/usePosts";
+import { useCategories } from "@/hooks/useTaxonomies";
+import { DashboardData } from "@/types";
+import { PostStatus } from "@/types/posts";
 
 export default function DashboardPage() {
   const { isAuthenticated, user } = useAuth();
-  const { status: keepAliveStatus } = useKeepAlive();
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<DashboardData | null>(null);
 
-  // Fetch dashboard data
-  useEffect(() => {
-    // Don't fetch data if not authenticated
-    if (!isAuthenticated) return;
+  // Use custom hooks to fetch data
+  const {
+    posts,
+    total: postCount,
+    loading: postsLoading,
+  } = useDashboardPosts();
+  const { categories, loading: categoriesLoading } = useCategories();
 
-    async function fetchDashboardData() {
-      try {
-        setLoading(true);
+  // Calculate dashboard data
+  const viewCount = posts.reduce((sum, post) => sum + (post.viewCount || 0), 0);
+  const categoryCount = categories.length;
 
-        // Use existing API endpoints to build dashboard data
-        let postCount = 0;
-        let viewCount = 0;
-        const commentCount = 0; // Default to 0 for now
-        let categoryCount = 0;
-        let recentPosts: DashboardData["recentPosts"] = [];
+  const recentPosts: DashboardData["recentPosts"] = posts.map(post => ({
+    id: post._id,
+    title: post.title,
+    publishDate: post.publishedAt,
+    status: post.status,
+    viewCount: post.viewCount || 0,
+  }));
 
-        try {
-          // Get posts data from API
-          const params: PostQueryParams = {
-            limit: 10,
-            allStatus: true,
-          };
-          const postsResponse = await apiService.getPosts(params);
-          // Check if we have valid data
-          if (postsResponse && postsResponse.data) {
-            const postsData = postsResponse.data;
-            postCount = postsData.total || 0;
-
-            // Calculate total view count from posts
-            if (postsData.posts && Array.isArray(postsData.posts)) {
-              viewCount = postsData.posts.reduce((sum: number, post: any) => {
-                return sum + (post.viewCount || 0);
-              }, 0);
-
-              // Format recent posts for display
-              recentPosts = postsData.posts.map((post: any) => ({
-                id: post._id,
-                title: post.title,
-                publishDate: post.publishedAt,
-                status: post.status,
-                viewCount: post.viewCount || 0,
-              }));
-            }
-          }
-        } catch (error) {
-          console.log("Posts API error:", error);
-        }
-
-        try {
-          // Get categories count
-          const categoriesResponse = await apiService.getCategories();
-
-          // Check if we have valid data
-          if (categoriesResponse && categoriesResponse.data) {
-            const categoriesData = categoriesResponse.data;
-            categoryCount =
-              categoriesData.total ||
-              (categoriesData.categories &&
-              Array.isArray(categoriesData.categories)
-                ? categoriesData.categories.length
-                : 0);
-          }
-        } catch (error) {
-          console.log("Categories API error:", error);
-        }
-
-        // Comments functionality is not implemented yet
-        // This is commented out for future expansion when comments API is available
-        /*
-        try {
-          // Attempt to get comment count if API endpoint exists
-          const commentsResponse = await apiService.get('/comments', { limit: 1 });
-          
-          // Check if we have valid data
-          if (commentsResponse && commentsResponse.data) {
-            commentCount = commentsResponse.data.total || 0;
-          }
-        } catch (error) {
-          console.log("Comments API not implemented yet:", error);
-        }
-        */
-
-        // Set the dashboard data with values from API
-        setData({
-          postCount,
-          viewCount,
-          commentCount,
-          categoryCount,
-          recentPosts,
-        });
-      } catch (error) {
-        console.error("Error building dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchDashboardData();
-  }, [isAuthenticated]);
+  const loading = postsLoading || categoriesLoading;
 
   // Return early if not authenticated
   if (!isAuthenticated) {
@@ -168,7 +83,7 @@ export default function DashboardPage() {
             {loading ? (
               <Skeleton className="h-7 w-16" />
             ) : (
-              <div className="text-2xl font-bold">{data?.postCount}</div>
+              <div className="text-2xl font-bold">{postCount}</div>
             )}
             {/* 
             <p className="text-xs text-muted-foreground mt-1">
@@ -188,50 +103,7 @@ export default function DashboardPage() {
             {loading ? (
               <Skeleton className="h-7 w-20" />
             ) : (
-              <div className="text-2xl font-bold">{data?.viewCount}</div>
-            )}
-            {/* 
-            <p className="text-xs text-muted-foreground mt-1">
-              <TrendingUp className="inline h-3 w-3 mr-1" />
-              Up 18% from last month
-            </p>
-            */}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Back-end Server</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {loading || !keepAliveStatus ? (
-              <Skeleton className="h-7 w-24" />
-            ) : (
-              <>
-                <div className={`text-2xl font-bold ${
-                  keepAliveStatus.isRunning
-                    ? keepAliveStatus.isLiving
-                      ? 'text-green-600'
-                      : 'text-yellow-600'
-                    : keepAliveStatus.isLiving
-                    ? 'text-green-600'
-                    : 'text-red-600'
-                }`}>
-                  {keepAliveStatus.isRunning
-                    ? keepAliveStatus.isLiving
-                      ? 'Running & Alive'
-                      : 'Running but Sleeping'
-                    : keepAliveStatus.isLiving
-                    ? 'Server Alive'
-                    : 'Stopped'}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {keepAliveStatus.lastPingResult
-                    ? `Last ping: ${new Date(keepAliveStatus.lastPingResult.timestamp).toLocaleString()}`
-                    : "No ping data available"}
-                </div>
-              </>
+              <div className="text-2xl font-bold">{viewCount}</div>
             )}
           </CardContent>
         </Card>
@@ -245,14 +117,8 @@ export default function DashboardPage() {
             {loading ? (
               <Skeleton className="h-7 w-10" />
             ) : (
-              <div className="text-2xl font-bold">{data?.categoryCount}</div>
+              <div className="text-2xl font-bold">{categoryCount}</div>
             )}
-            {/* 
-            <p className="text-xs text-muted-foreground mt-1">
-              <Activity className="inline h-3 w-3 mr-1" />
-              No change from last month
-            </p>
-            */}
           </CardContent>
         </Card>
       </div>
@@ -277,7 +143,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {data?.recentPosts.map((post) => (
+              {recentPosts.map(post => (
                 <div
                   key={post.id}
                   className="flex items-center justify-between py-2 border-b last:border-b-0"
@@ -289,7 +155,9 @@ export default function DashboardPage() {
                       <Edit3 className="h-4 w-4 text-gray-400" />
                     )}
                     <span className="font-medium hover:underline">
-                      <Link href={`/posts/${post.id}/preview`}>{post.title}</Link>
+                      <Link href={`/posts/${post.id}/preview`}>
+                        {post.title}
+                      </Link>
                     </span>
                   </div>
                   <div className="flex items-center gap-4">

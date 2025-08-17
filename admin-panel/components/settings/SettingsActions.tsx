@@ -80,7 +80,7 @@ export default function SettingsActions({
       // 3. download file
       downloadSettingsJSON(
         exportData,
-        `blog-settings-${new Date().toISOString().slice(0, 10)}.json`,
+        `blog-settings-${new Date().toISOString().slice(0, 10)}.json`
       );
 
       toast({
@@ -101,7 +101,7 @@ export default function SettingsActions({
 
   // export environment specific settings
   const exportEnvironmentSettings = async (
-    env: "development" | "production" | "staging",
+    env: "development" | "production" | "staging"
   ) => {
     try {
       setIsExporting(true);
@@ -114,7 +114,7 @@ export default function SettingsActions({
       // download file
       downloadSettingsJSON(
         exportData,
-        `blog-settings-${env}-${new Date().toISOString().slice(0, 10)}.json`,
+        `blog-settings-${env}-${new Date().toISOString().slice(0, 10)}.json`
       );
 
       toast({
@@ -181,7 +181,7 @@ export default function SettingsActions({
           settingsToImport.push({ key, value });
         } else {
           // for object type settings, such as general, posts, etc., expand
-          const obj = value as Record<string, any>;
+          const obj = value as Record<string, unknown>;
           if (typeof obj === "object" && obj !== null) {
             for (const [subKey, subValue] of Object.entries(obj)) {
               settingsToImport.push({
@@ -194,7 +194,10 @@ export default function SettingsActions({
       }
 
       // 4. use batch update api to save settings
-      await apiService.put("/settings/batch", settingsToImport);
+      await apiService.put(
+        "/settings/batch",
+        settingsToImport as unknown as Record<string, unknown>
+      );
 
       // 5. refresh page to get latest settings
       onRefresh();

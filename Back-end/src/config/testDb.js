@@ -5,9 +5,9 @@
  * for unit tests and integration tests, avoid affecting actual database
  */
 
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import mongoose from 'mongoose';
-import { logger } from './logger.js';
+import { MongoMemoryServer } from "mongodb-memory-server";
+import mongoose from "mongoose";
+import { logger } from "./logger.js";
 
 // in-memory MongoDB instance
 let mongoServer;
@@ -26,7 +26,7 @@ export const connectTestDB = async () => {
     // connect to MongoDB
     await mongoose.connect(mongoUri);
 
-    logger.info('Successfully connected to test MongoDB');
+    logger.info("Successfully connected to test MongoDB");
   } catch (error) {
     logger.error(`Failed to connect to test MongoDB: ${error.message}`);
     throw error;
@@ -44,7 +44,7 @@ export const disconnectTestDB = async () => {
       await mongoServer.stop();
     }
 
-    logger.info('Disconnected from test MongoDB');
+    logger.info("Disconnected from test MongoDB");
   } catch (error) {
     logger.error(`Failed to disconnect from test MongoDB: ${error.message}`);
     throw error;
@@ -63,7 +63,7 @@ export const clearDatabase = async () => {
       await collection.deleteMany({});
     }
 
-    logger.info('Test database cleared');
+    logger.info("Test database cleared");
   } catch (error) {
     logger.error(`Failed to clear test database: ${error.message}`);
     throw error;

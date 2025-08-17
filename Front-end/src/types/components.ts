@@ -32,4 +32,4 @@ export interface PageBannerProps {
   subtitle?: string;
   height?: 'default' | 'large';
   defaultImage?: string;
-} 
+}

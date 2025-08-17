@@ -77,7 +77,7 @@ export const paginateResults = async (
   countFn,
   filter = {},
   options = {},
-  paginationOptions = {},
+  paginationOptions = {}
 ) => {
   // get pagination parameters
   const { page, limit, skip } = getPaginationParams(req, paginationOptions);

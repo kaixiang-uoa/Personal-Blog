@@ -22,9 +22,9 @@ interface ArticlesListProps {
 
 /**
  * ArticlesList Component
- * 
+ *
  * A component that handles article fetching, filtering, and display
- * 
+ *
  * @component
  * @param {ArticlesListProps} props - Component props
  * @returns {JSX.Element} Articles list with pagination
@@ -38,8 +38,9 @@ export default function ArticlesList({
   search,
   sort,
   searchParams,
-  onPageChange
+  onPageChange,
 }: ArticlesListProps) {
+
   const t = useTranslations('common');
 
   // Fetch articles data using React Query
@@ -47,7 +48,7 @@ export default function ArticlesList({
     data: articlesData,
     isLoading: isLoadingArticles,
     error: articlesError,
-    refetch
+    refetch,
   } = useArticles({
     page: currentPage,
     limit: pageSize,
@@ -55,7 +56,7 @@ export default function ArticlesList({
     categorySlug: category || undefined,
     search: search || undefined,
     sort,
-    lang: locale
+    lang: locale,
   });
 
   // Use real API data with fallback
@@ -63,7 +64,7 @@ export default function ArticlesList({
     posts: [],
     total: 0,
     totalPages: 1,
-    currentPage: currentPage
+    currentPage: currentPage,
   };
 
   // Filter articles by tags
@@ -72,11 +73,10 @@ export default function ArticlesList({
     if (tagsParam.length === 0 || articles.length === 0) {
       return articles;
     }
-    return articles.filter(article =>
-      Array.isArray(article.tags) &&
-      article.tags.some((tag: Tag) =>
-        tag?.slug && tagsParam.includes(tag.slug)
-      )
+    return articles.filter(
+      article =>
+        Array.isArray(article.tags) &&
+        article.tags.some((tag: Tag) => tag?.slug && tagsParam.includes(tag.slug))
     );
   }, [effectiveArticlesData?.posts, tagsParam]);
 
@@ -85,11 +85,10 @@ export default function ArticlesList({
     if (!category || tagFilteredArticles.length === 0) {
       return tagFilteredArticles;
     }
-    return tagFilteredArticles.filter(article =>
-      Array.isArray(article.categories) &&
-      article.categories.some((cat: Category) =>
-        cat?.slug && cat.slug === category
-      )
+    return tagFilteredArticles.filter(
+      article =>
+        Array.isArray(article.categories) &&
+        article.categories.some((cat: Category) => cat?.slug && cat.slug === category)
     );
   }, [tagFilteredArticles, category]);
 
@@ -103,7 +102,11 @@ export default function ArticlesList({
       const title = article.title?.toLowerCase() || '';
       const content = article.content?.toLowerCase() || '';
       const excerpt = article.excerpt?.toLowerCase() || '';
-      return title.includes(searchLower) || content.includes(searchLower) || excerpt.includes(searchLower);
+      return (
+        title.includes(searchLower) ||
+        content.includes(searchLower) ||
+        excerpt.includes(searchLower)
+      );
     });
   }, [categoryFilteredArticles, search]);
 
@@ -113,7 +116,7 @@ export default function ArticlesList({
       return searchFilteredArticles;
     }
     const result = [...searchFilteredArticles];
-    
+
     switch (sort) {
       case 'latest':
         result.sort((a: Article, b: Article) => {
@@ -137,7 +140,7 @@ export default function ArticlesList({
         });
         break;
     }
-    
+
     return result;
   }, [searchFilteredArticles, sort]);
 
@@ -179,12 +182,8 @@ export default function ArticlesList({
   if (filteredArticles.length === 0) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-muted-foreground mb-2">
-          {t('noArticlesFound')}
-        </h3>
-        <p className="text-muted-foreground">
-          {t('noArticlesDescription')}
-        </p>
+        <h3 className="text-lg font-medium text-muted-foreground mb-2">{t('noArticlesFound')}</h3>
+        <p className="text-muted-foreground">{t('noArticlesDescription')}</p>
       </div>
     );
   }
@@ -193,7 +192,7 @@ export default function ArticlesList({
     <div className="space-y-6">
       {/* Articles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredArticles.map((article) => (
+        {filteredArticles.map(article => (
           <ArticleCard key={article._id} article={article} />
         ))}
       </div>
@@ -209,4 +208,4 @@ export default function ArticlesList({
       />
     </div>
   );
-} 
+}

@@ -21,5 +21,3 @@ export interface PaginationData {
 export interface GetFallbackRouteParams {
   lang?: string;
 }
-
-

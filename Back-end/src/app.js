@@ -18,7 +18,7 @@ import settingRouter from "./routers/settingRouters.js";
 import authRouter from "./routers/authRouters.js";
 import i18nRouters from "./routers/i18nRouters.js";
 import contactRouter from "./routers/contactRouters.js";
-import healthRouter from './routers/healthRouters.js';
+import healthRouter from "./routers/healthRouters.js";
 
 // Import middleware
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
@@ -69,7 +69,7 @@ const corsOptions = {
 const app = express();
 
 // support cloud deployment proxy, correctly identify X-Forwarded-For
-app.set('trust proxy', 1); 
+app.set("trust proxy", 1);
 
 // Add request ID before all other middleware
 app.use(addRequestId());
@@ -80,7 +80,7 @@ if (process.env.NODE_ENV !== "production") {
     enableQueryMonitoring({
       slowQueryThreshold: 100, // ms
       logAllQueries: process.env.LOG_ALL_QUERIES === "true",
-    }),
+    })
   );
 }
 
@@ -123,7 +123,7 @@ app.use(
   swaggerUi.setup(swaggerSpecs, {
     explorer: true,
     customCss: ".swagger-ui .topbar { display: none }",
-  }),
+  })
 );
 
 // Register routes

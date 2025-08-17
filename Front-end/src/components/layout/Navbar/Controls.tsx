@@ -12,4 +12,4 @@ export default function Controls() {
       <LanguageSwitcher />
     </div>
   );
-} 
+}

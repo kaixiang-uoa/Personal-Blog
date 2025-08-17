@@ -21,7 +21,10 @@ import {
 } from "@/components/ui/inputs/form";
 import { Input } from "@/components/ui/inputs/input";
 import { Textarea } from "@/components/ui/inputs/textarea";
-import { EntityFormDialogProps } from "@/types/index";
+import {
+  EntityFormDialogProps,
+  FormField as FormFieldConfig,
+} from "@/types/index";
 
 export function EntityFormDialog({
   open,
@@ -46,11 +49,11 @@ export function EntityFormDialog({
     }
   }, [defaultValues, form]);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: Record<string, unknown>) => {
     await onSubmit(values);
   };
 
-  const renderField = (field: any) => {
+  const renderField = (field: FormFieldConfig) => {
     if (field.isI18n) {
       return (
         <div key={field.name} className="grid grid-cols-2 gap-4">

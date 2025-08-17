@@ -52,15 +52,15 @@ export default function LoginPage() {
   // client initialization, read remembered data
   useEffect(() => {
     setIsClient(true);
-    
+
     const rememberedEmail = localStorage.getItem("rememberedEmail");
     const rememberMe = localStorage.getItem("rememberMe") === "true";
-    
+
     if (rememberedEmail || rememberMe) {
       form.reset({
         email: rememberedEmail || "",
         password: "",
-        rememberMe: rememberMe
+        rememberMe: rememberMe,
       });
     }
   }, [form]);
@@ -104,9 +104,12 @@ export default function LoginPage() {
       } else {
         router.push("/dashboard");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // directly show API returned error message
-      const errorMessage = error.message || "Login failed, please try again";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Login failed, please try again";
 
       setApiError(errorMessage);
 
@@ -219,11 +222,7 @@ export default function LoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sign in
               </Button>
@@ -232,7 +231,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-muted-foreground text-center">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/register"
               className="text-primary hover:text-primary/80"

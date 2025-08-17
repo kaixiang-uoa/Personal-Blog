@@ -60,13 +60,9 @@ export interface Settings {
       website: string;
     };
   };
-  system?: {
-    keepAlive: {
-      interval: number;
-      enabled: boolean;
-      isRunning: boolean;
-    };
-  };
+  // system?: {
+  //   // Future system settings will be added here
+  // };
 }
 
 export interface AboutSettings {
@@ -166,4 +162,29 @@ export interface BannerImageSelectorProps {
   value: string;
   onChange: (url: string) => void;
   label: string;
+}
+
+// About form section props
+export interface AboutFormSectionProps {
+  form: any; // Will be properly typed when we implement proper form typing
+  loading?: boolean;
+}
+
+// Individual item component props
+export interface AboutEducationItemProps {
+  form: any;
+  index: number;
+  onRemove: (index: number) => void;
+}
+
+export interface AboutExperienceItemProps {
+  form: any;
+  index: number;
+  onRemove: (index: number) => void;
+}
+
+export interface AboutProjectItemProps {
+  form: any;
+  index: number;
+  onRemove: (index: number) => void;
 }

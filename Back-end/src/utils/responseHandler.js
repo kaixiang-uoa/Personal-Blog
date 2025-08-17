@@ -1,6 +1,6 @@
-import { t } from './i18n.js';
-import { ErrorTypes } from '../middleware/errorMiddleware.js';
-import { getErrorDetails, createErrorWithCode } from './errorCodes.js';
+import { t } from "./i18n.js";
+import { ErrorTypes } from "../middleware/errorMiddleware.js";
+import { getErrorDetails, createErrorWithCode } from "./errorCodes.js";
 
 /**
  * Unified success response formatter
@@ -14,9 +14,9 @@ export const success = (
   res,
   data = null,
   statusCode = 200,
-  messageKey = 'common.success',
+  messageKey = "common.success"
 ) => {
-  const lang = res.locals.lang || 'en';
+  const lang = res.locals.lang || "en";
   const requestId = res.req?.requestId;
 
   const response = {
@@ -45,13 +45,13 @@ export const success = (
  */
 export const error = (
   res,
-  messageKey = 'common.error',
+  messageKey = "common.error",
   statusCode = 400,
   error = null,
   errorType = null,
-  errorCode = null,
+  errorCode = null
 ) => {
-  const lang = res.locals.lang || 'en';
+  const lang = res.locals.lang || "en";
   const requestId = res.req?.requestId;
 
   // Check if a specific error code was provided or exists in the error object
@@ -85,7 +85,7 @@ export const error = (
   }
 
   // Add error details in non-production environments
-  if (process.env.NODE_ENV !== 'production' && error) {
+  if (process.env.NODE_ENV !== "production" && error) {
     response.error.details = error.details || error;
 
     // Add stack trace for debugging
@@ -118,7 +118,7 @@ export const createError = (message, statusCode = 400, type = null) => {
  * @returns {String} Error type from ErrorTypes
  * @private
  */
-const getDefaultErrorType = (statusCode) => {
+const getDefaultErrorType = statusCode => {
   if (statusCode >= 500) return ErrorTypes.INTERNAL;
   if (statusCode === 404) return ErrorTypes.NOT_FOUND;
   if (statusCode === 401) return ErrorTypes.AUTHENTICATION;
@@ -134,29 +134,29 @@ const getDefaultErrorType = (statusCode) => {
  * @returns {String} Error code
  * @private
  */
-const getDefaultErrorCode = (statusCode) => {
+const getDefaultErrorCode = statusCode => {
   // Map status codes to default error codes
   switch (statusCode) {
     case 400:
-      return 'EV001'; // Invalid input data
+      return "EV001"; // Invalid input data
     case 401:
-      return 'EA001'; // Authentication required
+      return "EA001"; // Authentication required
     case 403:
-      return 'EAC001'; // Permission denied
+      return "EAC001"; // Permission denied
     case 404:
-      return 'ER001'; // Resource not found
+      return "ER001"; // Resource not found
     case 409:
-      return 'ER002'; // Resource already exists
+      return "ER002"; // Resource already exists
     case 500:
-      return 'ES001'; // Internal server error
+      return "ES001"; // Internal server error
     case 502:
-      return 'EE002'; // External API error
+      return "EE002"; // External API error
     case 503:
-      return 'ES002'; // Service unavailable
+      return "ES002"; // Service unavailable
     case 504:
-      return 'ES003'; // Request timeout
+      return "ES003"; // Request timeout
     default:
-      return 'ES001'; // Default to internal server error
+      return "ES001"; // Default to internal server error
   }
 };
 

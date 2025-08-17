@@ -41,12 +41,12 @@ const startServer = async () => {
 ====================================
           `);
         })
-        .on("error", (err) => {
+        .on("error", err => {
           if (err.code === "EADDRINUSE" && retries < maxRetries) {
             PORT++;
             retries++;
             logger.warn(
-              `Port ${PORT - 1} is already in use, trying port ${PORT}...`,
+              `Port ${PORT - 1} is already in use, trying port ${PORT}...`
             );
             // close current server and retry
             server.close();
@@ -68,7 +68,7 @@ const startServer = async () => {
 };
 
 // Handle uncaught exceptions
-process.on("uncaughtException", (error) => {
+process.on("uncaughtException", error => {
   logger.error(`Uncaught exception: ${error.message}`, { stack: error.stack });
   // give the process a little time to record the error and then exit
   setTimeout(() => {

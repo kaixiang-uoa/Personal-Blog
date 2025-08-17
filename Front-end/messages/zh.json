@@ -21,6 +21,7 @@
     "allTags": "所有标签",
     "searchPlaceholder": "搜索文章...",
     "noArticlesFound": "没有找到相关文章",
+    "noArticlesDescription": "尝试调整搜索条件或筛选器以找到更多文章。",
     "tryChangingFilters": "尝试更改筛选条件或搜索关键词",
     "clearAllFilters": "清除所有筛选条件",
     "previousPage": "上一页",
@@ -29,6 +30,7 @@
     "retry": "重试",
     "loading": "加载中...",
     "error": "发生错误，请稍后再试",
+    "errorDescription": "加载数据时出现错误，请重试。",
     "backToHome": "返回首页",
     "notFound": "文章不存在或已被删除",
     "publishedAt": "发布于",
@@ -39,7 +41,9 @@
     "startDate": "开始日期",
     "endDate": "结束日期",
     "footer": {
-      "copyright": "© {year} 我的个人博客. 保留所有权利."
+      "copyright": "© {year} {siteName}. 保留所有权利.",
+      "poweredBy": "基于 Next.js & React 构建",
+      "madeWith": "由 {author} 用心制作 ❤️"
     },
     "heroSubtitle": "记录一个开发者在生活与工作的路上所思所写.",
     "sortBy": "排序方式",
@@ -67,7 +71,8 @@
     "location": "地点",
     "at": "在",
     "githubLink": "GitHub链接",
-    "website": "个人网站"
+    "website": "个人网站",
+    "viewProject": "查看项目"
   },
   "contact": {
     "title": "联系我",

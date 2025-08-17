@@ -61,7 +61,7 @@ export function ComboboxSelect<T>({
   };
 
   // Filtered list
-  const filteredItems = safeItems.filter((item) => {
+  const filteredItems = safeItems.filter(item => {
     if (!item) return false;
 
     try {
@@ -78,7 +78,7 @@ export function ComboboxSelect<T>({
   const canCreate =
     onCreate &&
     search &&
-    !filteredItems.some((item) => {
+    !filteredItems.some(item => {
       if (!item) return false;
 
       try {
@@ -95,7 +95,7 @@ export function ComboboxSelect<T>({
     if (!item) return false;
     try {
       return safeSelectedItems.some(
-        (sel) => sel && getItemValue(sel) === getItemValue(item),
+        sel => sel && getItemValue(sel) === getItemValue(item)
       );
     } catch (e) {
       console.error("Error checking if item is selected:", e);
@@ -174,7 +174,7 @@ export function ComboboxSelect<T>({
               )}
             </CommandEmpty>
             <CommandGroup>
-              {filteredItems.map((item) => (
+              {filteredItems.map(item => (
                 <CommandItem
                   key={getItemValue(item)}
                   onSelect={() => handleSelect(item)}
@@ -184,7 +184,7 @@ export function ComboboxSelect<T>({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        isSelected(item) ? "opacity-100" : "opacity-0",
+                        isSelected(item) ? "opacity-100" : "opacity-0"
                       )}
                     />
                   )}

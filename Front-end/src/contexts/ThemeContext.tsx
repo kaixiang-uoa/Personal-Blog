@@ -11,13 +11,13 @@ export interface ThemeProviderProps {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   // getting theme setting from the ContextSettings
   const themeSetting = useSetting<string>('appearance.theme', 'light');
-  
+
   // validate and convert theme value to valid options (only accept light or dark)
-  const validTheme = (themeSetting === 'dark') ? 'dark' : 'light';
-  
+  const validTheme = themeSetting === 'dark' ? 'dark' : 'light';
+
   // check if in client environment
   const isClient = typeof window !== 'undefined';
-  
+
   // only handle DOM operations during initialization, let next-themes handle the rest
   useEffect(() => {
     if (isClient) {
@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       }
     }
   }, [validTheme, isClient]);
-  
+
   // using validTheme directly
   return (
     <NextThemesProvider
@@ -47,4 +47,4 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 }
 
 // export convenient hooks
-export { useTheme } from 'next-themes'; 
+export { useTheme } from 'next-themes';

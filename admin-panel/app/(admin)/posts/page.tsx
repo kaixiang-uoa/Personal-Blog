@@ -9,7 +9,7 @@ import {
   Search,
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/data-display/badge";
 import { Skeleton } from "@/components/ui/data-display/skeleton";
@@ -48,56 +48,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/navigation/dropdown-menu";
 import { useToast } from "@/hooks/ui/use-toast";
+import { usePosts } from "@/hooks/usePosts";
 import { apiService } from "@/lib/api";
-import { Post, PostStatus, PostQueryParams } from "@/types/posts";
+import { PostStatus } from "@/types/posts";
 
 export default function PostsPage() {
   const { toast } = useToast();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<PostStatus>(PostStatus.ALL);
-  const [sortField, setSortField] = useState("createdAt");
+  const [sortField, setSortField] = useState("publishedAt"); 
   const [sortDirection, setSortDirection] = useState("desc");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchPosts() {
-      setLoading(true);
-      try {
-        const queryParams: PostQueryParams = {
-          allStatus: statusFilter === PostStatus.ALL,
-          ...(statusFilter !== PostStatus.ALL && { status: statusFilter }),
-        };
-
-        const response = await apiService.getPosts(queryParams);
-        if (!response?.data?.posts) {
-          console.warn("No posts data received from API");
-          setPosts([]);
-          return;
-        }
-
-        const postsArray = Array.isArray(response.data.posts)
-          ? response.data.posts
-          : [];
-
-        setPosts(postsArray);
-      } catch (error) {
-        console.error("Failed to fetch posts:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load posts",
-          variant: "destructive",
-        });
-        setPosts([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPosts();
-  }, [statusFilter]);
+  // Use custom hook to fetch posts data
+  const { posts, loading, refetch } = usePosts({
+    status: statusFilter,
+    sort: `${sortField}-${sortDirection}`,
+    dependencies: [statusFilter, sortField, sortDirection],
+  });
 
   // handle sort
   const handleSort = (field: string) => {
@@ -111,7 +80,7 @@ export default function PostsPage() {
 
   // filtered and sorted posts
   const filteredAndSortedPosts = posts
-    .filter((post) => {
+    .filter(post => {
       // search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -126,18 +95,18 @@ export default function PostsPage() {
         const categoryMatch =
           Array.isArray(post.categories) &&
           post.categories.some(
-            (cat) =>
+            cat =>
               typeof cat === "object" &&
-              cat?.name?.toLowerCase().includes(query),
+              cat?.name?.toLowerCase().includes(query)
           );
 
         // search in tag
         const tagMatch =
           Array.isArray(post.tags) &&
           post.tags.some(
-            (tag) =>
+            tag =>
               typeof tag === "object" &&
-              tag?.name?.toLowerCase().includes(query),
+              tag?.name?.toLowerCase().includes(query)
           );
 
         return categoryMatch || tagMatch;
@@ -181,8 +150,9 @@ export default function PostsPage() {
 
     try {
       await apiService.deletePost(postToDelete);
-      console.log(postToDelete);
-      setPosts(posts.filter((post) => post._id !== postToDelete));
+
+      // Refresh data after successful deletion
+      await refetch();
       toast({
         title: "Success",
         description: "Post deleted successfully",
@@ -217,8 +187,6 @@ export default function PostsPage() {
           </Link>
         </Button>
       </div>
-
-      {/* filter and search */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -227,7 +195,7 @@ export default function PostsPage() {
             placeholder="Search by title, excerpt, category or tag..."
             className="w-full pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -250,8 +218,6 @@ export default function PostsPage() {
           </Select>
         </div>
       </div>
-
-      {/* posts table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -357,7 +323,6 @@ export default function PostsPage() {
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="space-y-1">
-                      {/* category */}
                       {Array.isArray(post.categories) &&
                       post.categories.length > 0 ? (
                         <div className="flex flex-wrap gap-1 mb-1">
@@ -375,7 +340,6 @@ export default function PostsPage() {
                       ) : (
                         <Badge variant="outline">Uncategorized</Badge>
                       )}
-                      {/* tags */}
                       <div className="flex flex-wrap gap-1">
                         {Array.isArray(post.tags) && post.tags.length > 0 ? (
                           post.tags.map((tag, tagIndex) => (
@@ -454,8 +418,6 @@ export default function PostsPage() {
           </TableBody>
         </Table>
       </div>
-
-      {/* delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

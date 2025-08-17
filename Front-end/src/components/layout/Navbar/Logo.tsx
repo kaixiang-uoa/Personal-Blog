@@ -5,20 +5,20 @@ import { Link } from '@/i18n/navigation';
 
 /**
  * Logo Component
- * 
+ *
  * Displays the website logo and name, supporting customization through settings.
- * 
+ *
  * @component
  * @example
  * ```tsx
  * <Logo />
  * ```
- * 
+ *
  * @returns {JSX.Element} A link component containing the logo and site name
  */
 export default function Logo() {
   // Get site name and logo from settings with fallback values
-  const siteName = useSetting('general.siteName', "DevBlog");
+  const siteName = useSetting('general.siteName', 'DevBlog');
   const logo = useSetting('general.logo', '');
 
   return (
@@ -26,12 +26,7 @@ export default function Logo() {
       <div className="size-4">
         {logo ? (
           // Use Next.js Image component for optimized image loading
-          <Image
-            src={logo}
-            alt={siteName}
-            width={16}
-            height={16}
-          />
+          <Image src={logo} alt={siteName} width={16} height={16} />
         ) : (
           // Fallback SVG logo when no custom logo is set
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -48,12 +43,16 @@ export default function Logo() {
               ></path>
             </g>
             <defs>
-              <clipPath id="clip0_6_543"><rect width="48" height="48" fill="white"></rect></clipPath>
+              <clipPath id="clip0_6_543">
+                <rect width="48" height="48" fill="white"></rect>
+              </clipPath>
             </defs>
           </svg>
         )}
       </div>
-      <h2 className="text-foreground font-bold text-lg leading-tight tracking-[-0.015em]">{siteName}</h2>
+      <h2 className="text-foreground font-bold text-lg leading-tight tracking-[-0.015em]">
+        {siteName}
+      </h2>
     </Link>
   );
-} 
+}

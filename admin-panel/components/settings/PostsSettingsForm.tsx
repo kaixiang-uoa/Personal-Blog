@@ -81,7 +81,7 @@ export default function PostsSettingsForm({
                         min={1}
                         max={100}
                         {...field}
-                        onChange={(e) =>
+                        onChange={e =>
                           field.onChange(Number.parseInt(e.target.value))
                         }
                       />

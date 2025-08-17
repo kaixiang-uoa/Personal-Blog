@@ -32,7 +32,7 @@ export function EditorMenuButton({
             size="sm"
             className={cn(
               "h-8 w-8 p-0",
-              isActive && "bg-accent text-accent-foreground",
+              isActive && "bg-accent text-accent-foreground"
             )}
             onClick={onClick}
             disabled={disabled}

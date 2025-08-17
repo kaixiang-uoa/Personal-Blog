@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { initGA, isGAEnabled } from '@/lib/analytics';
+import { initGA, isGAEnabled, GA_MEASUREMENT_ID } from '@/lib/analytics';
 
 /**
  * GoogleAnalytics Component
@@ -19,8 +19,18 @@ import { initGA, isGAEnabled } from '@/lib/analytics';
  */
 export function GoogleAnalytics() {
   useEffect(() => {
+    // Debug: Log GA configuration
+    console.log('Google Analytics Debug:', {
+      GA_MEASUREMENT_ID,
+      isGAEnabled,
+      NODE_ENV: process.env.NODE_ENV,
+    });
+
     if (isGAEnabled) {
+      console.log('Initializing Google Analytics...');
       initGA();
+    } else {
+      console.warn('Google Analytics is disabled. Check NEXT_PUBLIC_GA_MEASUREMENT_ID environment variable.');
     }
   }, []);
 

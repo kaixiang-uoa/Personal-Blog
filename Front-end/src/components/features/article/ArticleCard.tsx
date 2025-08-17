@@ -33,7 +33,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
   const title = article?.title || 'Untitled Article';
   const featuredImage = article?.featuredImage || '/images/default-image.jpg';
   const authorName = article?.author
-    ? article.author.username || article.author.displayName 
+    ? article.author.username || article.author.displayName
     : 'Unknown Author';
 
   return (

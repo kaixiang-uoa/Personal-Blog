@@ -56,7 +56,7 @@ export default function PostsPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<PostStatus>(PostStatus.ALL);
-  const [sortField, setSortField] = useState("publishedAt"); 
+  const [sortField, setSortField] = useState("publishedAt");
   const [sortDirection, setSortDirection] = useState("desc");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);

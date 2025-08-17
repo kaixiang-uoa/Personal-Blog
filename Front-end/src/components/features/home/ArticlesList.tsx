@@ -40,7 +40,6 @@ export default function ArticlesList({
   searchParams,
   onPageChange,
 }: ArticlesListProps) {
-
   const t = useTranslations('common');
 
   // Fetch articles data using React Query

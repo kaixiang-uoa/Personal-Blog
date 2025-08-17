@@ -17,12 +17,12 @@ export function useApiData<T>({
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
+
   // Use refs to stabilize function references and prevent infinite loops
   const toastRef = useRef(toast);
   const onSuccessRef = useRef(onSuccess);
   const onErrorRef = useRef(onError);
-  
+
   // Update refs when props change
   toastRef.current = toast;
   onSuccessRef.current = onSuccess;

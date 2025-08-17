@@ -120,14 +120,20 @@ export const settingsService = {
   },
 
   create: async (data: SettingFormData): Promise<ApiResponse<Setting>> => {
-    return apiService.post("/settings", data as unknown as Record<string, unknown>);
+    return apiService.post(
+      "/settings",
+      data as unknown as Record<string, unknown>
+    );
   },
 
   update: async (
     key: string,
     data: Partial<SettingFormData>
   ): Promise<ApiResponse<Setting>> => {
-    return apiService.put(`/settings/${key}`, data as unknown as Record<string, unknown>);
+    return apiService.put(
+      `/settings/${key}`,
+      data as unknown as Record<string, unknown>
+    );
   },
 
   batchUpdate: async (

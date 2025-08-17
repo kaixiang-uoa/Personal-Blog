@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { Article, Category, Tag } from '@/types/models';
 
 /**
  * Generate sitemap.xml at /sitemap.xml
@@ -23,9 +24,9 @@ export async function GET() {
     const tagsData = await tagsResponse.json();
 
     // Extract data from API response
-    const posts = postsData.success ? postsData.data.posts || [] : [];
-    const categories = categoriesData.success ? categoriesData.data.categories || [] : [];
-    const tags = tagsData.success ? tagsData.data.tags || [] : [];
+    const posts: Article[] = postsData.success ? postsData.data.posts || [] : [];
+    const categories: Category[] = categoriesData.success ? categoriesData.data.categories || [] : [];
+    const tags: Tag[] = tagsData.success ? tagsData.data.tags || [] : [];
 
     // Generate sitemap XML
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -103,7 +104,7 @@ export async function GET() {
   </url>
 
   <!-- Articles -->
-  ${posts.map(post => `
+  ${posts.map((post: Article) => `
   <url>
     <loc>${baseUrl}/en/article/${post.slug}</loc>
     <lastmod>${post.updatedAt || post.createdAt}</lastmod>

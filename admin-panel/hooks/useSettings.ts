@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/ui/use-toast";
 import { settingsService } from "@/lib/services/settings-service";
 import { Settings } from "@/types/settings";
@@ -132,6 +132,11 @@ export function useSettings(): UseSettingsReturn {
     },
     [toast, fetchSettings]
   );
+
+  // Auto-fetch settings on component mount
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   return {
     settings,

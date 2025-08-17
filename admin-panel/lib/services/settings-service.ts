@@ -1,4 +1,4 @@
-import apiClient from "@/lib/api";
+import { apiService } from "@/lib/api";
 import type { ApiResponse } from "@/types/api";
 import type {
   Setting,
@@ -74,7 +74,7 @@ function processSettingsResponse(data: SettingsResponse): Settings {
 export const settingsService = {
   getAll: async (): Promise<ApiResponse<Settings>> => {
     try {
-      const response = await apiClient.get<SettingsResponse>("/settings");
+      const response = await apiService.get<SettingsResponse>("/settings");
       return {
         success: true,
         data: processSettingsResponse(response.data),
@@ -90,7 +90,7 @@ export const settingsService = {
     group: string
   ): Promise<ApiResponse<Record<string, unknown>>> => {
     try {
-      const response = await apiClient.get<SettingsResponse>("/settings", {
+      const response = await apiService.get<SettingsResponse>("/settings", {
         params: { group },
       });
 
@@ -116,28 +116,28 @@ export const settingsService = {
   },
 
   getByKey: async (key: string): Promise<ApiResponse<Setting>> => {
-    return apiClient.get(`/settings/${key}`);
+    return apiService.get(`/settings/${key}`);
   },
 
   create: async (data: SettingFormData): Promise<ApiResponse<Setting>> => {
-    return apiClient.post("/settings", data);
+    return apiService.post("/settings", data as unknown as Record<string, unknown>);
   },
 
   update: async (
     key: string,
     data: Partial<SettingFormData>
   ): Promise<ApiResponse<Setting>> => {
-    return apiClient.put(`/settings/${key}`, data);
+    return apiService.put(`/settings/${key}`, data as unknown as Record<string, unknown>);
   },
 
   batchUpdate: async (
     settings: SettingFormData[]
   ): Promise<ApiResponse<Setting[]>> => {
-    return apiClient.post("/settings/batch", { settings });
+    return apiService.post("/settings/batch", { settings });
   },
 
   delete: async (key: string): Promise<ApiResponse<void>> => {
-    return apiClient.delete(`/settings/${key}`);
+    return apiService.delete(`/settings/${key}`);
   },
 
   exportForEnvironment: async (
@@ -150,7 +150,7 @@ export const settingsService = {
     };
     settings: Record<string, unknown>;
   }> => {
-    const response = (await apiClient.get("/settings")) as {
+    const response = (await apiService.get("/settings")) as {
       data: Record<string, unknown>;
     };
     const settingsData = response.data;

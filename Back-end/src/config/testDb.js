@@ -7,7 +7,7 @@
 
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
-import { logger } from './logger.js';
+import { logger } from '../utils/logger.js';
 
 // in-memory MongoDB instance
 let mongoServer;

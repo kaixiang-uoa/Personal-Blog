@@ -48,7 +48,7 @@ jobs:
         working-directory: ./Front-end
 
       - name: Frontend Security Audit
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate
         working-directory: ./Front-end
 
   # Admin Panel Code Quality
@@ -91,7 +91,7 @@ jobs:
         working-directory: ./admin-panel
 
       - name: Admin Panel Security Audit
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate
         working-directory: ./admin-panel
 
   # Backend Code Quality
@@ -122,7 +122,7 @@ jobs:
         working-directory: ./Back-end
 
       - name: Backend Security Audit
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate
         working-directory: ./Back-end
 
   # Docker Build and Test (Backend)

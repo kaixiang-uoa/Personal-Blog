@@ -20,7 +20,10 @@ jobs:
   # Frontend Code Quality
   frontend-quality:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'Front-end/') || contains(github.event.head_commit.added, 'Front-end/') || github.event_name == 'workflow_dispatch'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(toJSON(github.event.commits.*.modified), 'Front-end/') ||
+      contains(toJSON(github.event.commits.*.added), 'Front-end/')
 
     steps:
       - name: Checkout code
@@ -57,10 +60,17 @@ jobs:
         run: npm run build
         working-directory: ./Front-end
 
+      - name: Frontend Security Audit
+        run: npm audit --audit-level=high
+        working-directory: ./Front-end
+
   # Admin Panel Code Quality
   admin-panel-quality:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'admin-panel/') || contains(github.event.head_commit.added, 'admin-panel/') || github.event_name == 'workflow_dispatch'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(toJSON(github.event.commits.*.modified), 'admin-panel/') ||
+      contains(toJSON(github.event.commits.*.added), 'admin-panel/')
 
     steps:
       - name: Checkout code
@@ -97,10 +107,17 @@ jobs:
         run: npm run build
         working-directory: ./admin-panel
 
+      - name: Admin Panel Security Audit
+        run: npm audit --audit-level=high
+        working-directory: ./admin-panel
+
   # Backend Code Quality
   backend-quality:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'Back-end/') || contains(github.event.head_commit.added, 'Back-end/') || github.event_name == 'workflow_dispatch'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(toJSON(github.event.commits.*.modified), 'Back-end/') ||
+      contains(toJSON(github.event.commits.*.added), 'Back-end/')
 
     steps:
       - name: Checkout code
@@ -125,48 +142,17 @@ jobs:
         run: npm test
         working-directory: ./Back-end
 
-      - name: Check Backend security
-        run: npm audit --audit-level=moderate
-        working-directory: ./Back-end
-
-  # Security Audit (All Projects)
-  security-audit:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-
-      - name: Frontend Security Audit
-        if: contains(github.event.head_commit.modified, 'Front-end/') || contains(github.event.head_commit.added, 'Front-end/') || github.event_name == 'workflow_dispatch'
-        run: |
-          cd Front-end
-          npm ci
-          npm audit --audit-level=high
-
-      - name: Admin Panel Security Audit
-        if: contains(github.event.head_commit.modified, 'admin-panel/') || contains(github.event.head_commit.added, 'admin-panel/') || github.event_name == 'workflow_dispatch'
-        run: |
-          cd admin-panel
-          npm ci
-          npm audit --audit-level=high
-
       - name: Backend Security Audit
-        if: contains(github.event.head_commit.modified, 'Back-end/') || contains(github.event.head_commit.added, 'Back-end/') || github.event_name == 'workflow_dispatch'
-        run: |
-          cd Back-end
-          npm ci
-          npm audit --audit-level=high
+        run: npm audit --audit-level=high
+        working-directory: ./Back-end
 
   # Docker Build and Test (Backend)
   docker-build:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'Back-end/') || contains(github.event.head_commit.added, 'Back-end/') || github.event_name == 'workflow_dispatch'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(toJSON(github.event.commits.*.modified), 'Back-end/') ||
+      contains(toJSON(github.event.commits.*.added), 'Back-end/')
 
     steps:
       - name: Checkout code
@@ -227,7 +213,7 @@ jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     needs: [frontend-quality]
-    if: github.ref == 'refs/heads/main' && (contains(github.event.head_commit.modified, 'Front-end/') || contains(github.event.head_commit.added, 'Front-end/') || github.event_name == 'workflow_dispatch')
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(toJSON(github.event.commits.*.modified), 'Front-end/') || contains(toJSON(github.event.commits.*.added), 'Front-end/'))
 
     steps:
       - name: Checkout code
@@ -251,11 +237,39 @@ jobs:
           working-directory: ./Front-end
           vercel-args: "--prod"
 
+  # Deploy Admin Panel to Vercel
+  deploy-admin-panel:
+    runs-on: ubuntu-latest
+    needs: [admin-panel-quality]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(toJSON(github.event.commits.*.modified), 'admin-panel/') || contains(toJSON(github.event.commits.*.added), 'admin-panel/'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./admin-panel
+
+      - name: Deploy Admin Panel to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_ADMIN_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ADMIN_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
+          working-directory: ./admin-panel
+          vercel-args: "--prod"
+
   # Push to Docker Hub (Backend)
   push-dockerhub:
     runs-on: ubuntu-latest
     needs: [backend-quality, docker-build]
-    if: github.ref == 'refs/heads/main' && (contains(github.event.head_commit.modified, 'Back-end/') || contains(github.event.head_commit.added, 'Back-end/') || github.event_name == 'workflow_dispatch')
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(toJSON(github.event.commits.*.modified), 'Back-end/') || contains(toJSON(github.event.commits.*.added), 'Back-end/'))
 
     steps:
       - name: Checkout code

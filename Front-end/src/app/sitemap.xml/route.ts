@@ -11,8 +11,9 @@ export async function GET() {
     const currentDate = new Date().toISOString();
 
     // Fetch data from API
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://personal-blog-w2y9.onrender.com/api/v1';
-    
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL || 'https://personal-blog-w2y9.onrender.com/api/v1';
+
     const [postsResponse, categoriesResponse, tagsResponse] = await Promise.all([
       fetch(`${apiUrl}/posts?status=published&limit=1000&lang=en`),
       fetch(`${apiUrl}/categories?lang=en`),
@@ -25,7 +26,9 @@ export async function GET() {
 
     // Extract data from API response
     const posts: Article[] = postsData.success ? postsData.data.posts || [] : [];
-    const categories: Category[] = categoriesData.success ? categoriesData.data.categories || [] : [];
+    const categories: Category[] = categoriesData.success
+      ? categoriesData.data.categories || []
+      : [];
     const tags: Tag[] = tagsData.success ? tagsData.data.tags || [] : [];
 
     // Generate sitemap XML
@@ -104,7 +107,9 @@ export async function GET() {
   </url>
 
   <!-- Articles -->
-  ${posts.map((post: Article) => `
+  ${posts
+    .map(
+      (post: Article) => `
   <url>
     <loc>${baseUrl}/en/article/${post.slug}</loc>
     <lastmod>${post.updatedAt || post.createdAt}</lastmod>
@@ -120,10 +125,14 @@ export async function GET() {
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/en/article/${post.slug}"/>
     <xhtml:link rel="alternate" hreflang="zh" href="${baseUrl}/zh/article/${post.slug}"/>
-  </url>`).join('')}
+  </url>`
+    )
+    .join('')}
 
   <!-- Categories -->
-  ${categories.map(category => `
+  ${categories
+    .map(
+      category => `
   <url>
     <loc>${baseUrl}/en?category=${category.slug}</loc>
     <lastmod>${currentDate}</lastmod>
@@ -139,10 +148,14 @@ export async function GET() {
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/en?category=${category.slug}"/>
     <xhtml:link rel="alternate" hreflang="zh" href="${baseUrl}/zh?category=${category.slug}"/>
-  </url>`).join('')}
+  </url>`
+    )
+    .join('')}
 
   <!-- Tags -->
-  ${tags.map(tag => `
+  ${tags
+    .map(
+      tag => `
   <url>
     <loc>${baseUrl}/en?tag=${tag.slug}</loc>
     <lastmod>${currentDate}</lastmod>
@@ -158,7 +171,9 @@ export async function GET() {
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/en?tag=${tag.slug}"/>
     <xhtml:link rel="alternate" hreflang="zh" href="${baseUrl}/zh?tag=${tag.slug}"/>
-  </url>`).join('')}
+  </url>`
+    )
+    .join('')}
 
 </urlset>`;
 

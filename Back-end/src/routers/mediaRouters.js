@@ -1,8 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
-import { S3Client } from '@aws-sdk/client-s3';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, restrictTo } from '../middleware/authMiddleware.js';
 import {
   getAllMedia,
   getMediaById,
@@ -12,7 +11,7 @@ import {
 } from '../controllers/mediaController.js';
 import { createMulterFileFilter } from '../utils/mimeValidator.js';
 import { generateFileName } from '../utils/fileNaming.js';
-import { s3, s3Config, bucketConfig } from '../config/s3.js';
+import { s3, bucketConfig } from '../config/s3.js';
 
 // Configure multer based on environment
 let upload;

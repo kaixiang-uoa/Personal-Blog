@@ -234,8 +234,8 @@ jobs:
       - name: Deploy Admin Panel to Vercel
         uses: amondnet/vercel-action@v25
         with:
-          vercel-token: ${{ secrets.VERCEL_ADMIN_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ADMIN_ORG_ID }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
           working-directory: ./admin-panel
           vercel-args: "--prod"

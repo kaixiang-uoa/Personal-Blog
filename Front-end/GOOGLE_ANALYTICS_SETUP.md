@@ -46,17 +46,20 @@ For production deployment, set the environment variable in your hosting platform
 The Google Analytics integration includes:
 
 ### Automatic Tracking
+
 - Page views
 - Performance metrics (Core Web Vitals)
 - Page load times
 
 ### Custom Events
+
 - Article views
 - Search events
 - Filter usage (categories/tags)
 - Performance metrics
 
 ### Performance Monitoring
+
 - Largest Contentful Paint (LCP)
 - First Input Delay (FID)
 - Cumulative Layout Shift (CLS)
@@ -96,12 +99,14 @@ trackSearch('react tutorial', 15);
 ## Troubleshooting
 
 ### Analytics not working
+
 - Check that `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set correctly
 - Verify the Measurement ID format (G-XXXXXXXXXX)
 - Check browser console for errors
 - Ensure no ad blockers are interfering
 
 ### Events not showing in GA4
+
 - Events may take up to 24 hours to appear in reports
 - Check Real-Time reports for immediate feedback
 - Verify the GA4 property is set up correctly

@@ -7,7 +7,7 @@
  * @module utils/s3UrlGenerator
  */
 
-import { s3, s3Config } from "../config/s3.js";
+import { s3, s3Config } from '../config/s3.js';
 
 /**
  * Generate a signed URL for accessing a private S3 object
@@ -35,7 +35,7 @@ export const generateSignedUrl = async (key, options = {}) => {
   }
 
   try {
-    return await s3.getSignedUrlPromise("getObject", params);
+    return await s3.getSignedUrlPromise('getObject', params);
   } catch (error) {
     throw new Error(`Failed to generate signed URL: ${error.message}`);
   }
@@ -46,18 +46,18 @@ export const generateSignedUrl = async (key, options = {}) => {
  * @param {string} key - The S3 object key
  * @returns {string} The public URL for the object
  */
-export const generatePublicUrl = key => {
+export const generatePublicUrl = (key) => {
   if (!key) {
-    throw new Error("Key is required to generate public URL");
+    throw new Error('Key is required to generate public URL');
   }
 
   // Clean the key by removing leading slash
-  const cleanKey = key.startsWith("/") ? key.slice(1) : key;
+  const cleanKey = key.startsWith('/') ? key.slice(1) : key;
 
   // Use virtual-hosted style URL with HTTPS
   const url = `https://${s3Config.bucket}.s3.${s3Config.region}.amazonaws.com/${cleanKey}`;
 
-  console.log("Generated S3 URL:", {
+  console.log('Generated S3 URL:', {
     bucket: s3Config.bucket,
     region: s3Config.region,
     key: cleanKey,
@@ -87,10 +87,10 @@ export const generateDownloadUrl = async (key, filename, expiresIn) => {
  * @param {string} url - URL to check
  * @returns {boolean} Whether the URL is a valid S3 URL
  */
-export const isValidS3Url = url => {
+export const isValidS3Url = (url) => {
   try {
     const urlObj = new URL(url);
-    return urlObj.hostname.endsWith(".amazonaws.com");
+    return urlObj.hostname.endsWith('.amazonaws.com');
   } catch {
     return false;
   }

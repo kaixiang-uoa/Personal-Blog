@@ -12,7 +12,7 @@ describe("Post API", () => {
       // Create user and get token for this specific test
       const auth = await createUserAndGetToken();
       if (!auth.token) {
-        console.log('Skipping test - authentication failed');
+        console.log("Skipping test - authentication failed");
         return;
       }
 
@@ -28,7 +28,10 @@ describe("Post API", () => {
       expect(response.body).toHaveProperty("data");
       expect(response.body.data).toHaveProperty("post");
       expect(response.body.data.post).toHaveProperty("title", postData.title);
-      expect(response.body.data.post).toHaveProperty("content", postData.content);
+      expect(response.body.data.post).toHaveProperty(
+        "content",
+        postData.content
+      );
       expect(response.body.data.post).toHaveProperty("author");
     });
 
@@ -36,7 +39,7 @@ describe("Post API", () => {
       // Create user and get token for this specific test
       const auth = await createUserAndGetToken();
       if (!auth.token) {
-        console.log('Skipping test - authentication failed');
+        console.log("Skipping test - authentication failed");
         return;
       }
 
@@ -60,9 +63,11 @@ describe("Post API", () => {
 
       // If it's 500, check that it's an authentication error
       if (response.status === 500) {
-        const errorMessage = typeof response.body.error === 'string'
-          ? response.body.error
-          : response.body.error.message || JSON.stringify(response.body.error);
+        const errorMessage =
+          typeof response.body.error === "string"
+            ? response.body.error
+            : response.body.error.message ||
+              JSON.stringify(response.body.error);
         expect(errorMessage).toMatch(/authorized|authentication|login/i);
       }
     });
@@ -73,7 +78,7 @@ describe("Post API", () => {
       // Create user and get token for this specific test
       const auth = await createUserAndGetToken();
       if (!auth.token) {
-        console.log('Skipping test - authentication failed');
+        console.log("Skipping test - authentication failed");
         return;
       }
 
@@ -102,7 +107,7 @@ describe("Post API", () => {
       // Create user and get token for this specific test
       const auth = await createUserAndGetToken();
       if (!auth.token) {
-        console.log('Skipping test - authentication failed');
+        console.log("Skipping test - authentication failed");
         return;
       }
 
@@ -125,7 +130,7 @@ describe("Post API", () => {
       // Create user and get token for this specific test
       const auth = await createUserAndGetToken();
       if (!auth.token) {
-        console.log('Skipping test - authentication failed');
+        console.log("Skipping test - authentication failed");
         return;
       }
 
@@ -149,7 +154,9 @@ describe("Post API", () => {
         );
 
       // get only published posts
-      const publishedResponse = await request.get("/api/v1/posts?status=published");
+      const publishedResponse = await request.get(
+        "/api/v1/posts?status=published"
+      );
 
       expect(publishedResponse.status).toBe(200);
       expect(publishedResponse.body.data).toHaveProperty("posts");
@@ -167,7 +174,7 @@ describe("Post API", () => {
       // Create user and get token for this specific test
       const auth = await createUserAndGetToken();
       if (!auth.token) {
-        console.log('Skipping test - authentication failed');
+        console.log("Skipping test - authentication failed");
         return;
       }
 

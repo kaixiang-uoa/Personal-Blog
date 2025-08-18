@@ -12,19 +12,19 @@
  * @param {Object} config - S3 configuration object
  * @throws {Error} If validation fails
  */
-export const validateS3Config = (_config) => {
+export const validateS3Config = _config => {
   const requiredEnvVars = [
-    'AWS_ACCESS_KEY_ID',
-    'AWS_SECRET_ACCESS_KEY',
-    'AWS_S3_BUCKET',
-    'AWS_REGION',
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_S3_BUCKET",
+    "AWS_REGION",
   ];
 
-  const missingVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+  const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
   if (missingVars.length > 0) {
     throw new Error(
-      `Missing required environment variables: ${missingVars.join(', ')}`,
+      `Missing required environment variables: ${missingVars.join(", ")}`
     );
   }
 
@@ -32,21 +32,21 @@ export const validateS3Config = (_config) => {
   if (process.env.AWS_S3_BUCKET) {
     const bucketName = process.env.AWS_S3_BUCKET;
 
-    if (bucketName.includes(' ')) {
-      throw new Error('Bucket name cannot contain spaces');
+    if (bucketName.includes(" ")) {
+      throw new Error("Bucket name cannot contain spaces");
     }
 
     if (/[A-Z]/.test(bucketName)) {
-      throw new Error('Bucket name must be lowercase');
+      throw new Error("Bucket name must be lowercase");
     }
 
     if (bucketName.length < 3 || bucketName.length > 63) {
-      throw new Error('Bucket name must be between 3 and 63 characters');
+      throw new Error("Bucket name must be between 3 and 63 characters");
     }
 
     if (!/^[a-z0-9.-]+$/.test(bucketName)) {
       throw new Error(
-        'Bucket name can only contain lowercase letters, numbers, dots, and hyphens',
+        "Bucket name can only contain lowercase letters, numbers, dots, and hyphens"
       );
     }
   }

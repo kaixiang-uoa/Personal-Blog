@@ -5,9 +5,9 @@
  * for unit tests and integration tests, avoid affecting actual database
  */
 
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+import { MongoMemoryServer } from "mongodb-memory-server";
+import mongoose from "mongoose";
+import { logger } from "../utils/logger.js";
 
 // in-memory MongoDB instance
 let mongoServer;
@@ -18,13 +18,15 @@ let mongoServer;
 export const connectTestDB = async () => {
   try {
     // Set test environment variables
-    process.env.NODE_ENV = 'test';
-    process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-only-32-chars';
-    process.env.JWT_EXPIRES_IN = '1h';
-    process.env.JWT_EXPIRE = '1h';
-    process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-key-for-testing-32-chars';
-    process.env.JWT_REFRESH_EXPIRES_IN = '7d';
-    process.env.JWT_REFRESH_EXPIRE = '7d';
+    process.env.NODE_ENV = "test";
+    process.env.JWT_SECRET =
+      "test-jwt-secret-key-for-testing-purposes-only-32-chars";
+    process.env.JWT_EXPIRES_IN = "1h";
+    process.env.JWT_EXPIRE = "1h";
+    process.env.JWT_REFRESH_SECRET =
+      "test-refresh-secret-key-for-testing-32-chars";
+    process.env.JWT_REFRESH_EXPIRES_IN = "7d";
+    process.env.JWT_REFRESH_EXPIRE = "7d";
 
     // create in-memory MongoDB instance
     mongoServer = await MongoMemoryServer.create();
@@ -35,7 +37,7 @@ export const connectTestDB = async () => {
     // connect to MongoDB
     await mongoose.connect(mongoUri);
 
-    logger.info('Successfully connected to test MongoDB');
+    logger.info("Successfully connected to test MongoDB");
   } catch (error) {
     logger.error(`Failed to connect to test MongoDB: ${error.message}`);
     throw error;
@@ -53,7 +55,7 @@ export const disconnectTestDB = async () => {
       await mongoServer.stop();
     }
 
-    logger.info('Disconnected from test MongoDB');
+    logger.info("Disconnected from test MongoDB");
   } catch (error) {
     logger.error(`Failed to disconnect from test MongoDB: ${error.message}`);
     throw error;
@@ -72,7 +74,7 @@ export const clearDatabase = async () => {
       await collection.deleteMany({});
     }
 
-    logger.info('Test database cleared');
+    logger.info("Test database cleared");
   } catch (error) {
     logger.error(`Failed to clear test database: ${error.message}`);
     throw error;

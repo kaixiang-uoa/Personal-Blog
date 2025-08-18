@@ -11,8 +11,8 @@
  */
 export const generateRandomString = (length = 10) => {
   const characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -36,9 +36,9 @@ export const generateUserData = (overrides = {}) => {
   const defaultData = {
     username: `user_${generateRandomString(5)}`,
     email: generateRandomEmail(),
-    password: 'Password123!',
+    password: "Password123!",
     displayName: `Test User ${generateRandomString(3)}`,
-    role: 'user',
+    role: "user",
   };
 
   return { ...defaultData, ...overrides };
@@ -51,14 +51,14 @@ export const generateUserData = (overrides = {}) => {
  */
 export const generatePostData = (overrides = {}) => {
   const title = `Test Post ${generateRandomString(8)}`;
-  const slug = title.toLowerCase().replace(/\s+/g, '-');
+  const slug = title.toLowerCase().replace(/\s+/g, "-");
 
   const defaultData = {
     title,
     slug,
     content: `This is a test content for ${title}. It contains some text for testing purposes.`,
     excerpt: `This is a test excerpt for ${title}.`,
-    status: 'published',
+    status: "published",
     tags: [],
     categories: [],
     allowComments: true,
@@ -74,7 +74,7 @@ export const generatePostData = (overrides = {}) => {
  */
 export const generateCategoryData = (overrides = {}) => {
   const name = `Category ${generateRandomString(5)}`;
-  const slug = name.toLowerCase().replace(/\s+/g, '-');
+  const slug = name.toLowerCase().replace(/\s+/g, "-");
 
   const defaultData = {
     name,
@@ -96,7 +96,7 @@ export const generateCategoryData = (overrides = {}) => {
  */
 export const generateTagData = (overrides = {}) => {
   const name = `Tag ${generateRandomString(5)}`;
-  const slug = name.toLowerCase().replace(/\s+/g, '-');
+  const slug = name.toLowerCase().replace(/\s+/g, "-");
 
   const defaultData = {
     name,

@@ -64,4 +64,10 @@ export interface MediaDialogsProps {
     item: Media,
     e: React.SyntheticEvent<HTMLImageElement>
   ) => void;
+
+  // Refresh function
+  onRefresh?: () => void;
+
+  // Update selected item function
+  onUpdateSelectedItem?: (item: Media) => void;
 }

@@ -1,11 +1,11 @@
 export function transformLocalizedTags(tags, lang) {
-  return tags.map((tag) => {
+  return tags.map(tag => {
     const raw = tag.toObject?.() || tag;
 
     const localizedName =
-      lang === 'en'
+      lang === "en"
         ? raw.name_en || raw.name
-        : lang === 'zh'
+        : lang === "zh"
           ? raw.name_zh || raw.name
           : raw.name;
 

@@ -13,13 +13,13 @@ const nextConfig: NextConfig = {
       {
         protocol: "http",
         hostname: "localhost",
-        port: "3001",
+        port: "3002",
         pathname: "/api/v1/uploads/**",
       },
       {
         protocol: "http",
         hostname: "localhost",
-        port: "3001",
+        port: "3002",
         pathname: "/uploads/**",
       },
       {
@@ -47,7 +47,7 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         destination: process.env.NEXT_PUBLIC_API_URL
           ? `${process.env.NEXT_PUBLIC_API_URL}/:path*`
-          : "http://localhost:3001/api/v1/:path*",
+          : "http://localhost:3002/api/v1/:path*",
       },
     ];
   },

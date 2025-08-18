@@ -12,7 +12,19 @@ export function cn(...inputs: ClassValue[]) {
 export function ensureFullUrl(url: string | undefined | null): string {
   if (!url) return "";
   if (url.startsWith("http")) return url;
-  return `http://localhost:3001${url}`;
+  const base = process.env.NEXT_PUBLIC_API_URL;
+  if (base) {
+    // if base ends with /api/v1 and url already starts with /api/v1, avoid duplicate
+    const origin = base.replace(/\/?api\/v1$/, "");
+    return `${origin}${url.startsWith("/") ? url : `/${url}`}`;
+  }
+  // browser fallback to current origin
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin;
+    return `${origin}${url.startsWith("/") ? url : `/${url}`}`;
+  }
+  // final fallback (dev)
+  return `http://localhost:3002${url.startsWith("/") ? url : `/${url}`}`;
 }
 
 // date utility

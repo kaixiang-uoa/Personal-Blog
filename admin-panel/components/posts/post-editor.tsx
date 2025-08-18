@@ -217,9 +217,13 @@ export function PostEditor({
         // Access the media object and get the full URL
         const media = response.data as { url: string };
         // Construct the full URL with the base URL of the backend
-        const baseUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-        const imageUrl = `${baseUrl}${media.url}`;
+        const apiBase = process.env.NEXT_PUBLIC_API_URL;
+        const origin = apiBase
+          ? apiBase.replace(/\/?api\/v1$/, "")
+          : typeof window !== "undefined"
+            ? window.location.origin
+            : "http://localhost:3002";
+        const imageUrl = `${origin}${media.url.startsWith("/") ? media.url : `/${media.url}`}`;
 
         if (editor) {
           editor.chain().focus().setImage({ src: imageUrl }).run();

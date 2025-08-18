@@ -1,22 +1,23 @@
-import express from 'express';
-import multer from 'multer';
-import multerS3 from 'multer-s3';
-import { protect, restrictTo } from '../middleware/authMiddleware.js';
+import express from "express";
+import multer from "multer";
+import multerS3 from "multer-s3";
+import { protect, restrictTo } from "../middleware/authMiddleware.js";
 import {
   getAllMedia,
   getMediaById,
   uploadMedia,
   deleteMedia,
   updateMedia,
-} from '../controllers/mediaController.js';
-import { createMulterFileFilter } from '../utils/mimeValidator.js';
-import { generateFileName } from '../utils/fileNaming.js';
-import { s3, bucketConfig } from '../config/s3.js';
+  getMediaByUrl,
+} from "../controllers/mediaController.js";
+import { createMulterFileFilter } from "../utils/mimeValidator.js";
+import { generateFileName } from "../utils/fileNaming.js";
+import { s3, bucketConfig } from "../config/s3.js";
 
 // Configure multer based on environment
 let upload;
 
-if (process.env.NODE_ENV === 'test' || !s3) {
+if (process.env.NODE_ENV === "test" || !s3) {
   // Use memory storage for tests or when S3 is not available
 
   upload = multer({
@@ -38,7 +39,7 @@ if (process.env.NODE_ENV === 'test' || !s3) {
         try {
           const fileName = generateFileName({
             originalName: file.originalname,
-            prefix: 'media/',
+            prefix: "media/",
             timestamp: true,
             randomString: true,
           });
@@ -57,37 +58,37 @@ if (process.env.NODE_ENV === 'test' || !s3) {
 
 // Add error handling middleware
 const handleMulterError = (err, req, res, next) => {
-  console.error('Multer error:', err);
+  console.error("Multer error:", err);
   if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
+    if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,
-        message: 'File too large',
+        message: "File too large",
         error: err.message,
       });
     }
     return res.status(400).json({
       success: false,
-      message: 'File upload error',
+      message: "File upload error",
       error: err.message,
     });
   }
 
   // Handle S3 specific errors
-  if (err.Code === 'NoSuchBucket') {
+  if (err.Code === "NoSuchBucket") {
     return res.status(500).json({
       success: false,
-      message: 'Storage configuration error',
-      error: 'The specified storage bucket does not exist',
+      message: "Storage configuration error",
+      error: "The specified storage bucket does not exist",
     });
   }
 
   // Handle file size error
-  if (err.message === 'File size is required') {
+  if (err.message === "File size is required") {
     return res.status(400).json({
       success: false,
-      message: 'Invalid file',
-      error: 'File size information is missing',
+      message: "Invalid file",
+      error: "File size information is missing",
     });
   }
 
@@ -97,24 +98,27 @@ const handleMulterError = (err, req, res, next) => {
 const router = express.Router();
 
 // get all media files
-router.get('/', protect, getAllMedia);
+router.get("/", protect, getAllMedia);
+
+// get media by URL - Optimized query for alt text retrieval
+router.get("/url", protect, getMediaByUrl);
 
 // get single media file
-router.get('/:id', protect, getMediaById);
+router.get("/:id", protect, getMediaById);
 
 // upload media file - Handles file upload to AWS S3 and creates media record in database
 router.post(
-  '/',
+  "/",
   protect,
-  upload.array('files', 10),
+  upload.array("files", 10),
   handleMulterError,
-  uploadMedia,
+  uploadMedia
 );
 
 // update media file information
-router.put('/:id', protect, updateMedia);
+router.put("/:id", protect, updateMedia);
 
 // delete media file (single or batch)
-router.delete('/:id?', protect, restrictTo('admin', 'editor'), deleteMedia);
+router.delete("/:id?", protect, restrictTo("admin", "editor"), deleteMedia);
 
 export default router;

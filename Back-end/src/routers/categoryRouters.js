@@ -1,4 +1,4 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
 import {
   getAllCategories,
@@ -7,25 +7,25 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
-} from '../controllers/categoryController.js';
-import { protect, restrictTo } from '../middleware/authMiddleware.js';
+} from "../controllers/categoryController.js";
+import { protect, restrictTo } from "../middleware/authMiddleware.js";
 
 // Get all categories
-router.get('/', getAllCategories);
+router.get("/", getAllCategories);
 
 // Get category by slug
-router.get('/slug/:slug', getCategoryBySlug);
+router.get("/slug/:slug", getCategoryBySlug);
 
 // Get category by ID
-router.get('/:id', getCategoryById);
+router.get("/:id", getCategoryById);
 
 // Create category (requires admin privileges)
-router.post('/', protect, restrictTo('admin'), createCategory);
+router.post("/", protect, restrictTo("admin"), createCategory);
 
 // Update category (requires admin privileges)
-router.put('/:id', protect, restrictTo('admin'), updateCategory);
+router.put("/:id", protect, restrictTo("admin"), updateCategory);
 
 // Delete category (requires admin privileges)
-router.delete('/:id', protect, restrictTo('admin'), deleteCategory);
+router.delete("/:id", protect, restrictTo("admin"), deleteCategory);
 
 export default router;

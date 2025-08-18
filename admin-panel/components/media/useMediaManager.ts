@@ -46,6 +46,16 @@ export function useMediaManager() {
     fetchMedia();
   }, [fetchMedia]);
 
+  // Refresh media data
+  const refreshMedia = useCallback(() => {
+    fetchMedia();
+  }, [fetchMedia]);
+
+  // Update selected item with fresh data
+  const updateSelectedItem = useCallback((updatedItem: Media) => {
+    setSelectedItem(updatedItem);
+  }, []);
+
   // Handle item selection
   const handleSelectItem = useCallback((id: string) => {
     setSelectedItems(prev =>
@@ -246,5 +256,7 @@ export function useMediaManager() {
     handleDeleteMedia,
     handleDeleteSelected,
     handleDeleteItem,
+    refreshMedia,
+    updateSelectedItem,
   };
 }

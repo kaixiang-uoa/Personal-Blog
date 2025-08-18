@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const SettingHistorySchema = new Schema(
@@ -18,22 +18,22 @@ const SettingHistorySchema = new Schema(
     },
     changedBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: false,
     },
     action: {
       type: String,
-      enum: ["create", "update", "delete"],
-      default: "update",
+      enum: ['create', 'update', 'delete'],
+      default: 'update',
     },
     description: {
       type: String,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // create index for fast query of history records of a specific key
 SettingHistorySchema.index({ key: 1, createdAt: -1 });
 
-export default mongoose.model("SettingHistory", SettingHistorySchema);
+export default mongoose.model('SettingHistory', SettingHistorySchema);

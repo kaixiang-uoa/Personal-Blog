@@ -9,7 +9,7 @@ import {
   getPaginationParams,
   createPaginationResponse,
 } from '../utils/paginationHelper.js';
-import { s3, s3Config } from '../config/s3.js';
+import { s3, s3Config, bucketConfig } from '../config/s3.js';
 import {
   logUploadRequest,
   logFileProcessing,
@@ -135,9 +135,30 @@ export const uploadMedia = async (req, res) => {
     for (const file of req.files) {
       logFileProcessing(file);
 
+      // Debug: Check if file.key exists
+      console.log('File key check:', {
+        hasKey: !!file.key,
+        key: file.key,
+        keyType: typeof file.key,
+      });
+
+      // Check if file.key is missing
+      if (!file.key) {
+        console.error('File key is missing:', {
+          file: {
+            originalname: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size,
+            key: file.key,
+            location: file.location,
+          },
+        });
+        throw new Error('File key is missing - S3 upload may have failed');
+      }
+
       // Generate public URL using our utility function
       const publicUrl = generatePublicUrl(file.key);
-      console.log('Generated public URL:', publicUrl);
+
 
       // create media record
       const media = await Media.create({
@@ -150,11 +171,7 @@ export const uploadMedia = async (req, res) => {
         uploadedBy: req.user.id,
       });
 
-      console.log('Created media record:', {
-        id: media._id,
-        filename: media.filename,
-        url: media.url,
-      });
+
 
       mediaFiles.push(media);
     }
@@ -162,6 +179,7 @@ export const uploadMedia = async (req, res) => {
     return success(res, { media: mediaFiles }, 201, 'media.uploaded');
   } catch (err) {
     logUploadError(err);
+
     return error(res, 'media.uploadFailed', 500, err.message);
   }
 };
@@ -210,7 +228,7 @@ export const deleteMedia = async (req, res) => {
         try {
           await s3.send(
             new DeleteObjectCommand({
-              Bucket: s3Config.bucket,
+              Bucket: bucketConfig.bucketName,
               Key: media.path,
             }),
           );
@@ -250,7 +268,7 @@ export const deleteMedia = async (req, res) => {
       // delete file from S3
       await s3.send(
         new DeleteObjectCommand({
-          Bucket: s3Config.bucket,
+          Bucket: bucketConfig.bucketName,
           Key: media.path,
         }),
       );

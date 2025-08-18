@@ -7,24 +7,24 @@
  * @module utils/s3UrlGenerator
  */
 
-import { s3, s3Config } from '../config/s3.js';
+import { s3, s3Config, bucketConfig } from '../config/s3.js';
 
 /**
  * Generate a signed URL for accessing a private S3 object
  * @param {string} key - S3 object key
  * @param {Object} options - URL generation options
- * @param {number} [options.expiresIn] - URL expiration time in seconds (defaults to s3Config.url.signedUrlExpiration)
+ * @param {number} [options.expiresIn] - URL expiration time in seconds (defaults to 3600)
  * @param {string} [options.responseContentDisposition] - Content-Disposition header value
  * @returns {Promise<string>} Signed URL
  */
 export const generateSignedUrl = async (key, options = {}) => {
   const {
-    expiresIn = s3Config.url.signedUrlExpiration,
+    expiresIn = 3600,
     responseContentDisposition,
   } = options;
 
   const params = {
-    Bucket: s3Config.bucket,
+    Bucket: bucketConfig.bucketName,
     Key: key,
     Expires: expiresIn,
   };
@@ -55,11 +55,11 @@ export const generatePublicUrl = (key) => {
   const cleanKey = key.startsWith('/') ? key.slice(1) : key;
 
   // Use virtual-hosted style URL with HTTPS
-  const url = `https://${s3Config.bucket}.s3.${s3Config.region}.amazonaws.com/${cleanKey}`;
+  const url = `https://${bucketConfig.bucketName}.s3.${bucketConfig.region}.amazonaws.com/${cleanKey}`;
 
   console.log('Generated S3 URL:', {
-    bucket: s3Config.bucket,
-    region: s3Config.region,
+    bucket: bucketConfig.bucketName,
+    region: bucketConfig.region,
     key: cleanKey,
     url,
   });
@@ -71,7 +71,7 @@ export const generatePublicUrl = (key) => {
  * Generate a temporary download URL for a file
  * @param {string} key - S3 object key
  * @param {string} filename - Original filename
- * @param {number} [expiresIn] - URL expiration time in seconds (defaults to s3Config.url.signedUrlExpiration)
+ * @param {number} [expiresIn] - URL expiration time in seconds (defaults to 3600)
  * @returns {Promise<string>} Download URL
  */
 export const generateDownloadUrl = async (key, filename, expiresIn) => {

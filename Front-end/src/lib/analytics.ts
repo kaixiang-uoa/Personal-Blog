@@ -11,27 +11,52 @@ export const isGAEnabled = !!GA_MEASUREMENT_ID;
 
 // Initialize Google Analytics
 export const initGA = () => {
-  if (typeof window === 'undefined' || !isGAEnabled) return;
-
-  // Load Google Analytics script
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
-  document.head.appendChild(script);
-
-  // Initialize gtag
-  window.dataLayer = window.dataLayer || [];
-  function gtag(...args: any[]) {
-    window.dataLayer.push(args);
-  }
-  gtag('js', new Date());
-  gtag('config', GA_MEASUREMENT_ID, {
-    page_title: document.title,
-    page_location: window.location.href,
+  console.log('initGA called with:', {
+    window: typeof window !== 'undefined',
+    isGAEnabled,
+    GA_MEASUREMENT_ID,
   });
 
-  // Make gtag available globally
-  window.gtag = gtag;
+  if (typeof window === 'undefined' || !isGAEnabled) {
+    console.log('initGA early return - window or GA not available');
+    return;
+  }
+
+  try {
+    // Load Google Analytics script
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+
+    script.onload = () => {
+      console.log('Google Analytics script loaded successfully');
+    };
+
+    script.onerror = error => {
+      console.error('Failed to load Google Analytics script:', error);
+    };
+
+    document.head.appendChild(script);
+    console.log('Google Analytics script added to head');
+
+    // Initialize gtag
+    window.dataLayer = window.dataLayer || [];
+    function gtag(...args: any[]) {
+      window.dataLayer.push(args);
+    }
+
+    gtag('js', new Date());
+    gtag('config', GA_MEASUREMENT_ID, {
+      page_title: document.title,
+      page_location: window.location.href,
+    });
+
+    // Make gtag available globally
+    window.gtag = gtag;
+    console.log('Google Analytics gtag function initialized');
+  } catch (error) {
+    console.error('Error in initGA:', error);
+  }
 };
 
 // Track page views

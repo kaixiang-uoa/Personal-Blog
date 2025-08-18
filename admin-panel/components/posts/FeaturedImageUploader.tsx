@@ -4,6 +4,7 @@ import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
+import { getFullUrl } from "@/components/media/utils";
 import { Button } from "@/components/ui/inputs/button";
 import { apiService } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -56,11 +57,7 @@ export function FeaturedImageUploader({
         // get upload file url and add backend domain prefix
         const mediaData = response.data as { media: Array<{ url: string }> };
         const fileUrl = mediaData.media[0].url;
-        // if url is not start with http, add full backend domain
-        const fullUrl = fileUrl.startsWith("http")
-          ? fileUrl
-          : `http://localhost:3001${fileUrl}`;
-        onChange(fullUrl);
+        onChange(getFullUrl(fileUrl));
       }
     } catch (error) {
       console.error("Failed to upload image:", error);
@@ -77,7 +74,7 @@ export function FeaturedImageUploader({
   // ensure image src is full url
   const getImageSrc = (src: string) => {
     if (!src) return "";
-    return src.startsWith("http") ? src : `http://localhost:3001${src}`;
+    return getFullUrl(src);
   };
 
   return (

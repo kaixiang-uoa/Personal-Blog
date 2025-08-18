@@ -1,6 +1,6 @@
-import swaggerJsdoc from 'swagger-jsdoc';
-import { fileURLToPath } from 'url';
-import path, { dirname } from 'path';
+import swaggerJsdoc from "swagger-jsdoc";
+import { fileURLToPath } from "url";
+import path, { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -8,58 +8,58 @@ const __dirname = dirname(__filename);
 // Basic swagger configuration
 const options = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'Personal Blog API',
-      version: '1.0.0',
-      description: 'API documentation for Personal Blog application',
+      title: "Personal Blog API",
+      version: "1.0.0",
+      description: "API documentation for Personal Blog application",
       contact: {
-        name: 'Admin',
-        email: 'admin@example.com',
+        name: "Admin",
+        email: "admin@example.com",
       },
     },
     servers: [
       {
-        url: '/api/v1',
-        description: 'API Server',
+        url: "/api/v1",
+        description: "API Server",
       },
     ],
     components: {
       securitySchemes: {
         bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
         },
       },
       schemas: {
         Error: {
-          type: 'object',
+          type: "object",
           properties: {
             success: {
-              type: 'boolean',
+              type: "boolean",
               example: false,
             },
             message: {
-              type: 'string',
-              example: 'Error message',
+              type: "string",
+              example: "Error message",
             },
             errors: {
-              type: 'array',
+              type: "array",
               items: {
-                type: 'object',
+                type: "object",
                 properties: {
                   field: {
-                    type: 'string',
-                    example: 'email',
+                    type: "string",
+                    example: "email",
                   },
                   message: {
-                    type: 'string',
-                    example: 'Must be a valid email address',
+                    type: "string",
+                    example: "Must be a valid email address",
                   },
                   value: {
-                    type: 'string',
-                    example: 'invalid-email',
+                    type: "string",
+                    example: "invalid-email",
                   },
                 },
               },
@@ -67,92 +67,92 @@ const options = {
           },
         },
         Post: {
-          type: 'object',
+          type: "object",
           properties: {
             _id: {
-              type: 'string',
-              example: '5f8d0d55b54764421b7156c5',
+              type: "string",
+              example: "5f8d0d55b54764421b7156c5",
             },
             title: {
-              type: 'string',
-              example: 'My First Blog Post',
+              type: "string",
+              example: "My First Blog Post",
             },
             slug: {
-              type: 'string',
-              example: 'my-first-blog-post',
+              type: "string",
+              example: "my-first-blog-post",
             },
             excerpt: {
-              type: 'string',
-              example: 'This is a short excerpt of the blog post',
+              type: "string",
+              example: "This is a short excerpt of the blog post",
             },
             content: {
-              type: 'string',
-              example: 'This is the full content of the blog post...',
+              type: "string",
+              example: "This is the full content of the blog post...",
             },
             status: {
-              type: 'string',
-              enum: ['draft', 'published', 'archived'],
-              example: 'published',
+              type: "string",
+              enum: ["draft", "published", "archived"],
+              example: "published",
             },
             author: {
-              type: 'string',
-              example: '5f8d0d55b54764421b7156c5',
+              type: "string",
+              example: "5f8d0d55b54764421b7156c5",
             },
             categories: {
-              type: 'array',
+              type: "array",
               items: {
-                type: 'string',
-                example: '5f8d0d55b54764421b7156c5',
+                type: "string",
+                example: "5f8d0d55b54764421b7156c5",
               },
             },
             tags: {
-              type: 'array',
+              type: "array",
               items: {
-                type: 'string',
-                example: '5f8d0d55b54764421b7156c5',
+                type: "string",
+                example: "5f8d0d55b54764421b7156c5",
               },
             },
             createdAt: {
-              type: 'string',
-              format: 'date-time',
-              example: '2020-10-19T10:15:00Z',
+              type: "string",
+              format: "date-time",
+              example: "2020-10-19T10:15:00Z",
             },
             updatedAt: {
-              type: 'string',
-              format: 'date-time',
-              example: '2020-10-19T10:15:00Z',
+              type: "string",
+              format: "date-time",
+              example: "2020-10-19T10:15:00Z",
             },
           },
         },
         User: {
-          type: 'object',
+          type: "object",
           properties: {
             _id: {
-              type: 'string',
-              example: '5f8d0d55b54764421b7156c5',
+              type: "string",
+              example: "5f8d0d55b54764421b7156c5",
             },
             username: {
-              type: 'string',
-              example: 'johndoe',
+              type: "string",
+              example: "johndoe",
             },
             email: {
-              type: 'string',
-              example: 'john.doe@example.com',
+              type: "string",
+              example: "john.doe@example.com",
             },
             role: {
-              type: 'string',
-              enum: ['user', 'author', 'admin'],
-              example: 'author',
+              type: "string",
+              enum: ["user", "author", "admin"],
+              example: "author",
             },
             createdAt: {
-              type: 'string',
-              format: 'date-time',
-              example: '2020-10-19T10:15:00Z',
+              type: "string",
+              format: "date-time",
+              example: "2020-10-19T10:15:00Z",
             },
             updatedAt: {
-              type: 'string',
-              format: 'date-time',
-              example: '2020-10-19T10:15:00Z',
+              type: "string",
+              format: "date-time",
+              example: "2020-10-19T10:15:00Z",
             },
           },
         },
@@ -160,8 +160,8 @@ const options = {
     },
   },
   apis: [
-    path.join(__dirname, '../routers/*.js'),
-    path.join(__dirname, '../controllers/*.js'),
+    path.join(__dirname, "../routers/*.js"),
+    path.join(__dirname, "../controllers/*.js"),
   ],
 };
 

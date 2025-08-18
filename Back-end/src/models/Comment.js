@@ -1,11 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const CommentSchema = new Schema(
   {
     post: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Post',
+      ref: "Post",
       required: true,
     },
     author: {
@@ -21,7 +21,7 @@ const CommentSchema = new Schema(
       },
       userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         default: null,
       },
     },
@@ -31,16 +31,16 @@ const CommentSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['approved', 'pending', 'spam'],
-      default: 'pending',
+      enum: ["approved", "pending", "spam"],
+      default: "pending",
     },
     parentComment: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Comment',
+      ref: "Comment",
       default: null,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-export default mongoose.model('Comment', CommentSchema);
+export default mongoose.model("Comment", CommentSchema);

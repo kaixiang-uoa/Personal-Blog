@@ -147,6 +147,12 @@ export interface Media {
   size: number;
   path: string;
   url: string;
+  alt?: string;
+  alt_en?: string;
+  alt_zh?: string;
+  caption?: string;
+  caption_en?: string;
+  caption_zh?: string;
   uploadedBy: {
     _id: string;
     username: string;

@@ -1,11 +1,11 @@
-import express from 'express';
+import express from "express";
 
 const router = express.Router();
 
 // health check endpoint
-router.get('/', (req, res) => {
+router.get("/", (req, res) => {
   res.json({
-    status: 'ok',
+    status: "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });

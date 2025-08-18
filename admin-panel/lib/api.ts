@@ -295,6 +295,14 @@ export const apiService = {
 
   deleteMedia: <T = unknown>(id: string): Promise<ApiResponse<T>> =>
     api.delete(`/media/${id}`),
+
+  updateMedia: <T = unknown>(
+    id: string,
+    data: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => api.put(`/media/${id}`, data),
+
+  getMediaByUrl: <T = unknown>(url: string): Promise<ApiResponse<T>> =>
+    api.get("/media/url", { params: { url } }),
 };
 
 export default api;

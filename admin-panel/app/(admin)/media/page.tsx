@@ -37,6 +37,8 @@ export default function MediaPage() {
     handleDeleteMedia,
     handleDeleteSelected,
     handleDeleteItem,
+    refreshMedia,
+    updateSelectedItem,
   } = useMediaManager();
 
   return (
@@ -84,6 +86,8 @@ export default function MediaPage() {
         selectedItem={selectedItem}
         onCopyUrl={copyToClipboard}
         onImageError={handleImageError}
+        onRefresh={refreshMedia}
+        onUpdateSelectedItem={updateSelectedItem}
       />
     </div>
   );

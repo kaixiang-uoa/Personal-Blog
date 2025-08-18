@@ -1,7 +1,7 @@
 // Media utility functions
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api/v1";
 
 // Helper function to get full url
 export const getFullUrl = (path: string): string => {
@@ -15,16 +15,19 @@ export const getFullUrl = (path: string): string => {
     return path;
   }
 
-  // Ensure path starts with /
+  // Normalize path
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
-  // If path already contains /api/v1, use directly
-  if (normalizedPath.includes("/api/v1")) {
-    return `${API_BASE_URL.replace("/api/v1", "")}${normalizedPath}`;
+  // Use base origin (strip trailing /api/v1 if present)
+  const origin = API_BASE_URL.replace(/\/?api\/v1$/, "");
+
+  // If incoming path已经是完整api路径，直接拼接
+  if (normalizedPath.startsWith("/api/")) {
+    return `${origin}${normalizedPath}`;
   }
 
-  // Otherwise add /api/v1/media/uploads prefix
-  return `${API_BASE_URL.replace("/api/v1", "")}/api/v1/media/uploads${normalizedPath}`;
+  // Default media uploads prefix
+  return `${origin}/api/v1/media/uploads${normalizedPath}`;
 };
 
 // Helper function to format file size

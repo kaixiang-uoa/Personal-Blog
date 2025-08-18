@@ -16,8 +16,11 @@ import { s3, bucketConfig } from '../config/s3.js';
 // Configure multer based on environment
 let upload;
 
+
+
 if (process.env.NODE_ENV === 'test' || !s3) {
   // Use memory storage for tests or when S3 is not available
+
   upload = multer({
     storage: multer.memoryStorage(),
     fileFilter: createMulterFileFilter(),
@@ -27,33 +30,22 @@ if (process.env.NODE_ENV === 'test' || !s3) {
   });
 } else {
   // Use S3 storage for production
+
   upload = multer({
     storage: multerS3({
       s3: s3,
       bucket: bucketConfig.bucketName,
       contentType: multerS3.AUTO_CONTENT_TYPE,
       key: function (req, file, cb) {
-        console.log('Processing file:', {
-          fieldname: file.fieldname,
-          originalname: file.originalname,
-          encoding: file.encoding,
-          mimetype: file.mimetype,
-          size: file.size,
-          buffer: file.buffer ? 'Buffer present' : 'No buffer',
-        });
-
         try {
-          // Generate standardized file name
           const fileName = generateFileName({
             originalName: file.originalname,
             prefix: 'media/',
             timestamp: true,
             randomString: true,
           });
-          console.log('Generated file name:', fileName);
           cb(null, fileName);
         } catch (error) {
-          console.error('Error generating file name:', error);
           cb(error);
         }
       },

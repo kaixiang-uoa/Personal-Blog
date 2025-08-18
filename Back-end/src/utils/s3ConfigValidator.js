@@ -17,12 +17,12 @@ export const validateS3Config = (_config) => {
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY',
     'AWS_S3_BUCKET',
+    'AWS_REGION',
   ];
 
   const missingVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
 
   if (missingVars.length > 0) {
-    console.error('Missing required environment variables:', missingVars);
     throw new Error(
       `Missing required environment variables: ${missingVars.join(', ')}`,
     );
@@ -31,14 +31,6 @@ export const validateS3Config = (_config) => {
   // Validate bucket name
   if (process.env.AWS_S3_BUCKET) {
     const bucketName = process.env.AWS_S3_BUCKET;
-    const bucketValidation = {
-      bucket: bucketName,
-      length: bucketName.length,
-      containsSpaces: bucketName.includes(' '),
-      containsUpperCase: /[A-Z]/.test(bucketName),
-    };
-
-    console.log('Bucket name validation:', bucketValidation);
 
     if (bucketName.includes(' ')) {
       throw new Error('Bucket name cannot contain spaces');

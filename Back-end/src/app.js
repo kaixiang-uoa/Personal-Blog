@@ -7,6 +7,7 @@ import { dirname } from "path";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpecs from "./config/swagger.js";
 
+
 // Import routers
 import postRouter from "./routers/postRouters.js";
 import userRouter from "./routers/userRouters.js";

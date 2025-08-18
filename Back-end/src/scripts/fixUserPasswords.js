@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
-import dotenv from "dotenv";
-import User from "../models/User.js";
-import connectDB from "../config/db.js";
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+import User from '../models/User.js';
+import connectDB from '../config/db.js';
 
 // load environment variables
 dotenv.config();
@@ -10,7 +10,7 @@ dotenv.config();
 // connect to database
 await connectDB();
 
-console.log("🔍 checking user passwords...");
+console.log('🔍 checking user passwords...');
 
 try {
   // find all users
@@ -20,7 +20,7 @@ try {
 
   for (const user of users) {
     // check if it is plaintext password
-    if (user.password.startsWith("plaintext:")) {
+    if (user.password.startsWith('plaintext:')) {
       const plainPassword = user.password.substring(10); // remove "plaintext:" prefix
 
       // generate salt
@@ -41,43 +41,43 @@ try {
   if (updatedCount > 0) {
     console.log(`🎉 successfully updated passwords for ${updatedCount} users`);
   } else {
-    console.log("✅ no plaintext passwords found");
+    console.log('✅ no plaintext passwords found');
   }
 
   // show current admin account information
-  const adminUsers = await User.find({ role: "admin" }).select(
-    "username email"
+  const adminUsers = await User.find({ role: 'admin' }).select(
+    'username email',
   );
 
   if (adminUsers.length > 0) {
-    console.log("\n📊 current admin account:");
-    adminUsers.forEach(admin => {
+    console.log('\n📊 current admin account:');
+    adminUsers.forEach((admin) => {
       console.log(`- username: ${admin.username}, email: ${admin.email}`);
     });
   }
 
   // if no admin account, create a default admin account
   if (adminUsers.length === 0) {
-    console.log("⚠️ no admin account found, creating default admin account");
+    console.log('⚠️ no admin account found, creating default admin account');
 
     const defaultAdmin = new User({
-      username: "admin",
-      email: "admin@example.com",
-      password: "[REMOVED]",
-      role: "admin",
+      username: 'admin',
+      email: 'admin@example.com',
+      password: '[REMOVED]',
+      role: 'admin',
       isActive: true,
     });
 
     await defaultAdmin.save();
-    console.log("✅ default admin account created");
-    console.log("- username: admin");
-    console.log("- email: admin@example.com");
-    console.log("- password: [REMOVED]");
+    console.log('✅ default admin account created');
+    console.log('- username: admin');
+    console.log('- email: admin@example.com');
+    console.log('- password: [REMOVED]');
   }
 
-  console.log("\n🚀 password fix completed!");
+  console.log('\n🚀 password fix completed!');
 } catch (error) {
-  console.error("❌ error:", error);
+  console.error('❌ error:', error);
 } finally {
   // close database connection
   mongoose.connection.close();

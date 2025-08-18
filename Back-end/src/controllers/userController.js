@@ -1,6 +1,6 @@
-import User from "../models/User.js";
-import { success, error } from "../utils/responseHandler.js";
-import bcrypt from "bcryptjs";
+import User from '../models/User.js';
+import { success, error } from '../utils/responseHandler.js';
+import bcrypt from 'bcryptjs';
 
 // get all users
 export const getAllUsers = async (req, res) => {
@@ -11,7 +11,7 @@ export const getAllUsers = async (req, res) => {
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
       sort: { createdAt: -1 },
-      select: "-password",
+      select: '-password',
     };
 
     const users = await User.find()
@@ -34,10 +34,10 @@ export const getAllUsers = async (req, res) => {
         },
       },
       200,
-      "user.listSuccess"
+      'user.listSuccess',
     );
   } catch (err) {
-    return error(res, "user.listFailed", 500, err.message);
+    return error(res, 'user.listFailed', 500, err.message);
   }
 };
 
@@ -45,15 +45,15 @@ export const getAllUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id).select("-password");
+    const user = await User.findById(id).select('-password');
 
     if (!user) {
-      return error(res, "user.notFound", 404);
+      return error(res, 'user.notFound', 404);
     }
 
     return success(res, user, 200);
   } catch (err) {
-    return error(res, "user.getFailed", 500, err.message);
+    return error(res, 'user.getFailed', 500, err.message);
   }
 };
 
@@ -70,8 +70,8 @@ export const createUser = async (req, res) => {
     if (userExists) {
       return error(
         res,
-        userExists.email === email ? "user.emailExists" : "user.usernameExists",
-        400
+        userExists.email === email ? 'user.emailExists' : 'user.usernameExists',
+        400,
       );
     }
 
@@ -80,7 +80,7 @@ export const createUser = async (req, res) => {
       username,
       email,
       password,
-      role: role || "user",
+      role: role || 'user',
     });
 
     return success(
@@ -92,10 +92,10 @@ export const createUser = async (req, res) => {
         role: user.role,
       },
       201,
-      "user.created"
+      'user.created',
     );
   } catch (err) {
-    return error(res, "user.createFailed", 500, err.message);
+    return error(res, 'user.createFailed', 500, err.message);
   }
 };
 
@@ -108,7 +108,7 @@ export const updateUser = async (req, res) => {
     const user = await User.findById(id);
 
     if (!user) {
-      return error(res, "user.notFound", 404);
+      return error(res, 'user.notFound', 404);
     }
 
     // update fields
@@ -129,10 +129,10 @@ export const updateUser = async (req, res) => {
         isActive: user.isActive,
       },
       200,
-      "user.updated"
+      'user.updated',
     );
   } catch (err) {
-    return error(res, "user.updateFailed", 500, err.message);
+    return error(res, 'user.updateFailed', 500, err.message);
   }
 };
 
@@ -144,19 +144,19 @@ export const deleteUser = async (req, res) => {
     const user = await User.findById(id);
 
     if (!user) {
-      return error(res, "user.notFound", 404);
+      return error(res, 'user.notFound', 404);
     }
 
     // cannot delete self
     if (user._id.toString() === req.user.id) {
-      return error(res, "user.cannotDeleteSelf", 400);
+      return error(res, 'user.cannotDeleteSelf', 400);
     }
 
     await User.findByIdAndDelete(id);
 
-    return success(res, null, 200, "user.deleted");
+    return success(res, null, 200, 'user.deleted');
   } catch (err) {
-    return error(res, "user.deleteFailed", 500, err.message);
+    return error(res, 'user.deleteFailed', 500, err.message);
   }
 };
 
@@ -170,7 +170,7 @@ export const updateProfile = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return error(res, "user.notFound", 404);
+      return error(res, 'user.notFound', 404);
     }
 
     // if want to update password, verify current password
@@ -178,7 +178,7 @@ export const updateProfile = async (req, res) => {
       const isMatch = await bcrypt.compare(currentPassword, user.password);
 
       if (!isMatch) {
-        return error(res, "user.passwordIncorrect", 400);
+        return error(res, 'user.passwordIncorrect', 400);
       }
 
       user.password = newPassword;
@@ -202,9 +202,9 @@ export const updateProfile = async (req, res) => {
         avatar: user.avatar,
       },
       200,
-      "user.profileUpdated"
+      'user.profileUpdated',
     );
   } catch (err) {
-    return error(res, "user.updateProfileFailed", 500, err.message);
+    return error(res, 'user.updateProfileFailed', 500, err.message);
   }
 };

@@ -1,36 +1,36 @@
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import swaggerUi from "swagger-ui-express";
-import swaggerSpecs from "./config/swagger.js";
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpecs from './config/swagger.js';
 
 // Import routers
-import postRouter from "./routers/postRouters.js";
-import userRouter from "./routers/userRouters.js";
-import categoryRouter from "./routers/categoryRouters.js";
-import tagRouter from "./routers/tagRouters.js";
-import commentRouter from "./routers/commentRouters.js";
-import mediaRouter from "./routers/mediaRouters.js";
-import settingRouter from "./routers/settingRouters.js";
-import authRouter from "./routers/authRouters.js";
-import i18nRouters from "./routers/i18nRouters.js";
-import contactRouter from "./routers/contactRouters.js";
-import healthRouter from "./routers/healthRouters.js";
+import postRouter from './routers/postRouters.js';
+import userRouter from './routers/userRouters.js';
+import categoryRouter from './routers/categoryRouters.js';
+import tagRouter from './routers/tagRouters.js';
+import commentRouter from './routers/commentRouters.js';
+import mediaRouter from './routers/mediaRouters.js';
+import settingRouter from './routers/settingRouters.js';
+import authRouter from './routers/authRouters.js';
+import i18nRouters from './routers/i18nRouters.js';
+import contactRouter from './routers/contactRouters.js';
+import healthRouter from './routers/healthRouters.js';
 
 // Import middleware
-import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
-import { i18nMiddleware } from "./middleware/i18nMiddleware.js";
+import { errorHandler, notFound } from './middleware/errorMiddleware.js';
+import { i18nMiddleware } from './middleware/i18nMiddleware.js';
 import {
   requestLogger,
   errorLogger,
-} from "./middleware/requestLoggerMiddleware.js";
+} from './middleware/requestLoggerMiddleware.js';
 import {
   enableQueryMonitoring,
   getQueryStats,
-} from "./middleware/queryMonitorMiddleware.js";
+} from './middleware/queryMonitorMiddleware.js';
 // import { csrfProtection } from "./middleware/csrfMiddleware.js";
 import {
   configureSecureHeaders,
@@ -39,7 +39,7 @@ import {
   addRequestId,
   sanitizeInputMiddleware,
   setHSTS,
-} from "./middleware/securityMiddleware.js";
+} from './middleware/securityMiddleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -47,40 +47,40 @@ const __dirname = dirname(__filename);
 // CORS configuration
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(",")
-    : ["http://localhost:3000", "http://localhost:3001"],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:3000', 'http://localhost:3001'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Request-ID",
-    "X-CSRF-Token",
+    'Content-Type',
+    'Authorization',
+    'X-Request-ID',
+    'X-CSRF-Token',
   ],
   credentials: true,
   exposedHeaders: [
-    "Content-Type",
-    "Content-Length",
-    "Content-Disposition",
-    "X-Request-ID",
-    "X-CSRF-Token",
+    'Content-Type',
+    'Content-Length',
+    'Content-Disposition',
+    'X-Request-ID',
+    'X-CSRF-Token',
   ],
 };
 
 const app = express();
 
 // support cloud deployment proxy, correctly identify X-Forwarded-For
-app.set("trust proxy", 1);
+app.set('trust proxy', 1);
 
 // Add request ID before all other middleware
 app.use(addRequestId());
 
 // Enable database query monitoring in development mode
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   app.use(
     enableQueryMonitoring({
       slowQueryThreshold: 100, // ms
-      logAllQueries: process.env.LOG_ALL_QUERIES === "true",
-    })
+      logAllQueries: process.env.LOG_ALL_QUERIES === 'true',
+    }),
   );
 }
 
@@ -111,19 +111,19 @@ app.use(i18nMiddleware);
 // Apply global rate limiting
 app.use(apiLimiter());
 
-app.use(express.static(path.join(__dirname, "..", "public")));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // API prefix
-const API_PREFIX = "/api/v1";
+const API_PREFIX = '/api/v1';
 
 // Add Swagger documentation
 app.use(
-  "/api-docs",
+  '/api-docs',
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpecs, {
     explorer: true,
-    customCss: ".swagger-ui .topbar { display: none }",
-  })
+    customCss: '.swagger-ui .topbar { display: none }',
+  }),
 );
 
 // Register routes
@@ -143,14 +143,14 @@ app.use(`${API_PREFIX}/contact`, contactRouter);
 app.use(`${API_PREFIX}/health`, healthRouter);
 
 // Root route
-app.get("/", (req, res) => {
-  res.send("Blog API server is running");
+app.get('/', (req, res) => {
+  res.send('Blog API server is running');
 });
 
 // Health check endpoint
-app.get("/health", (req, res) => {
+app.get('/health', (req, res) => {
   res.status(200).json({
-    status: "OK",
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memoryUsage: process.memoryUsage(),
@@ -158,8 +158,8 @@ app.get("/health", (req, res) => {
 });
 
 // Database query stats endpoint (development only)
-if (process.env.NODE_ENV !== "production") {
-  app.get("/db-stats", getQueryStats);
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/db-stats', getQueryStats);
 }
 
 // 404 handler

@@ -7,7 +7,7 @@
  * @module utils/fileNaming
  */
 
-import crypto from "crypto";
+import crypto from 'crypto';
 
 /**
  * Generate a random string of specified length
@@ -17,7 +17,7 @@ import crypto from "crypto";
 const generateRandomString = (length = 8) => {
   return crypto
     .randomBytes(Math.ceil(length / 2))
-    .toString("hex")
+    .toString('hex')
     .slice(0, length);
 };
 
@@ -32,18 +32,18 @@ const generateRandomString = (length = 8) => {
  */
 export const generateFileName = ({
   originalName,
-  prefix = "media/",
+  prefix = 'media/',
   timestamp = true,
   randomString = true,
 }) => {
   // Get file extension from original name
-  const ext = originalName.split(".").pop().toLowerCase();
+  const ext = originalName.split('.').pop().toLowerCase();
 
   // Generate timestamp if needed
-  const timestampStr = timestamp ? `-${Date.now()}` : "";
+  const timestampStr = timestamp ? `-${Date.now()}` : '';
 
   // Generate random string if needed
-  const randomStr = randomString ? `-${generateRandomString()}` : "";
+  const randomStr = randomString ? `-${generateRandomString()}` : '';
 
   // Combine all parts
   return `${prefix}${timestampStr}${randomStr}.${ext}`;
@@ -54,8 +54,8 @@ export const generateFileName = ({
  * @param {string} fileName - File name
  * @returns {string} File extension
  */
-export const getFileExtension = fileName => {
-  return fileName.split(".").pop().toLowerCase();
+export const getFileExtension = (fileName) => {
+  return fileName.split('.').pop().toLowerCase();
 };
 
 /**
@@ -63,7 +63,7 @@ export const getFileExtension = fileName => {
  * @param {string} fileName - File name to validate
  * @returns {boolean} Whether the file name is valid
  */
-export const isValidFileName = fileName => {
+export const isValidFileName = (fileName) => {
   // Basic validation rules
   const rules = [
     // No empty file names
@@ -74,5 +74,5 @@ export const isValidFileName = fileName => {
     fileName.length <= 255,
   ];
 
-  return rules.every(rule => rule === true);
+  return rules.every((rule) => rule === true);
 };

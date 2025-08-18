@@ -1,25 +1,25 @@
-import Comment from "../models/Comment.js";
-import Post from "../models/Post.js";
-import { success, error } from "../utils/responseHandler.js";
+import Comment from '../models/Comment.js';
+import Post from '../models/Post.js';
+import { success, error } from '../utils/responseHandler.js';
 
 // get all comments of a post
 export const getCommentsByPost = async (req, res) => {
   try {
     const { postId } = req.params;
     const comments = await Comment.find({ post: postId, parentComment: null })
-      .populate("user", "username avatar")
+      .populate('user', 'username avatar')
       .populate({
-        path: "replies",
+        path: 'replies',
         populate: {
-          path: "user",
-          select: "username avatar",
+          path: 'user',
+          select: 'username avatar',
         },
       })
       .sort({ createdAt: -1 });
 
-    return success(res, comments, 200, "comment.listSuccess");
+    return success(res, comments, 200, 'comment.listSuccess');
   } catch (err) {
-    return error(res, "comment.listFailed", 500, err.message);
+    return error(res, 'comment.listFailed', 500, err.message);
   }
 };
 
@@ -33,7 +33,7 @@ export const addComment = async (req, res) => {
     // check if post exists
     const post = await Post.findById(postId);
     if (!post) {
-      return error(res, "post.notFound", 404);
+      return error(res, 'post.notFound', 404);
     }
 
     const commentData = {
@@ -46,7 +46,7 @@ export const addComment = async (req, res) => {
     if (parentComment) {
       const parentCommentExists = await Comment.findById(parentComment);
       if (!parentCommentExists) {
-        return error(res, "comment.parentNotFound", 404);
+        return error(res, 'comment.parentNotFound', 404);
       }
       commentData.parentComment = parentComment;
     }
@@ -63,9 +63,9 @@ export const addComment = async (req, res) => {
     // increase post comment count
     await Post.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } });
 
-    return success(res, comment, 201, "comment.created");
+    return success(res, comment, 201, 'comment.created');
   } catch (err) {
-    return error(res, "comment.createFailed", 500, err.message);
+    return error(res, 'comment.createFailed', 500, err.message);
   }
 };
 
@@ -77,12 +77,12 @@ export const deleteComment = async (req, res) => {
     const comment = await Comment.findById(commentId);
 
     if (!comment) {
-      return error(res, "comment.notFound", 404);
+      return error(res, 'comment.notFound', 404);
     }
 
     // check if it is comment author or admin
-    if (comment.user.toString() !== userId && req.user.role !== "admin") {
-      return error(res, "comment.unauthorized", 403);
+    if (comment.user.toString() !== userId && req.user.role !== 'admin') {
+      return error(res, 'comment.unauthorized', 403);
     }
 
     // if there are replies, also delete all replies
@@ -101,9 +101,9 @@ export const deleteComment = async (req, res) => {
     await Post.findByIdAndUpdate(comment.post, { $inc: { commentCount: -1 } });
 
     await Comment.findByIdAndDelete(commentId);
-    return success(res, null, 200, "comment.deleted");
+    return success(res, null, 200, 'comment.deleted');
   } catch (err) {
-    return error(res, "comment.deleteFailed", 500, err.message);
+    return error(res, 'comment.deleteFailed', 500, err.message);
   }
 };
 
@@ -117,20 +117,20 @@ export const updateComment = async (req, res) => {
     const comment = await Comment.findById(commentId);
 
     if (!comment) {
-      return error(res, "comment.notFound", 404);
+      return error(res, 'comment.notFound', 404);
     }
 
     // check if it is comment author
     if (comment.user.toString() !== userId) {
-      return error(res, "comment.unauthorized", 403);
+      return error(res, 'comment.unauthorized', 403);
     }
 
     comment.content = content;
     comment.isEdited = true;
     await comment.save();
 
-    return success(res, comment, 200, "comment.updated");
+    return success(res, comment, 200, 'comment.updated');
   } catch (err) {
-    return error(res, "comment.updateFailed", 500, err.message);
+    return error(res, 'comment.updateFailed', 500, err.message);
   }
 };

@@ -28,11 +28,11 @@
  * Swagger documentation to keep it in sync with the implementation.
  */
 
-import express from "express";
-import nodemailer from "nodemailer";
-import { validateRequest } from "../middleware/validationMiddleware.js";
-import { contactRules } from "../utils/validationRules.js";
-import { contactLimiter } from "../middleware/securityMiddleware.js";
+import express from 'express';
+import nodemailer from 'nodemailer';
+import { validateRequest } from '../middleware/validationMiddleware.js';
+import { contactRules } from '../utils/validationRules.js';
+import { contactLimiter } from '../middleware/securityMiddleware.js';
 
 const router = express.Router();
 
@@ -120,7 +120,7 @@ const router = express.Router();
  *                   example: Error sending message. Please try again later.
  */
 router.post(
-  "/",
+  '/',
   contactLimiter(),
   validateRequest(contactRules.submit),
   async (req, res) => {
@@ -133,14 +133,14 @@ router.post(
         return res.status(200).json({
           success: true,
           message:
-            "Message received (Note: Email not sent - credentials not configured)",
+            'Message received (Note: Email not sent - credentials not configured)',
         });
       }
 
       // Create transporter only when we have credentials
       const transporter = nodemailer.createTransport({
         // Configure based on your email service provider
-        service: "gmail", // or other service like 'outlook', 'yahoo', etc.
+        service: 'gmail', // or other service like 'outlook', 'yahoo', etc.
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS,
@@ -159,7 +159,7 @@ router.post(
       <p><strong>Email:</strong> ${email}</p>
       <p><strong>Subject:</strong> ${subject}</p>
       <p><strong>Message:</strong></p>
-      <p>${message.replace(/\n/g, "<br>")}</p>
+      <p>${message.replace(/\n/g, '<br>')}</p>
     `,
       };
 
@@ -171,15 +171,15 @@ router.post(
 
       res
         .status(200)
-        .json({ success: true, message: "Message sent successfully" });
+        .json({ success: true, message: 'Message sent successfully' });
     } catch (error) {
-      console.error("Error sending contact form email:", error);
+      console.error('Error sending contact form email:', error);
       res.status(500).json({
         success: false,
-        message: "Error sending message. Please try again later.",
+        message: 'Error sending message. Please try again later.',
       });
     }
-  }
+  },
 );
 
 export default router;

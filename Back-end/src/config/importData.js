@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import logger from './logger.js';
-import mongoose from 'mongoose';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import logger from "./logger.js";
+import mongoose from "mongoose";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,18 +10,18 @@ const __dirname = path.dirname(__filename);
 // for storing ID mapping
 const idMap = new Map();
 
-const loadJsonData = (filename) => {
+const loadJsonData = filename => {
   try {
-    const dataPath = path.join(__dirname, '../data', `${filename}.json`);
+    const dataPath = path.join(__dirname, "../data", `${filename}.json`);
     if (!fs.existsSync(dataPath)) {
       logger.info(`⚠️ ${filename}.json file does not exist, skipping import`);
       return [];
     }
 
-    const jsonData = fs.readFileSync(dataPath, 'utf8');
+    const jsonData = fs.readFileSync(dataPath, "utf8");
     const data = JSON.parse(jsonData);
 
-    return data.map((item) => {
+    return data.map(item => {
       const { _id, ...rest } = item;
       if (_id) {
         const newId = new mongoose.Types.ObjectId();
@@ -37,23 +37,23 @@ const loadJsonData = (filename) => {
 };
 
 const processReferences = (data, refFields) => {
-  return data.map((item) => {
+  return data.map(item => {
     const newItem = { ...item };
-    refFields.forEach((field) => {
-      if (field.includes('.')) {
-        const [parent, child] = field.split('.');
+    refFields.forEach(field => {
+      if (field.includes(".")) {
+        const [parent, child] = field.split(".");
         if (newItem[parent] && newItem[parent][child]) {
           if (Array.isArray(newItem[parent][child])) {
-            newItem[parent][child] = newItem[parent][child].map((id) =>
-              idMap.has(id) ? idMap.get(id) : id,
+            newItem[parent][child] = newItem[parent][child].map(id =>
+              idMap.has(id) ? idMap.get(id) : id
             );
           } else if (idMap.has(newItem[parent][child])) {
             newItem[parent][child] = idMap.get(newItem[parent][child]);
           }
         }
       } else if (Array.isArray(newItem[field])) {
-        newItem[field] = newItem[field].map((id) =>
-          idMap.has(id) ? idMap.get(id) : id,
+        newItem[field] = newItem[field].map(id =>
+          idMap.has(id) ? idMap.get(id) : id
         );
       } else if (newItem[field] && idMap.has(newItem[field])) {
         newItem[field] = idMap.get(newItem[field]);
@@ -63,23 +63,23 @@ const processReferences = (data, refFields) => {
   });
 };
 
-export const importInitialData = async (models) => {
+export const importInitialData = async models => {
   const { Category, Tag, Post, Setting } = models;
 
   try {
     // load and import other data
-    const categories = loadJsonData('categories');
-    const tags = loadJsonData('tags');
-    const posts = loadJsonData('posts');
-    const settings = loadJsonData('settings');
+    const categories = loadJsonData("categories");
+    const tags = loadJsonData("tags");
+    const posts = loadJsonData("posts");
+    const settings = loadJsonData("settings");
 
     // process reference relations
-    const processedCategories = processReferences(categories, ['parent']);
-    const processedTags = processReferences(tags, ['posts']);
+    const processedCategories = processReferences(categories, ["parent"]);
+    const processedTags = processReferences(tags, ["posts"]);
     const processedPosts = processReferences(posts, [
-      'author',
-      'categories',
-      'tags',
+      "author",
+      "categories",
+      "tags",
     ]);
     const processedSettings = processReferences(settings, []);
 
@@ -104,9 +104,9 @@ export const importInitialData = async (models) => {
       logger.info(`✅ Imported ${processedSettings.length} settings`);
     }
 
-    logger.info('✅ Initial data import completed');
+    logger.info("✅ Initial data import completed");
   } catch (error) {
-    logger.error('❌ Error importing initial data:', error);
+    logger.error("❌ Error importing initial data:", error);
     throw error;
   }
 };

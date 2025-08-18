@@ -4,17 +4,17 @@
  * used to validate necessary environment variables exist and are valid
  */
 
-import logger from '../config/logger.js';
+import logger from "../config/logger.js";
 
 /**
  * required environment variables list
  */
-const REQUIRED_VARIABLES = ['PORT', 'MONGODB_URI', 'JWT_SECRET', 'JWT_EXPIRE'];
+const REQUIRED_VARIABLES = ["PORT", "MONGODB_URI", "JWT_SECRET", "JWT_EXPIRE"];
 
 /**
  * sensitive operation environment variables list (missing will cause security risks)
  */
-const SECURITY_VARIABLES = ['JWT_SECRET', 'JWT_EXPIRE'];
+const SECURITY_VARIABLES = ["JWT_SECRET", "JWT_EXPIRE"];
 
 /**
  * validate single environment variable
@@ -37,9 +37,9 @@ const validateVariable = (name, isSecurity = false) => {
   }
 
   // check JWT_SECRET strength
-  if (name === 'JWT_SECRET' && value.length < 32) {
+  if (name === "JWT_SECRET" && value.length < 32) {
     const warning =
-      'Security risk: JWT_SECRET is too short, at least 32 characters are recommended';
+      "Security risk: JWT_SECRET is too short, at least 32 characters are recommended";
     logger.warn(warning);
     console.warn(`[ENV WARNING] ${warning}`);
   }
@@ -53,14 +53,14 @@ const validateVariable = (name, isSecurity = false) => {
  * @returns {Object} validate result, contains whether success and error information
  */
 export const validateEnvironment = () => {
-  logger.info('正在验证环境变量...');
-  console.log('[ENV] Starting environment variable validation...');
+  logger.info("正在验证环境变量...");
+  console.log("[ENV] Starting environment variable validation...");
 
   let missingCount = 0;
   let securityIssues = 0;
 
   // validate necessary variables
-  REQUIRED_VARIABLES.forEach((variable) => {
+  REQUIRED_VARIABLES.forEach(variable => {
     const isSecurityVariable = SECURITY_VARIABLES.includes(variable);
     const isValid = validateVariable(variable, isSecurityVariable);
 
@@ -74,19 +74,19 @@ export const validateEnvironment = () => {
 
   // check recommended variables
   if (!process.env.NODE_ENV) {
-    const warning = 'NODE_ENV is not set, default to development';
+    const warning = "NODE_ENV is not set, default to development";
     logger.warn(warning);
     console.warn(`[ENV WARNING] ${warning}`);
   }
 
   if (!process.env.ALLOWED_ORIGINS) {
-    const warning = 'ALLOWED_ORIGINS is not set, default to *';
+    const warning = "ALLOWED_ORIGINS is not set, default to *";
     logger.warn(warning);
     console.warn(`[ENV WARNING] ${warning}`);
   }
 
   if (missingCount === 0) {
-    const success = 'Environment variable validation passed';
+    const success = "Environment variable validation passed";
     logger.info(success);
     console.log(`[ENV SUCCESS] ${success}`);
     return {
@@ -115,7 +115,7 @@ export const validateEnvironmentOrExit = () => {
 
   if (!result.success && result.securityIssues > 0) {
     const error =
-      'There are security risks, the application will exit. Please set all necessary environment variables and restart.';
+      "There are security risks, the application will exit. Please set all necessary environment variables and restart.";
     logger.error(error);
     console.error(`[ENV FATAL] ${error}`);
     process.exit(1);

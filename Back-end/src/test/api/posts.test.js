@@ -127,19 +127,19 @@ describe("Posts API", () => {
       const jsTag = await Tag.create({
         name: "JavaScript",
         slug: "javascript",
-        description: "JavaScript posts"
+        description: "JavaScript posts",
       });
 
       const nodeTag = await Tag.create({
         name: "Node.js",
         slug: "nodejs",
-        description: "Node.js posts"
+        description: "Node.js posts",
       });
 
       const reactTag = await Tag.create({
         name: "React",
         slug: "react",
-        description: "React posts"
+        description: "React posts",
       });
 
       // Create test posts with tags
@@ -180,13 +180,13 @@ describe("Posts API", () => {
       const techCategory = await Category.create({
         name: "Technology",
         slug: "technology",
-        description: "Tech posts"
+        description: "Tech posts",
       });
 
       const lifestyleCategory = await Category.create({
         name: "Lifestyle",
         slug: "lifestyle",
-        description: "Lifestyle posts"
+        description: "Lifestyle posts",
       });
 
       // Create test posts with categories
@@ -254,10 +254,14 @@ describe("Posts API", () => {
 
       expect(res.body.success).toBe(false);
       // Check for error message in different possible fields
-      const errorMessage = res.body.message || res.body.error || res.body.error?.message;
+      const errorMessage =
+        res.body.message || res.body.error || res.body.error?.message;
       expect(errorMessage).toBeDefined();
-      expect(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage))
-        .toMatch(/post not found/i);
+      expect(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : JSON.stringify(errorMessage)
+      ).toMatch(/post not found/i);
     });
   });
 });

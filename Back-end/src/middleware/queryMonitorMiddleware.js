@@ -4,8 +4,8 @@
  * Monitors and logs database queries for performance optimization
  */
 
-import mongoose from 'mongoose';
-import logger from '../config/logger.js';
+import mongoose from "mongoose";
+import logger from "../config/logger.js";
 
 const SLOW_QUERY_THRESHOLD_MS = 100; // Queries taking longer than 100ms are considered slow
 
@@ -31,9 +31,9 @@ export const enableQueryMonitoring = (options = {}) => {
   };
 
   // Set up Mongoose hooks to monitor queries
-  mongoose.set('debug', (collectionName, methodName, ...methodArgs) => {
+  mongoose.set("debug", (collectionName, methodName, ...methodArgs) => {
     // Skip internal MongoDB calls
-    if (collectionName.startsWith('system.') || methodName === 'createIndex') {
+    if (collectionName.startsWith("system.") || methodName === "createIndex") {
       return;
     }
 
@@ -48,7 +48,7 @@ export const enableQueryMonitoring = (options = {}) => {
           collection: collectionName,
           operation: methodName,
           args: methodArgs,
-        },
+        }
       );
     }
 
@@ -60,7 +60,7 @@ export const enableQueryMonitoring = (options = {}) => {
       const result = origMethod.apply(this, args);
 
       // Handle promise completion to measure time
-      if (result && typeof result.then === 'function') {
+      if (result && typeof result.then === "function") {
         result
           .then(() => {
             const endTime = Date.now();
@@ -82,10 +82,10 @@ export const enableQueryMonitoring = (options = {}) => {
                   collection: collectionName,
                   operation: methodName,
                   duration: `${duration}ms`,
-                  args: methodArgs.map((arg) =>
-                    typeof arg === 'object' ? JSON.stringify(arg) : arg,
+                  args: methodArgs.map(arg =>
+                    typeof arg === "object" ? JSON.stringify(arg) : arg
                   ),
-                },
+                }
               );
 
               // Track slowest query
@@ -107,7 +107,7 @@ export const enableQueryMonitoring = (options = {}) => {
               });
             }
           })
-          .catch((err) => {
+          .catch(err => {
             // Log query errors
             logger.error(`Query ${queryId} error: ${err.message}`, {
               collection: collectionName,

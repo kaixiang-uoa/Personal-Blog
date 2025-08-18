@@ -2,7 +2,7 @@
  * Validation middleware
  * Provides unified validation error handling for all routes
  */
-import { validationResult } from 'express-validator';
+import { validationResult } from "express-validator";
 
 /**
  * Validation error handler
@@ -14,7 +14,7 @@ import { validationResult } from 'express-validator';
  *
  * @returns {Function} Express middleware function
  */
-export const validate = (validations) => {
+export const validate = validations => {
   return async (req, res, next) => {
     // Run all validations
     for (let validation of validations) {
@@ -28,7 +28,7 @@ export const validate = (validations) => {
     }
 
     // Format validation errors
-    const formattedErrors = errors.array().map((error) => ({
+    const formattedErrors = errors.array().map(error => ({
       field: error.path,
       message: error.msg,
       value: error.value,
@@ -38,7 +38,7 @@ export const validate = (validations) => {
     return res.status(400).json({
       success: false,
       errors: formattedErrors,
-      message: 'Validation failed',
+      message: "Validation failed",
     });
   };
 };
@@ -49,6 +49,6 @@ export const validate = (validations) => {
  * @param {Array} validations - Array of express-validator validations
  * @returns {Function} Express middleware
  */
-export const validateRequest = (validations) => {
+export const validateRequest = validations => {
   return validate(validations);
 };

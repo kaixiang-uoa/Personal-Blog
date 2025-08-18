@@ -15,20 +15,20 @@ const analyticsConfig = {
   // Google Analytics configuration
   googleAnalytics: {
     enabled: false,
-    trackingId: '', // Your Google Analytics tracking ID (e.g., 'G-XXXXXXXXXX')
+    trackingId: "", // Your Google Analytics tracking ID (e.g., 'G-XXXXXXXXXX')
   },
 
   // Umami Analytics configuration
   umami: {
     enabled: false,
-    websiteId: '', // Your Umami website ID
-    scriptUrl: '', // URL to your Umami script
+    websiteId: "", // Your Umami website ID
+    scriptUrl: "", // URL to your Umami script
   },
 
   // Plausible Analytics configuration
   plausible: {
     enabled: false,
-    domain: '', // Your website domain
+    domain: "", // Your website domain
   },
 
   // Add more third-party analytics services as needed

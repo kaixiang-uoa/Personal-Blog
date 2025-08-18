@@ -1,6 +1,6 @@
-import Setting from '../models/Setting.js';
-import SettingHistory from '../models/SettingHistory.js';
-import { success, error } from '../utils/responseHandler.js';
+import Setting from "../models/Setting.js";
+import SettingHistory from "../models/SettingHistory.js";
+import { success, error } from "../utils/responseHandler.js";
 
 // get all settings
 export const getAllSettings = async (req, res) => {
@@ -13,13 +13,13 @@ export const getAllSettings = async (req, res) => {
 
     // convert to key-value format
     const settingsMap = {};
-    settings.forEach((setting) => {
+    settings.forEach(setting => {
       settingsMap[setting.key] = setting.value;
     });
 
-    return success(res, settingsMap, 200, 'setting.listSuccess');
+    return success(res, settingsMap, 200, "setting.listSuccess");
   } catch (err) {
-    return error(res, 'setting.listFailed', 500, err.message);
+    return error(res, "setting.listFailed", 500, err.message);
   }
 };
 
@@ -30,12 +30,12 @@ export const getSettingByKey = async (req, res) => {
     const setting = await Setting.findOne({ key });
 
     if (!setting) {
-      return error(res, 'setting.notFound', 404);
+      return error(res, "setting.notFound", 404);
     }
 
     return success(res, setting, 200);
   } catch (err) {
-    return error(res, 'setting.getFailed', 500, err.message);
+    return error(res, "setting.getFailed", 500, err.message);
   }
 };
 
@@ -47,7 +47,7 @@ export const updateSetting = async (req, res) => {
 
     // prepare update data, handle possible undefined values
     const updateData = {
-      value: value === undefined ? '' : value,
+      value: value === undefined ? "" : value,
     };
 
     // add optional fields only when provided
@@ -70,13 +70,13 @@ export const updateSetting = async (req, res) => {
       oldValue: existingSetting ? existingSetting.value : null,
       newValue: setting.value,
       changedBy: req.user ? req.user._id : null,
-      action: isCreate ? 'create' : 'update',
-      description: `Setting ${isCreate ? 'created' : 'updated'} via API`,
+      action: isCreate ? "create" : "update",
+      description: `Setting ${isCreate ? "created" : "updated"} via API`,
     });
 
-    return success(res, setting, 200, 'setting.updated');
+    return success(res, setting, 200, "setting.updated");
   } catch (err) {
-    return error(res, 'setting.updateFailed', 500, err.message);
+    return error(res, "setting.updateFailed", 500, err.message);
   }
 };
 
@@ -86,7 +86,7 @@ export const updateSettings = async (req, res) => {
     const { settings } = req.body;
 
     if (!Array.isArray(settings)) {
-      return error(res, 'setting.invalidFormat', 400);
+      return error(res, "setting.invalidFormat", 400);
     }
 
     const historyRecords = [];
@@ -94,7 +94,7 @@ export const updateSettings = async (req, res) => {
       async ({ key, value, description, group }) => {
         // prepare update data, handle possible undefined values
         const updateData = {
-          value: value === undefined ? '' : value,
+          value: value === undefined ? "" : value,
         };
 
         // add optional fields only when provided
@@ -117,12 +117,12 @@ export const updateSettings = async (req, res) => {
           oldValue: existingSetting ? existingSetting.value : null,
           newValue: result.value,
           changedBy: req.user ? req.user._id : null,
-          action: isCreate ? 'create' : 'update',
-          description: `Setting ${isCreate ? 'created' : 'updated'} via batch update`,
+          action: isCreate ? "create" : "update",
+          description: `Setting ${isCreate ? "created" : "updated"} via batch update`,
         });
 
         return result;
-      },
+      }
     );
 
     const updatedSettings = await Promise.all(updatePromises);
@@ -130,9 +130,9 @@ export const updateSettings = async (req, res) => {
     // batch create history records
     await SettingHistory.insertMany(historyRecords);
 
-    return success(res, updatedSettings, 200, 'setting.batchUpdated');
+    return success(res, updatedSettings, 200, "setting.batchUpdated");
   } catch (err) {
-    return error(res, 'setting.batchUpdateFailed', 500, err.message);
+    return error(res, "setting.batchUpdateFailed", 500, err.message);
   }
 };
 
@@ -143,7 +143,7 @@ export const deleteSetting = async (req, res) => {
     const setting = await Setting.findOneAndDelete({ key });
 
     if (!setting) {
-      return error(res, 'setting.notFound', 404);
+      return error(res, "setting.notFound", 404);
     }
 
     // record delete history
@@ -152,13 +152,13 @@ export const deleteSetting = async (req, res) => {
       oldValue: setting.value,
       newValue: null,
       changedBy: req.user ? req.user._id : null,
-      action: 'delete',
-      description: 'Setting deleted via API',
+      action: "delete",
+      description: "Setting deleted via API",
     });
 
-    return success(res, null, 200, 'setting.deleted');
+    return success(res, null, 200, "setting.deleted");
   } catch (err) {
-    return error(res, 'setting.deleteFailed', 500, err.message);
+    return error(res, "setting.deleteFailed", 500, err.message);
   }
 };
 
@@ -177,7 +177,7 @@ export const getSettingHistory = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('changedBy', 'name email');
+      .populate("changedBy", "name email");
 
     // get total number of records
     const total = await SettingHistory.countDocuments(filter);
@@ -194,10 +194,10 @@ export const getSettingHistory = async (req, res) => {
         },
       },
       200,
-      'setting.historySuccess',
+      "setting.historySuccess"
     );
   } catch (err) {
-    return error(res, 'setting.historyFailed', 500, err.message);
+    return error(res, "setting.historyFailed", 500, err.message);
   }
 };
 
@@ -211,11 +211,11 @@ export const getSettingVersions = async (req, res) => {
     const versions = await SettingHistory.find({ key })
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
-      .populate('changedBy', 'name email');
+      .populate("changedBy", "name email");
 
-    return success(res, versions, 200, 'setting.versionsSuccess');
+    return success(res, versions, 200, "setting.versionsSuccess");
   } catch (err) {
-    return error(res, 'setting.versionsFailed', 500, err.message);
+    return error(res, "setting.versionsFailed", 500, err.message);
   }
 };
 
@@ -228,14 +228,14 @@ export const rollbackSetting = async (req, res) => {
     const historyRecord = await SettingHistory.findById(historyId);
 
     if (!historyRecord) {
-      return error(res, 'setting.historyNotFound', 404);
+      return error(res, "setting.historyNotFound", 404);
     }
 
     // find current setting
     const currentSetting = await Setting.findOne({ key: historyRecord.key });
 
     if (!currentSetting) {
-      return error(res, 'setting.notFound', 404);
+      return error(res, "setting.notFound", 404);
     }
 
     // get value to restore
@@ -245,7 +245,7 @@ export const rollbackSetting = async (req, res) => {
     const updatedSetting = await Setting.findOneAndUpdate(
       { key: historyRecord.key },
       { value: valueToRestore },
-      { new: true },
+      { new: true }
     );
 
     // record rollback history
@@ -254,12 +254,12 @@ export const rollbackSetting = async (req, res) => {
       oldValue: currentSetting.value,
       newValue: valueToRestore,
       changedBy: req.user ? req.user._id : null,
-      action: 'update',
+      action: "update",
       description: `Setting rolled back to version from ${new Date(historyRecord.createdAt).toLocaleString()}`,
     });
 
-    return success(res, updatedSetting, 200, 'setting.rollbackSuccess');
+    return success(res, updatedSetting, 200, "setting.rollbackSuccess");
   } catch (err) {
-    return error(res, 'setting.rollbackFailed', 500, err.message);
+    return error(res, "setting.rollbackFailed", 500, err.message);
   }
 };

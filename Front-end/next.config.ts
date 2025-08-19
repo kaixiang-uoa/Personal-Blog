@@ -36,6 +36,28 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
+  // Security headers for Google Analytics and other services
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://va.vercel-scripts.com",
+              "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://va.vercel-scripts.com http://localhost:3002 https://personal-blog-w2y9.onrender.com",
+              "img-src 'self' data: https:",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self'",
+            ].join('; '),
+          },
+        ],
+      },
+    ];
+  },
+
   // Image optimization configuration
   // allow external image domains for Next.js Image component
   // @see https://nextjs.org/docs/pages/api-reference/next-config-js/images

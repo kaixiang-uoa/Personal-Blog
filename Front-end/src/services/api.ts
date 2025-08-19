@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import type { ApiResponse } from '@/types/dto/commonDto';
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api/v1';
 export const INTERNAL_API_BASE_URL = '/api';
 
 // Create axios instance for external API

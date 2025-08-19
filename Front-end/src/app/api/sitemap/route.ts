@@ -84,7 +84,7 @@ export async function GET() {
   ${
     posts.data?.posts
       ?.map(
-        (post: any) => `
+        (post: { slug: string; updatedAt: string }) => `
   <url>
     <loc>${baseUrl}/en/article/${post.slug}</loc>
     <lastmod>${new Date(post.updatedAt).toISOString()}</lastmod>
@@ -106,7 +106,7 @@ export async function GET() {
   ${
     categories.data?.categories
       ?.map(
-        (category: any) => `
+        (category: { slug: string }) => `
   <url>
     <loc>${baseUrl}/en?category=${encodeURIComponent(category.slug)}</loc>
     <lastmod>${currentDate}</lastmod>
@@ -128,7 +128,7 @@ export async function GET() {
   ${
     tags.data?.tags
       ?.map(
-        (tag: any) => `
+        (tag: { slug: string }) => `
   <url>
     <loc>${baseUrl}/en?tag=${encodeURIComponent(tag.slug)}</loc>
     <lastmod>${currentDate}</lastmod>

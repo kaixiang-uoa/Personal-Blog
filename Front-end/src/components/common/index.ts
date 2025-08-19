@@ -6,6 +6,6 @@ export { PageSEO } from './PageSEO';
 export { Breadcrumbs } from './Breadcrumbs';
 export { OptimizedImage } from './OptimizedImage';
 export { PerformanceMonitor } from './PerformanceMonitor';
-export { GoogleAnalytics } from './GoogleAnalytics';
+export { AnalyticsListener } from './AnalyticsListener';
 export { Footer } from './Footer';
 export { default as PageBanner } from './PageBanner';

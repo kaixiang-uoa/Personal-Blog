@@ -1,7 +1,30 @@
 'use client';
 
 import { useEffect } from 'react';
-import { trackPerformance, isGAEnabled } from '@/lib/analytics';
+
+// GA4 Measurement ID from environment variable
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
+// Check if GA is enabled
+const isGAEnabled = !!GA_MEASUREMENT_ID;
+
+// Track performance metrics
+const trackPerformance = (metricName: string, value: number, rating: string) => {
+  if (typeof window === 'undefined' || !isGAEnabled || !window.gtag) return;
+
+  window.gtag('event', 'performance_metric', {
+    metric_name: metricName,
+    value: value,
+    rating: rating,
+  });
+};
+
+// Type definitions
+declare global {
+  interface Window {
+    gtag: (...args: unknown[]) => void;
+  }
+}
 
 /**
  * PerformanceMonitor Component

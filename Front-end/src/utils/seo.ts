@@ -162,7 +162,7 @@ export function generateOrganizationStructuredData() {
  */
 export function generateCanonicalUrl(
   path: string,
-  _locale = 'en',
+  _locale = 'en', // eslint-disable-line @typescript-eslint/no-unused-vars
   queryParams?: Record<string, string>
 ) {
   const baseUrl = 'https://www.kxzhang.online';

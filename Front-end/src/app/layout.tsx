@@ -7,7 +7,8 @@ import { SettingsProvider } from '@/contexts/SettingsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ReactQueryProvider } from '@/contexts/QueryClientContext';
 import { SEOHead, PerformanceMonitor } from '@/components/common';
-import { GoogleAnalytics } from '@/components/common/GoogleAnalytics';
+import { AnalyticsListener } from '@/components/common/AnalyticsListener';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -78,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SettingsProvider>
           <ThemeProvider>
             <ReactQueryProvider>
-              <GoogleAnalytics />
+              <AnalyticsListener />
               <SEOHead />
               <PerformanceMonitor />
               {children}
@@ -86,6 +87,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ReactQueryProvider>
           </ThemeProvider>
         </SettingsProvider>
+
+        {/* Google Analytics Scripts */}
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', { 
+                  send_page_view: false 
+                });
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

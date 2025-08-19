@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 
 // GA4 Measurement ID from environment variable
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -43,7 +43,11 @@ export function AnalyticsListener() {
     return null;
   }
 
-  return <AnalyticsListenerInner />;
+  return (
+    <Suspense fallback={null}>
+      <AnalyticsListenerInner />
+    </Suspense>
+  );
 }
 
 // Type definitions

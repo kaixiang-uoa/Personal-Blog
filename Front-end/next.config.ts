@@ -47,7 +47,7 @@ const nextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://va.vercel-scripts.com",
-              "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://va.vercel-scripts.com http://localhost:3002 https://personal-blog-w2y9.onrender.com",
+              "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://va.vercel-scripts.com http://localhost:3002 https://personal-blog-w2y9.onrender.com",
               "img-src 'self' data: https:",
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self'",

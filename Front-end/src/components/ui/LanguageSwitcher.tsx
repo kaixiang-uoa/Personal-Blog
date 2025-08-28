@@ -42,8 +42,12 @@ export default function LanguageSwitcher() {
     <button
       onClick={() => switchLocale(locale === 'en' ? 'zh' : 'en')}
       className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-muted text-foreground text-sm font-bold leading-normal tracking-[0.015em] hover:bg-muted/80"
+      aria-label={`Switch language to ${locale === 'en' ? 'Chinese' : 'English'}`}
+      title={locale === 'en' ? 'Switch to Chinese' : 'Switch to English'}
     >
-      <span className="truncate">{currentLanguageText}</span>
+      <span className="truncate" aria-hidden>
+        {currentLanguageText}
+      </span>
     </button>
   );
 }

@@ -6,9 +6,13 @@ import {
   generateOpenGraphTags,
   generateBlogStructuredData,
   generateOrganizationStructuredData,
+  generateWebsiteStructuredData,
   generateCanonicalUrl,
   generateHreflangTags,
 } from '@/utils/seo';
+import { shouldNoindex } from '@/utils/meta-tags';
+import { SITE } from '@/lib/site';
+import { useSEOSettings } from '@/hooks/useSEOSettings';
 
 interface PageSEOProps {
   title?: string;
@@ -54,8 +58,30 @@ export function PageSEO({
   searchQuery,
 }: PageSEOProps) {
   const searchParams = useSearchParams();
+  const { socialLinks, siteName, siteDescription } = useSEOSettings();
 
   useEffect(() => {
+    // Check if page should be noindexed
+    const needsNoindex = shouldNoindex(pathname, searchParams);
+
+    // Handle noindex for query parameter pages
+    if (needsNoindex) {
+      // Remove or update robots meta tag
+      let robotsMeta = document.querySelector('meta[name="robots"]');
+      if (robotsMeta) {
+        robotsMeta.setAttribute('content', 'noindex, nofollow');
+      } else {
+        robotsMeta = document.createElement('meta');
+        robotsMeta.setAttribute('name', 'robots');
+        robotsMeta.setAttribute('content', 'noindex, nofollow');
+        document.head.appendChild(robotsMeta);
+      }
+
+      // For query parameter pages, we don't need to set canonical or hreflang
+      // as they should not be indexed
+      return;
+    }
+
     // Generate page title
     let pageTitle = title;
     if (!pageTitle) {
@@ -76,7 +102,7 @@ export function PageSEO({
           pageTitle = 'Contact';
           break;
         default:
-          pageTitle = 'Personal Blog';
+          pageTitle = siteName || 'Personal Blog';
       }
     }
 
@@ -103,7 +129,7 @@ export function PageSEO({
           pageDescription = 'Get in touch with the author';
           break;
         default:
-          pageDescription = 'A trendy blog for web development enthusiasts';
+          pageDescription = siteDescription || 'A trendy blog for web development enthusiasts';
       }
     }
 
@@ -131,15 +157,15 @@ export function PageSEO({
       }
     }
 
-    // Add Open Graph tags
-    const ogTags = generateOpenGraphTags();
+    // Add Open Graph tags (with dynamic social links)
+    const ogTags = generateOpenGraphTags(undefined, socialLinks, siteName, siteDescription);
     // Override with page-specific content
     const pageOgTags = {
       ...ogTags,
       'og:title': pageTitle,
       'og:description': pageDescription,
-      'og:url': `https://www.kxzhang.online${pathname}`,
-    };
+      'og:url': `${SITE.baseUrl}${pathname}`,
+    } as Record<string, string | undefined>;
 
     Object.entries(pageOgTags).forEach(([property, content]) => {
       if (content) {
@@ -168,7 +194,7 @@ export function PageSEO({
       });
     }
 
-    const canonicalUrl = generateCanonicalUrl(pathname, locale, queryParams);
+    const canonicalUrl = generateCanonicalUrl(pathname, queryParams);
     let canonicalLink = document.querySelector('link[rel="canonical"]');
     if (canonicalLink) {
       canonicalLink.setAttribute('href', canonicalUrl);
@@ -194,9 +220,14 @@ export function PageSEO({
       }
     });
 
-    // Add structured data
-    const blogStructuredData = generateBlogStructuredData();
-    const organizationStructuredData = generateOrganizationStructuredData();
+    // Add structured data (with dynamic site info and social links)
+    const blogStructuredData = generateBlogStructuredData(siteName, siteDescription);
+    const organizationStructuredData = generateOrganizationStructuredData(
+      socialLinks,
+      siteName,
+      siteDescription
+    );
+    const websiteStructuredData = generateWebsiteStructuredData(siteName, siteDescription);
 
     // Remove existing structured data
     const existingStructuredData = document.querySelectorAll('script[type="application/ld+json"]');
@@ -208,6 +239,7 @@ export function PageSEO({
     structuredDataScript.textContent = JSON.stringify([
       blogStructuredData,
       organizationStructuredData,
+      websiteStructuredData,
     ]);
     document.head.appendChild(structuredDataScript);
   }, [
@@ -221,6 +253,9 @@ export function PageSEO({
     tag,
     searchQuery,
     searchParams,
+    siteName,
+    siteDescription,
+    socialLinks,
   ]);
 
   // This component doesn't render anything, it only modifies the document head

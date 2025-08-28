@@ -58,6 +58,30 @@ const nextConfig = {
     ];
   },
 
+  // Redirects for SEO optimization
+  async redirects() {
+    return [
+      // Non-www to www redirect
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'kxzhang.online',
+          },
+        ],
+        destination: 'https://www.kxzhang.online/:path*',
+        permanent: true,
+      },
+      // Root path redirect to default locale
+      {
+        source: '/',
+        destination: '/en',
+        permanent: false,
+      },
+    ];
+  },
+
   // Image optimization configuration
   // allow external image domains for Next.js Image component
   // @see https://nextjs.org/docs/pages/api-reference/next-config-js/images
@@ -82,10 +106,37 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
     // enable image optimization
     unoptimized: false,
+    // enable WebP and AVIF formats
+    formats: ['image/webp', 'image/avif'],
+    // set default sizes for responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
+
+  // Performance optimization
+  experimental: {
+    // enable optimized package imports
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+  },
+
+  // Compression and optimization
+  compress: true,
+  poweredByHeader: false,
 };
 
 // export final configuration, apply next-intl plugin

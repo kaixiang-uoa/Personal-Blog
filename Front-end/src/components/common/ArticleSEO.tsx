@@ -6,9 +6,11 @@ import {
   generateOpenGraphTags,
   generateArticleStructuredData,
   generateBreadcrumbStructuredData,
+  generatePersonStructuredData,
   generateCanonicalUrl,
   generateHreflangTags,
 } from '@/utils/seo';
+import { useSEOSettings } from '@/hooks/useSEOSettings';
 
 interface ArticleSEOProps {
   article: Article;
@@ -31,6 +33,7 @@ interface ArticleSEOProps {
  * @returns {null} This component doesn't render anything
  */
 export function ArticleSEO({ article, locale, pathname }: ArticleSEOProps) {
+  const { socialLinks, siteName, authorName } = useSEOSettings();
   useEffect(() => {
     // Update page title
     const title = article.seo?.metaTitle || article.title;
@@ -63,8 +66,8 @@ export function ArticleSEO({ article, locale, pathname }: ArticleSEOProps) {
       }
     }
 
-    // Add Open Graph tags
-    const ogTags = generateOpenGraphTags(article);
+    // Add Open Graph tags (with dynamic social links)
+    const ogTags = generateOpenGraphTags(article, socialLinks, siteName);
     Object.entries(ogTags).forEach(([property, content]) => {
       if (content) {
         let meta = document.querySelector(`meta[property="${property}"]`);
@@ -80,7 +83,7 @@ export function ArticleSEO({ article, locale, pathname }: ArticleSEOProps) {
     });
 
     // Add canonical URL
-    const canonicalUrl = generateCanonicalUrl(pathname, locale);
+    const canonicalUrl = generateCanonicalUrl(pathname);
     let canonicalLink = document.querySelector('link[rel="canonical"]');
     if (canonicalLink) {
       canonicalLink.setAttribute('href', canonicalUrl);
@@ -107,7 +110,10 @@ export function ArticleSEO({ article, locale, pathname }: ArticleSEOProps) {
     });
 
     // Add structured data
-    const articleStructuredData = generateArticleStructuredData(article);
+    const articleStructuredData = generateArticleStructuredData(article, siteName, authorName);
+    const personStructuredData = article.author
+      ? generatePersonStructuredData(article.author, siteName)
+      : null;
 
     // Generate breadcrumbs
     const breadcrumbs = [
@@ -141,10 +147,11 @@ export function ArticleSEO({ article, locale, pathname }: ArticleSEOProps) {
     structuredDataScript.setAttribute('type', 'application/ld+json');
     structuredDataScript.textContent = JSON.stringify([
       articleStructuredData,
+      ...(personStructuredData ? [personStructuredData] : []),
       breadcrumbStructuredData,
     ]);
     document.head.appendChild(structuredDataScript);
-  }, [article, locale, pathname]);
+  }, [article, locale, pathname, siteName, authorName, socialLinks]);
 
   // This component doesn't render anything, it only modifies the document head
   return null;

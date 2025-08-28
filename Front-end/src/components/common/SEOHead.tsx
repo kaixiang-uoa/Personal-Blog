@@ -6,7 +6,10 @@ import {
   generateOpenGraphTags,
   generateBlogStructuredData,
   generateOrganizationStructuredData,
+  generateHreflangTags,
 } from '@/utils/seo';
+import { useSEOSettings } from '@/hooks/useSEOSettings';
+// SITE import is used indirectly through generateHreflangTags
 
 /**
  * SEOHead Component
@@ -24,12 +27,17 @@ import {
  */
 export function SEOHead() {
   const { getSetting } = useSettings();
+  const {
+    socialLinks,
+    siteName: siteNameFromSettings,
+    siteDescription: siteDescFromSettings,
+  } = useSEOSettings();
 
   // Get SEO-related settings with fallback values
-  const siteName = getSetting('general.siteName', 'Modern Blog');
+  const siteName = getSetting('general.siteName', siteNameFromSettings || 'Modern Blog');
   const siteDescription = getSetting(
     'general.siteDescription',
-    'A trendy blog for web development enthusiasts'
+    siteDescFromSettings || 'A trendy blog for web development enthusiasts'
   );
   const keywords = getSetting('general.metaKeywords', '');
   const favicon = getSetting('general.favicon', '/favicon.ico');
@@ -75,8 +83,8 @@ export function SEOHead() {
       }
     }
 
-    // Add Open Graph tags
-    const ogTags = generateOpenGraphTags();
+    // Add Open Graph tags (with dynamic social links)
+    const ogTags = generateOpenGraphTags(undefined, socialLinks, siteName, siteDescription);
     Object.entries(ogTags).forEach(([property, content]) => {
       if (content) {
         let meta = document.querySelector(`meta[property="${property}"]`);
@@ -91,9 +99,28 @@ export function SEOHead() {
       }
     });
 
-    // Add structured data
-    const blogStructuredData = generateBlogStructuredData();
-    const organizationStructuredData = generateOrganizationStructuredData();
+    // Add hreflang tags for homepage
+    const hreflangTags = generateHreflangTags('/');
+    hreflangTags.forEach(tag => {
+      let link = document.querySelector(`link[rel="alternate"][hreflang="${tag.hreflang}"]`);
+      if (link) {
+        link.setAttribute('href', tag.href);
+      } else {
+        link = document.createElement('link');
+        link.setAttribute('rel', 'alternate');
+        link.setAttribute('hreflang', tag.hreflang);
+        link.setAttribute('href', tag.href);
+        document.head.appendChild(link);
+      }
+    });
+
+    // Add structured data (with dynamic social links & site info)
+    const blogStructuredData = generateBlogStructuredData(siteName, siteDescription);
+    const organizationStructuredData = generateOrganizationStructuredData(
+      socialLinks,
+      siteName,
+      siteDescription
+    );
 
     // Remove existing structured data
     const existingStructuredData = document.querySelectorAll('script[type="application/ld+json"]');
@@ -107,7 +134,7 @@ export function SEOHead() {
       organizationStructuredData,
     ]);
     document.head.appendChild(structuredDataScript);
-  }, [siteName, siteDescription, keywords, favicon]);
+  }, [siteName, siteDescription, keywords, favicon, socialLinks]);
 
   // This component doesn't render anything, it only modifies the document head
   return null;

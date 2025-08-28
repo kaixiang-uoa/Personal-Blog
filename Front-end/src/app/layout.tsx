@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ReactQueryProvider } from '@/contexts/QueryClientContext';
 import { SEOHead, PerformanceMonitor } from '@/components/common';
 import { AnalyticsListener } from '@/components/common/AnalyticsListener';
+// Performance optimization utilities are used in the inline script
 import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -74,6 +75,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* Performance optimization - add resource hints */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window !== 'undefined') {
+                  // Add preconnect links for critical domains
+                  const domains = [
+                    'https://fonts.googleapis.com',
+                    'https://fonts.gstatic.com',
+                    'https://www.googletagmanager.com',
+                    'https://www.google-analytics.com',
+                    'https://va.vercel-scripts.com'
+                  ];
+                  domains.forEach(domain => {
+                    const link = document.createElement('link');
+                    link.rel = 'preconnect';
+                    link.href = domain;
+                    link.crossOrigin = 'anonymous';
+                    document.head.appendChild(link);
+                  });
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body className={inter.className}>
         <SettingsProvider>

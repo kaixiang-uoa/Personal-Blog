@@ -76,9 +76,9 @@ export function OptimizedImage({
     return (
       <div
         className={`bg-muted flex items-center justify-center ${className}`}
-        style={{ width: width, height: height }}
+        style={{ width: '100%', height: '100%' }}
       >
-        <div className="text-muted-foreground text-center">
+        <div className="text-muted-foreground text-center flex flex-col items-center justify-center">
           <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
             <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
           </svg>
@@ -95,7 +95,7 @@ export function OptimizedImage({
         alt={optimizedAlt}
         width={width}
         height={height}
-        className={`transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+        className={`transition-opacity duration-300 w-full h-full ${isLoading ? 'opacity-0' : 'opacity-100'}`}
         priority={priority}
         sizes={sizes}
         quality={quality}
@@ -105,6 +105,8 @@ export function OptimizedImage({
         onError={handleError}
         style={{
           objectFit: 'cover',
+          width: '100%',
+          height: '100%',
         }}
       />
 

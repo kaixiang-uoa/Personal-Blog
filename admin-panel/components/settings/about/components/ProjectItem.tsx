@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/inputs/button";
 import {
@@ -15,6 +16,8 @@ import { Textarea } from "@/components/ui/inputs/textarea";
 import { AboutProjectItemProps } from "@/types/settings";
 
 export function ProjectItem({ form, index, onRemove }: AboutProjectItemProps) {
+  const [inputValue, setInputValue] = useState('');
+  
   return (
     <div className="mb-6 rounded-md border p-4 bg-background">
       <div className="flex justify-between items-center mb-2">
@@ -66,7 +69,50 @@ export function ProjectItem({ form, index, onRemove }: AboutProjectItemProps) {
             <FormItem>
               <FormLabel>Technologies</FormLabel>
               <FormControl>
-                <Input placeholder="React, Node.js, MongoDB" {...field} />
+                <div className="space-y-2">
+                  <Input 
+                    placeholder="Enter technology and press Enter (e.g., React, Node.js)"
+                    value={inputValue}
+                    onChange={(e) => {
+                      setInputValue(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const value = (e.target as HTMLInputElement).value.trim();
+                        if (value) {
+                          const newTech = value;
+                          const currentTechArray = field.value || [];
+                          const updatedTechArray = [...currentTechArray, newTech];
+                          field.onChange(updatedTechArray);
+                          setInputValue('');
+                        }
+                      }
+                    }}
+                  />
+                  {field.value && field.value.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {field.value.map((tech: string, techIndex: number) => (
+                        <span
+                          key={techIndex}
+                          className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-md flex items-center gap-1"
+                        >
+                          {tech}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newTechArray = field.value?.filter((_, i) => i !== techIndex) || [];
+                              field.onChange(newTechArray);
+                            }}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

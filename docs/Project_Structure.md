@@ -17,7 +17,7 @@ Personal-Blog/
 
 ## 1. Front-end (User Blog Interface)
 
-**Technology Stack:** Next.js 14 (App Router), React, TypeScript, Tailwind CSS, PrismJS
+**Technology Stack:** Next.js 15.3.3 (App Router), React 19, TypeScript, Tailwind CSS, PrismJS
 
 ### Directory Structure
 ```
@@ -33,12 +33,15 @@ Front-end/
 │   │   ├── api/                  # API routes
 │   │   ├── globals.css           # Global styles with PrismJS theme
 │   │   ├── layout.tsx            # Root layout
-│   │   └── page.tsx              # Default page
+│   │   ├── page.tsx              # Default page
+│   │   ├── robots.ts             # Dynamic robots.txt generation
+│   │   └── sitemap.xml/          # Dynamic sitemap generation
 │   ├── components/               # Reusable UI components
-│   │   ├── common/               # Common components (SEO, ErrorBoundary)
+│   │   ├── common/               # Common components (SEO, ErrorBoundary, AnalyticsListener)
 │   │   ├── features/             # Feature-specific components
 │   │   │   ├── article/          # Article-related components
-│   │   │   └── filter/           # Filter and search components
+│   │   │   ├── filter/           # Filter and search components
+│   │   │   └── home/             # Home page components
 │   │   ├── layout/               # Layout components (Navbar)
 │   │   └── ui/                   # Base UI components (shadcn/ui)
 │   ├── contexts/                 # React contexts
@@ -46,12 +49,36 @@ Front-end/
 │   │   ├── SettingsContext.tsx
 │   │   └── ThemeContext.tsx
 │   ├── hooks/                    # Custom React hooks
+│   │   ├── useArticle.ts         # Article data fetching
+│   │   ├── useArticles.ts        # Articles list fetching
+│   │   ├── useCategories.ts      # Categories fetching
+│   │   ├── useSEOSettings.ts     # SEO settings from backend
+│   │   └── index.ts              # Hooks export
 │   ├── i18n/                     # Internationalization
 │   ├── lib/                      # Utility libraries
+│   │   ├── analytics.ts          # Google Analytics integration
+│   │   ├── site.ts               # Site configuration constants
+│   │   └── utils.ts              # Utility functions
 │   ├── services/                 # API service layer
+│   │   ├── api.ts                # Base API client
+│   │   ├── postApi.ts            # Post API services
+│   │   ├── categoryApi.ts        # Category API services
+│   │   └── settingsApi.ts        # Settings API services
 │   ├── types/                    # TypeScript type definitions
-│   └── utils/                    # Utility functions
+│   │   ├── components.ts         # Component prop types
+│   │   ├── dto/                  # Data transfer objects
+│   │   ├── models/               # Data models
+│   │   └── index.ts              # Types export
+│   ├── utils/                    # Utility functions
+│   │   ├── images.ts             # Image optimization utilities
+│   │   ├── imageSeo.ts           # Image SEO utilities
+│   │   ├── meta-tags.ts          # Meta tags generation
+│   │   └── seo.ts                # SEO utilities
+│   └── middleware.ts             # Next.js middleware
 ├── messages/                     # i18n message files
+│   ├── en/                       # English messages
+│   ├── zh/                       # Chinese messages
+│   └── en.json                   # English fallback
 ├── public/                       # Static assets
 ├── tailwind.config.ts            # Tailwind CSS configuration
 ├── next.config.ts                # Next.js configuration
@@ -62,12 +89,16 @@ Front-end/
 - **Internationalization:** Multi-language support with Next-Intl
 - **Responsive Design:** Mobile-first approach with Tailwind CSS
 - **Code Highlighting:** PrismJS integration for syntax highlighting
-- **SEO Optimized:** Server-side rendering and meta tags
+- **SEO Optimized:** Server-side rendering, meta tags, structured data, sitemap, robots.txt
 - **Theme Support:** Dark/light mode toggle
+- **Performance Monitoring:** Vercel Speed Insights integration
+- **Analytics:** Google Analytics 4 (GA4) integration
+- **Image Optimization:** Next.js Image component with WebP/AVIF support
+- **Accessibility:** ARIA labels, focus management, contrast optimization
 
 ## 2. Admin Panel (Content Management System)
 
-**Technology Stack:** Next.js 14, React, TypeScript, Tiptap (Rich Text Editor), Tailwind CSS
+**Technology Stack:** Next.js 15.2.4, React 18, TypeScript, Tiptap (Rich Text Editor), Tailwind CSS
 
 ### Directory Structure
 ```
@@ -101,6 +132,11 @@ admin-panel/
 │   │   ├── TagSelector.tsx       # Tag selection
 │   │   └── FeaturedImageUploader.tsx
 │   ├── settings/                 # Settings components
+│   │   ├── about/                # About page settings
+│   │   ├── AppearanceSettingsForm.tsx
+│   │   ├── GeneralSettingsForm.tsx
+│   │   ├── PasswordChangeForm.tsx
+│   │   └── PostsSettingsForm.tsx
 │   ├── layouts/                  # Layout components
 │   │   ├── auth-layout.tsx       # Authentication layout
 │   │   └── main-layout.tsx       # Main admin layout
@@ -110,12 +146,17 @@ admin-panel/
 │   └── ui/                       # Base UI components
 ├── contexts/                     # React contexts
 │   ├── auth-context.tsx          # Authentication context
-│   ├── keep-alive-context.tsx    # Keep-alive service context
 │   └── LocaleContext.tsx         # Localization context
 ├── hooks/                        # Custom React hooks
+│   ├── useApiData.ts             # API data fetching
+│   ├── usePosts.ts               # Posts management
+│   ├── useSettings.ts            # Settings management
+│   └── useTaxonomies.ts          # Categories and tags
 ├── lib/                          # Utility libraries
 │   ├── api.ts                    # API client
 │   ├── services/                 # Service layer
+│   │   ├── auth-service.ts       # Authentication service
+│   │   └── settings-service.ts   # Settings service
 │   ├── utils.ts                  # Utility functions
 │   └── validators/               # Form validation schemas
 ├── types/                        # TypeScript type definitions
@@ -129,10 +170,12 @@ admin-panel/
 - **Media Management:** Image upload and management
 - **Site Settings:** Configurable site settings and appearance
 - **Authentication:** Secure admin login and session management
+- **Form Validation:** Zod-based form validation
+- **Error Handling:** Comprehensive error handling and user feedback
 
 ## 3. Back-end (API Server)
 
-**Technology Stack:** Node.js, Express.js, MongoDB, Mongoose, JWT Authentication
+**Technology Stack:** Node.js 18+, Express.js, MongoDB, Mongoose, JWT Authentication
 
 ### Directory Structure
 ```
@@ -200,6 +243,8 @@ Back-end/
 - **Testing:** Comprehensive test suite with Jest
 - **Keep-alive Service:** Automated service to prevent server sleep
 - **Internationalization:** Multi-language API support
+- **Rate Limiting:** Request rate limiting for API protection
+- **CORS Configuration:** Cross-origin resource sharing setup
 
 ## Development Workflow
 
@@ -222,13 +267,13 @@ cd Front-end && npm run dev
 ```
 
 ### 2. Environment Configuration
-- **Front-end:** Configure API endpoints and i18n settings
+- **Front-end:** Configure API endpoints, GA4 ID, and i18n settings
 - **Admin Panel:** Set API base URL and authentication settings
 - **Back-end:** Configure database connection, JWT secrets, and file storage
 
 ### 3. Deployment
-- **Front-end:** Deploy to Vercel or similar static hosting
-- **Admin Panel:** Deploy to Vercel or similar platform
+- **Front-end:** Deploy to Vercel with environment variables
+- **Admin Panel:** Deploy to Vercel with environment variables
 - **Back-end:** Deploy to Render, Railway, or similar Node.js hosting
 
 ## Architecture Benefits
@@ -238,5 +283,7 @@ cd Front-end && npm run dev
 3. **Maintainability:** Modular structure makes code easy to maintain and extend
 4. **Technology Flexibility:** Each component can use the most appropriate technology stack
 5. **Security:** Isolated admin panel with proper authentication and authorization
+6. **Performance:** Optimized for SEO, analytics, and user experience
+7. **Accessibility:** Built with accessibility best practices
 
 This architecture provides a robust foundation for a personal blog system that can grow and evolve over time while maintaining code quality and developer experience.

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Blog System - Full-Stack Architecture</title>
+    <meta name="description"
+        content="Modern three-tier architecture blog system built with Next.js, React, Node.js, and MongoDB. Features SEO optimization, internationalization, and performance monitoring.">
+    <meta name="keywords" content="blog system,full-stack development,Next.js,React,Node.js,MongoDB,TypeScript">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">🏗️</span>
+                <span class="logo-text">Personal Blog System</span>
+            </div>
+            <div class="nav-links">
+                <a href="#architecture">Architecture</a>
+                <a href="#features">Features</a>
+                <a href="#tech-stack">Tech Stack</a>
+                <a href="#implementation">Implementation</a>
+                <a href="#deployment">Deployment</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">Full-Stack Project</div>
+                <h1 class="hero-title">
+                    Personal Blog System
+                    <span class="hero-subtitle">Modern Three-Tier Architecture</span>
+                </h1>
+                <p class="hero-description">
+                    A comprehensive blog system built with cutting-edge technologies, featuring SEO optimization,
+                    internationalization, and real-time performance monitoring. This project demonstrates modern
+                    full-stack development practices with a focus on scalability, maintainability, and user experience.
+                </p>
+                <div class="hero-actions">
+                    <a href="#implementation" class="btn btn-primary">
+                        <span class="btn-icon">🔍</span>
+                        Explore Details
+                    </a>
+                    <a href="#architecture" class="btn btn-secondary">
+                        <span class="btn-icon">🏗️</span>
+                        View Architecture
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="tech-pills">
+                    <span class="pill">Next.js 15</span>
+                    <span class="pill">React 19</span>
+                    <span class="pill">Node.js 18</span>
+                    <span class="pill">MongoDB</span>
+                    <span class="pill">TypeScript</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="architecture">
+        <div class="container">
+            <div class="section-header">
+                <h2>System Architecture</h2>
+                <p>Three-tier architecture designed for scalability, maintainability, and performance</p>
+            </div>
+
+            <div class="architecture-grid">
+                <div class="arch-card frontend">
+                    <div class="card-header">
+                        <div class="card-icon">🌐</div>
+                        <div class="card-title">
+                            <h3>Frontend</h3>
+                            <span class="platform">Vercel</span>
+                        </div>
+                        <div class="tech-badge">Next.js 15</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>User Blog Interface</h4>
+                        <ul class="feature-list">
+                            <li>SEO Optimization</li>
+                            <li>Internationalization</li>
+                            <li>Google Analytics 4</li>
+                            <li>Responsive Design</li>
+                            <li>Performance Monitoring</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="arch-card admin">
+                    <div class="card-header">
+                        <div class="card-icon">⚙️</div>
+                        <div class="card-title">
+                            <h3>Admin Panel</h3>
+                            <span class="platform">Vercel</span>
+                        </div>
+                        <div class="tech-badge">Next.js 15</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Content Management</h4>
+                        <ul class="feature-list">
+                            <li>Rich Text Editor</li>
+                            <li>Media Management</li>
+                            <li>Settings Management</li>
+                            <li>JWT Authentication</li>
+                            <li>Form Validation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="arch-card backend">
+                    <div class="card-header">
+                        <div class="card-icon">🔧</div>
+                        <div class="card-title">
+                            <h3>Backend</h3>
+                            <span class="platform">Render</span>
+                        </div>
+                        <div class="tech-badge">Node.js 18</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>API Services</h4>
+                        <ul class="feature-list">
+                            <li>RESTful API</li>
+                            <li>JWT Authentication</li>
+                            <li>File Upload</li>
+                            <li>Database Management</li>
+                            <li>Error Handling</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Core Features</h2>
+                <p>Modern functionality delivering exceptional user experience</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>SEO Optimization</h3>
+                    <p>Complete SEO implementation with meta tags, structured data, and sitemap generation</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Internationalization</h3>
+                    <p>Bilingual support (English/Chinese) with Next-Intl for seamless localization</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Performance Monitoring</h3>
+                    <p>Real-time analytics with Google Analytics 4 and Vercel Speed Insights</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Security & Reliability</h3>
+                    <p>JWT authentication, input validation, and comprehensive error handling</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Responsive Design</h3>
+                    <p>Mobile-first approach ensuring perfect experience across all devices</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>High Performance</h3>
+                    <p>SSR/SSG rendering, image optimization, and intelligent code splitting</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section id="tech-stack" class="tech-stack">
+        <div class="container">
+            <div class="section-header">
+                <h2>Technology Stack</h2>
+                <p>Modern technologies ensuring stability, performance, and maintainability</p>
+            </div>
+
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h3>Frontend</h3>
+                    <div class="tech-items">
+                        <span class="tech-item">Next.js 15</span>
+                        <span class="tech-item">React 19</span>
+                        <span class="tech-item">TypeScript</span>
+                        <span class="tech-item">Tailwind CSS</span>
+                        <span class="tech-item">Next-Intl</span>
+                        <span class="tech-item">React Query</span>
+                    </div>
+                </div>
+
+                <div class="tech-category">
+                    <h3>Admin Panel</h3>
+                    <div class="tech-items">
+                        <span class="tech-item">Next.js 15</span>
+                        <span class="tech-item">React 18</span>
+                        <span class="tech-item">Tiptap Editor</span>
+                        <span class="tech-item">Zod Validation</span>
+                        <span class="tech-item">React Hook Form</span>
+                        <span class="tech-item">Radix UI</span>
+                    </div>
+                </div>
+
+                <div class="tech-category">
+                    <h3>Backend</h3>
+                    <div class="tech-items">
+                        <span class="tech-item">Node.js 18</span>
+                        <span class="tech-item">Express.js</span>
+                        <span class="tech-item">MongoDB</span>
+                        <span class="tech-item">Mongoose</span>
+                        <span class="tech-item">JWT</span>
+                        <span class="tech-item">Multer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Implementation Details Section -->
+    <section id="implementation" class="implementation">
+        <div class="container">
+            <div class="section-header">
+                <h2>Implementation Details</h2>
+                <p>Technical implementation and development practices</p>
+            </div>
+
+            <div class="implementation-grid">
+                <div class="impl-card">
+                    <h3>Frontend Implementation</h3>
+                    <div class="impl-content">
+                        <h4>Next.js App Router</h4>
+                        <p>Utilized Next.js 15 App Router for modern routing with server-side rendering and static
+                            generation capabilities.</p>
+
+                        <h4>SEO Optimization</h4>
+                        <ul>
+                            <li>Dynamic meta tags generation</li>
+                            <li>Structured data (Schema.org)</li>
+                            <li>Automatic sitemap generation</li>
+                            <li>Robots.txt configuration</li>
+                            <li>Open Graph and Twitter cards</li>
+                        </ul>
+
+                        <h4>Internationalization</h4>
+                        <ul>
+                            <li>Next-Intl for i18n management</li>
+                            <li>Dynamic locale switching</li>
+                            <li>Localized routing (/en/, /zh/)</li>
+                            <li>Translation file management</li>
+                        </ul>
+
+                        <h4>Performance Features</h4>
+                        <ul>
+                            <li>Image optimization with next/image</li>
+                            <li>Code splitting and lazy loading</li>
+                            <li>Font optimization</li>
+                            <li>Bundle analysis and optimization</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="impl-card">
+                    <h3>Admin Panel Features</h3>
+                    <div class="impl-content">
+                        <h4>Rich Text Editor</h4>
+                        <p>Integrated Tiptap editor with advanced formatting options, media embedding, and real-time
+                            collaboration features.</p>
+
+                        <h4>Content Management</h4>
+                        <ul>
+                            <li>Post creation and editing</li>
+                            <li>Category and tag management</li>
+                            <li>Media library with drag-and-drop</li>
+                            <li>Settings configuration</li>
+                            <li>User management</li>
+                        </ul>
+
+                        <h4>Form Validation</h4>
+                        <ul>
+                            <li>Zod schema validation</li>
+                            <li>React Hook Form integration</li>
+                            <li>Real-time validation feedback</li>
+                            <li>Error handling and display</li>
+                        </ul>
+
+                        <h4>UI Components</h4>
+                        <ul>
+                            <li>Radix UI primitives</li>
+                            <li>shadcn/ui component library</li>
+                            <li>Responsive design system</li>
+                            <li>Dark/light theme support</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="impl-card">
+                    <h3>Backend Architecture</h3>
+                    <div class="impl-content">
+                        <h4>RESTful API Design</h4>
+                        <p>Implemented RESTful API with proper HTTP methods, status codes, and resource-based URL
+                            structure.</p>
+
+                        <h4>Authentication System</h4>
+                        <ul>
+                            <li>JWT token-based authentication</li>
+                            <li>Password hashing with bcrypt</li>
+                            <li>Token refresh mechanism</li>
+                            <li>Role-based access control</li>
+                            <li>Session management</li>
+                        </ul>
+
+                        <h4>Database Design</h4>
+                        <ul>
+                            <li>MongoDB with Mongoose ODM</li>
+                            <li>Optimized schema design</li>
+                            <li>Indexing for performance</li>
+                            <li>Data validation and sanitization</li>
+                            <li>Backup and recovery strategies</li>
+                        </ul>
+
+                        <h4>File Management</h4>
+                        <ul>
+                            <li>Multer for file uploads</li>
+                            <li>Image processing and optimization</li>
+                            <li>Cloud storage integration</li>
+                            <li>File type validation</li>
+                            <li>Storage quota management</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Deployment Section -->
+    <section id="deployment" class="deployment">
+        <div class="container">
+            <div class="section-header">
+                <h2>Deployment Architecture</h2>
+                <p>Cloud-native deployment ensuring high availability and scalability</p>
+            </div>
+
+            <div class="deployment-grid">
+                <div class="deployment-card">
+                    <div class="deployment-icon">🚀</div>
+                    <h3>Frontend & Admin</h3>
+                    <div class="deployment-platform">Vercel</div>
+                    <ul class="deployment-features">
+                        <li>Auto Deployment</li>
+                        <li>Global CDN</li>
+                        <li>SSL Certificates</li>
+                        <li>Edge Functions</li>
+                    </ul>
+                </div>
+
+                <div class="deployment-card">
+                    <div class="deployment-icon">⚙️</div>
+                    <h3>Backend API</h3>
+                    <div class="deployment-platform">Render</div>
+                    <ul class="deployment-features">
+                        <li>Node.js Environment</li>
+                        <li>Auto Scaling</li>
+                        <li>Health Checks</li>
+                        <li>Zero Downtime</li>
+                    </ul>
+                </div>
+
+                <div class="deployment-card">
+                    <div class="deployment-icon">🗄️</div>
+                    <h3>Database</h3>
+                    <div class="deployment-platform">MongoDB Atlas</div>
+                    <ul class="deployment-features">
+                        <li>Cloud Database</li>
+                        <li>Auto Backup</li>
+                        <li>High Availability</li>
+                        <li>Global Clusters</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Highlights Section -->
+    <section class="highlights">
+        <div class="container">
+            <div class="section-header">
+                <h2>Project Highlights</h2>
+                <p>Key achievements and technical accomplishments</p>
+            </div>
+
+            <div class="highlights-grid">
+                <div class="highlight-card">
+                    <div class="highlight-icon">📈</div>
+                    <h3>Performance</h3>
+                    <p>Lighthouse scores: Performance 95+, Accessibility 100, Best Practices 100, SEO 100</p>
+                </div>
+
+                <div class="highlight-card">
+                    <div class="highlight-icon">🔒</div>
+                    <h3>Security</h3>
+                    <p>JWT authentication, input validation, CORS protection, and secure file uploads</p>
+                </div>
+
+                <div class="highlight-card">
+                    <div class="highlight-icon">🌐</div>
+                    <h3>Accessibility</h3>
+                    <p>WCAG 2.1 AA compliant with keyboard navigation and screen reader support</p>
+                </div>
+
+                <div class="highlight-card">
+                    <div class="highlight-icon">📱</div>
+                    <h3>Responsive</h3>
+                    <p>Mobile-first design with perfect experience across all device sizes</p>
+                </div>
+
+                <div class="highlight-card">
+                    <div class="highlight-icon">⚡</div>
+                    <h3>Scalability</h3>
+                    <p>Microservices architecture with independent scaling capabilities</p>
+                </div>
+
+                <div class="highlight-card">
+                    <div class="highlight-icon">🛠️</div>
+                    <h3>Maintainability</h3>
+                    <p>Clean code architecture with TypeScript, proper documentation, and testing</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Explore?</h2>
+                <p>This project demonstrates modern full-stack development practices with a focus on performance,
+                    security, and user experience.</p>
+                <div class="cta-buttons">
+                    <a href="https://www.kxzhang.online" class="btn btn-primary" target="_blank"
+                        rel="noopener noreferrer">
+                        <span class="btn-icon">🌐</span>
+                        Live Demo
+                    </a>
+                    <a href="#architecture" class="btn btn-secondary">
+                        <span class="btn-icon">📋</span>
+                        View Architecture
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <div class="footer-logo">
+                        <span class="logo-icon">🏗️</span>
+                        <span class="logo-text">Personal Blog System</span>
+                    </div>
+                    <p>Built with modern web technologies for optimal performance and user experience. This project
+                        showcases full-stack development skills with Next.js, React, Node.js, and MongoDB.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="https://www.kxzhang.online" target="_blank" rel="noopener noreferrer">Live Demo</a>
+                    <a href="#architecture">Architecture</a>
+                    <a href="#features">Features</a>
+                    <a href="#tech-stack">Tech Stack</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Personal Blog System. Built with ❤️ using modern web technologies.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>

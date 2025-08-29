@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, FieldErrors } from "react-hook-form";
 import { z } from "zod";
 
@@ -39,6 +39,13 @@ export default function AboutSettingsForm({
     resolver: zodResolver(aboutFormSchema),
     defaultValues,
   });
+
+  // Reset form when defaultValues change (for async data loading)
+  useEffect(() => {
+    if (defaultValues && !loading) {
+      form.reset(defaultValues);
+    }
+  }, [defaultValues, loading, form]);
 
   const {
     formState: { errors },

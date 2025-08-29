@@ -16,8 +16,8 @@ import { Textarea } from "@/components/ui/inputs/textarea";
 import { AboutProjectItemProps } from "@/types/settings";
 
 export function ProjectItem({ form, index, onRemove }: AboutProjectItemProps) {
-  const [inputValue, setInputValue] = useState('');
-  
+  const [inputValue, setInputValue] = useState("");
+
   return (
     <div className="mb-6 rounded-md border p-4 bg-background">
       <div className="flex justify-between items-center mb-2">
@@ -70,22 +70,27 @@ export function ProjectItem({ form, index, onRemove }: AboutProjectItemProps) {
               <FormLabel>Technologies</FormLabel>
               <FormControl>
                 <div className="space-y-2">
-                  <Input 
+                  <Input
                     placeholder="Enter technology and press Enter (e.g., React, Node.js)"
                     value={inputValue}
-                    onChange={(e) => {
+                    onChange={e => {
                       setInputValue(e.target.value);
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
                         e.preventDefault();
-                        const value = (e.target as HTMLInputElement).value.trim();
+                        const value = (
+                          e.target as HTMLInputElement
+                        ).value.trim();
                         if (value) {
                           const newTech = value;
                           const currentTechArray = field.value || [];
-                          const updatedTechArray = [...currentTechArray, newTech];
+                          const updatedTechArray = [
+                            ...currentTechArray,
+                            newTech,
+                          ];
                           field.onChange(updatedTechArray);
-                          setInputValue('');
+                          setInputValue("");
                         }
                       }
                     }}
@@ -101,7 +106,10 @@ export function ProjectItem({ form, index, onRemove }: AboutProjectItemProps) {
                           <button
                             type="button"
                             onClick={() => {
-                              const newTechArray = field.value?.filter((_, i) => i !== techIndex) || [];
+                              const newTechArray =
+                                field.value?.filter(
+                                  (_, i) => i !== techIndex
+                                ) || [];
                               field.onChange(newTechArray);
                             }}
                             className="text-blue-600 hover:text-blue-800"

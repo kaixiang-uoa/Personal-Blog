@@ -356,7 +356,7 @@ export default function AboutMe() {
         {/* Projects Section */}
         {(() => {
           const hasProjects = hasValidContent(aboutData.projects);
-          
+
           return (
             hasProjects && (
               <section className="mb-12">
@@ -365,24 +365,24 @@ export default function AboutMe() {
                 </h2>
                 <div className="space-y-4">
                   {aboutData.projects.map((project: ProjectItem, index: number) => (
-                      <div
-                        key={index}
-                        className="border border-border rounded-lg p-4 hover:shadow-sm transition-all"
-                      >
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-start justify-between">
-                            <h3 className="text-foreground font-medium text-lg">{project.name}</h3>
-                            {project.link && project.link.trim() !== '' && (
-                              <a
-                                href={project.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-cyan-600 hover:text-cyan-700 text-sm font-medium"
-                              >
-                                {t('viewProject')}
-                              </a>
-                            )}
-                          </div>
+                    <div
+                      key={index}
+                      className="border border-border rounded-lg p-4 hover:shadow-sm transition-all"
+                    >
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-start justify-between">
+                          <h3 className="text-foreground font-medium text-lg">{project.name}</h3>
+                          {project.link && project.link.trim() !== '' && (
+                            <a
+                              href={project.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-cyan-600 hover:text-cyan-700 text-sm font-medium"
+                            >
+                              {t('viewProject')}
+                            </a>
+                          )}
+                        </div>
                         {project.description && (
                           <p className="text-muted-foreground text-sm leading-relaxed">
                             {project.description}

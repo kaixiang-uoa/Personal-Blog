@@ -167,8 +167,8 @@ export function BackgroundSection({ form }: AboutFormSectionProps) {
             appendProject({
               name: "",
               description: "",
-              technologies: "",
-              url: "",
+              tech: [],
+              link: "",
             })
           }
           className="w-full max-w-xs"

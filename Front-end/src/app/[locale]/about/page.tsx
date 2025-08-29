@@ -371,7 +371,7 @@ export default function AboutMe() {
                       <div className="flex flex-col gap-2">
                         <div className="flex items-start justify-between">
                           <h3 className="text-foreground font-medium text-lg">{project.name}</h3>
-                          {project.link && (
+                          {project.link && project.link.trim() !== '' && (
                             <a
                               href={project.link}
                               target="_blank"

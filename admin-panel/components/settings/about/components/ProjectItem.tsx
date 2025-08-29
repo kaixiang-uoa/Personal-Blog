@@ -61,7 +61,7 @@ export function ProjectItem({ form, index, onRemove }: AboutProjectItemProps) {
         />
         <FormField
           control={form.control}
-          name={`projects.${index}.technologies`}
+          name={`projects.${index}.tech`}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Technologies</FormLabel>
@@ -74,7 +74,7 @@ export function ProjectItem({ form, index, onRemove }: AboutProjectItemProps) {
         />
         <FormField
           control={form.control}
-          name={`projects.${index}.url`}
+          name={`projects.${index}.link`}
           render={({ field }) => (
             <FormItem>
               <FormLabel>URL (Optional)</FormLabel>

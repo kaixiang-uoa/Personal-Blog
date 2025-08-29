@@ -1,8 +1,0 @@
-export type SortOrder =
-  | 'publishedAt-desc'
-  | 'publishedAt-asc'
-  | 'updatedAt-desc'
-  | 'updatedAt-asc'
-  | 'latest'
-  | 'oldest'
-  | 'popular';

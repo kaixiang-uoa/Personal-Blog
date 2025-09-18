@@ -61,18 +61,18 @@ try {
     console.log('⚠️ no admin account found, creating default admin account');
 
     const defaultAdmin = new User({
-      username: 'admin',
-      email: 'admin@example.com',
-      password: '[REMOVED]',
+      username: process.env.DEFAULT_ADMIN_USERNAME || 'admin',
+      email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com',
+      password: process.env.DEFAULT_ADMIN_PASSWORD || 'ChangeMe123!',
       role: 'admin',
       isActive: true,
     });
 
     await defaultAdmin.save();
     console.log('✅ default admin account created');
-    console.log('- username: admin');
-    console.log('- email: admin@example.com');
-    console.log('- password: [REMOVED]');
+    console.log(`- username: ${defaultAdmin.username}`);
+    console.log(`- email: ${defaultAdmin.email}`);
+    console.log('- password: [CHECK ENV VARS]');
   }
 
   console.log('\n🚀 password fix completed!');

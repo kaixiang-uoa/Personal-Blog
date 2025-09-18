@@ -28,7 +28,7 @@ const createAdminUser = async () => {
     const adminUser = await User.create({
       username: process.env.ADMIN_USERNAME || 'admin',
       email: process.env.ADMIN_EMAIL || 'admin@example.com',
-      password: process.env.ADMIN_PASSWORD || 'Admin@123',
+      password: process.env.ADMIN_PASSWORD || 'ChangeMe123!',
       role: 'admin',
       displayName: 'System Administrator',
       isActive: true,

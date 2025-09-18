@@ -77,10 +77,19 @@ web_modules/
 
 # dotenv environment variable files
 .env
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
 .env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+.env.docker
+.env.docker.*
+.env.backup
+.env.example.local
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -141,3 +150,46 @@ dist
 # .vercel
 
 .cursor/
+
+# Security and sensitive files
+config/secrets.js
+config/credentials.js
+secrets/
+credentials/
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.csr
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+*~
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Upload directories
+uploads/
+media/
+files/
+tmp/
+
+# Custom application secrets (add specific patterns for your app)
+config/database.yml
+config/application.yml

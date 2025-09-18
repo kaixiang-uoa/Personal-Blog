@@ -3,7 +3,7 @@
 A modern, full-stack blog system built with cutting-edge technologies, featuring SEO optimization, internationalization, and real-time performance monitoring.
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.3-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)](https://reactjs.org/)
+[![React](https://img.shields.io/badge/React-19.1.0-blue?style=flat-square&logo=react)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green?style=flat-square&logo=node.js)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -91,7 +91,7 @@ Personal Blog System is a comprehensive three-tier architecture solution that pr
 
 ### Frontend
 - **Framework**: Next.js 15.3.3
-- **UI Library**: React 19
+- **UI Library**: React 19.1.0
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Internationalization**: Next-Intl
@@ -99,7 +99,7 @@ Personal Blog System is a comprehensive three-tier architecture solution that pr
 - **Icons**: Lucide React
 
 ### Admin Panel
-- **Framework**: Next.js 15.2.4
+- **Framework**: Next.js 15.5.3
 - **UI Library**: React 18
 - **Rich Text Editor**: Tiptap
 - **Form Validation**: Zod + React Hook Form
@@ -148,8 +148,8 @@ Personal-Blog/
 │   │   ├── models/         # Mongoose models
 │   │   ├── routers/        # API routes
 │   │   └── utils/          # Utility functions
-│   └── uploads/            # File uploads
-├── docs/                   # Project documentation
+│   └── public/             # Static files
+├── documentation/          # Project documentation
 └── docs-site/              # GitHub Pages showcase
 ```
 

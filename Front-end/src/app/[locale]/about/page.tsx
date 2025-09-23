@@ -213,18 +213,24 @@ export default function AboutMe() {
       />
 
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Introduction Section */}
-        {aboutData.intro && (
-          <section className="mb-12">
-            <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">
-              {t('title')}
-            </h2>
+        {/* Introduction Section (with fallback content to avoid thin content) */}
+        <section className="mb-12">
+          <h2 className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">
+            {t('title')}
+          </h2>
+          {aboutData.intro ? (
             <div
               className="text-foreground text-base leading-normal"
               dangerouslySetInnerHTML={{ __html: aboutData.intro }}
             />
-          </section>
-        )}
+          ) : (
+            <p className="text-muted-foreground text-base leading-relaxed">
+              {locale === 'zh'
+                ? '这是我的个人简介与博客背景的简要介绍，涵盖技术方向、项目经验与职业目标。更多内容将陆续补充，欢迎通过联系页面与我交流。'
+                : 'This is a short introduction about me and the background of this blog, covering interests, engineering focus, and project experience. More details will be added. Feel free to reach out via the contact page.'}
+            </p>
+          )}
+        </section>
 
         {/* Contact Info Section */}
         {hasValidContent(aboutData.contact) && (

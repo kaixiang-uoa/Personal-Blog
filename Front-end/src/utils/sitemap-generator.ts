@@ -32,18 +32,20 @@ export class SitemapGenerator {
    * Add static pages
    */
   addStaticPages() {
+    const buildTime = new Date().toISOString();
     const staticPages = [
-      { path: '', priority: 1.0, changefreq: 'daily' as const },
-      { path: '/about', priority: 0.8, changefreq: 'monthly' as const },
-      { path: '/contact', priority: 0.7, changefreq: 'monthly' as const },
+      { path: '', priority: 1.0, changefreq: 'daily' as const, lastmod: buildTime },
+      { path: '/about', priority: 0.8, changefreq: 'monthly' as const, lastmod: buildTime },
+      { path: '/contact', priority: 0.7, changefreq: 'monthly' as const, lastmod: buildTime },
     ];
 
-    staticPages.forEach(({ path, priority, changefreq }) => {
+    staticPages.forEach(({ path, priority, changefreq, lastmod }) => {
       // Add root page
       this.addUrl({
         loc: `${this.config.baseUrl}${path}`,
         priority,
         changefreq,
+        lastmod,
         hreflang: this.generateHreflang(path),
       });
 
@@ -53,6 +55,7 @@ export class SitemapGenerator {
           loc: `${this.config.baseUrl}/${locale}${path}`,
           priority,
           changefreq,
+          lastmod,
           hreflang: this.generateHreflang(path),
         });
       });

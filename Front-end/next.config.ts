@@ -39,6 +39,19 @@ const nextConfig = {
   // Security headers for Google Analytics and other services
   async headers() {
     return [
+      // Long-term caching for static assets
+      {
+        source: '/_next/static/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        source: '/_next/image',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        source: '/images/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
       {
         source: '/(.*)',
         headers: [
@@ -61,6 +74,19 @@ const nextConfig = {
   // Redirects for SEO optimization
   async redirects() {
     return [
+      // Root to default locale with permanent 301 and single hop to canonical host
+      {
+        source: '/',
+        destination: 'https://www.kxzhang.online/en',
+        permanent: true,
+      },
+      // Force HTTP -> HTTPS and unify host to www (single rule)
+      {
+        source: '/:path*',
+        has: [{ type: 'header', key: 'x-forwarded-proto', value: 'http' }],
+        destination: 'https://www.kxzhang.online/:path*',
+        permanent: true,
+      },
       // Non-www to www redirect
       {
         source: '/:path*',
@@ -72,12 +98,6 @@ const nextConfig = {
         ],
         destination: 'https://www.kxzhang.online/:path*',
         permanent: true,
-      },
-      // Root path redirect to default locale
-      {
-        source: '/',
-        destination: '/en',
-        permanent: false,
       },
     ];
   },

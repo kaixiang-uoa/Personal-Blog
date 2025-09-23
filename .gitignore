@@ -193,3 +193,6 @@ tmp/
 # Custom application secrets (add specific patterns for your app)
 config/database.yml
 config/application.yml
+
+# Interview preparation materials (private)
+interview-prep/

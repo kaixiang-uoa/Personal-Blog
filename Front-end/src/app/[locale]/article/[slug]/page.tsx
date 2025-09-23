@@ -1,13 +1,12 @@
 'use client';
 import { useEffect } from 'react';
-import { useRouter, useParams, usePathname } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Navbar, ErrorBoundary, Breadcrumbs, OptimizedImage, Footer } from '@/components';
 import { useArticle } from '@/hooks/useArticle';
 import { Article, PostData } from '@/types';
 import { useSetting } from '@/contexts/SettingsContext';
-import { ArticleSEO } from '@/components/common/ArticleSEO';
 import { generateArticleBreadcrumbs } from '@/components/common/Breadcrumbs';
 import { generateAltText } from '@/components/common/OptimizedImage';
 import Prism from 'prismjs';
@@ -40,7 +39,6 @@ export default function ArticlePage() {
   const params = useParams();
   const slug = params.slug as string;
   const locale = params.locale as string;
-  const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations('common');
 
@@ -82,7 +80,7 @@ export default function ArticlePage() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      {article && <ArticleSEO article={article} locale={locale} pathname={pathname} />}
+      {/* Metadata moved to generateMetadata in layout.tsx */}
       <ErrorBoundary>
         <div className="max-w-6xl mx-auto w-full px-4 md:px-6 lg:px-8 py-4">
           {/* Breadcrumbs */}

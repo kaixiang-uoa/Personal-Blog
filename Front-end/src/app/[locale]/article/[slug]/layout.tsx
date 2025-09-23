@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import { SITE } from '@/lib/site';
 
 type LayoutProps = {
@@ -13,7 +12,7 @@ export default async function ArticleLayout(props: LayoutProps) {
 
 export async function generateMetadata(props: {
   params: Promise<{ locale: string; slug: string }>;
-}): Promise<Metadata> {
+}) {
   const { locale, slug } = await props.params;
 
   const baseUrl = SITE.baseUrl;
